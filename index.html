@@ -1151,12 +1151,12 @@ function renderResultsTable() {
   });
   const total = sorted.length;
   const slice = sorted.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
-  document.getElementById('results-count').textContent = `${total.toLocaleString()} results`;
+  document.getElementById('results-count').textContent = total.toLocaleString() + ' results';
   document.getElementById('results-body').innerHTML = slice.map(r=>{
     const p = r.finish_position;
     const pc = p===1?'pos-1':p===2?'pos-2':p===3?'pos-3':'pos-other';
-    return `<tr>
-      <td><span class="pos-badge ${pc}">${p}</span></td>
+    return '<tr>'
+      +'<td><span class="pos-badge '+pc+'">'+p+'</span></td>'
       <td><span class="horse-link" onclick="openProfile('${(r.horse||'').replace(/'/g,"\\'")}','horse')">${r.horse||'—'}</span></td>
       <td><span class="horse-link" onclick="openProfile('${(r.jockey||'').replace(/'/g,"\\'")}','jockey')">${r.jockey||'—'}</span></td>
       <td class="r-hide" style="color:var(--text2);font-size:12px">${r.trainer||'—'}</td>
