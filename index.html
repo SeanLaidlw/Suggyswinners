@@ -390,8 +390,8 @@ tr:hover td{background:var(--bg3)}
   <div class="bottom-nav-inner">
     <button class="bnav-tab active" onclick="showPage('results')"><span class="bnav-icon">📋</span>Results</button>
     <button class="bnav-tab" onclick="showPage('trends')"><span class="bnav-icon">📈</span>Trends</button>
-    <button class="bnav-tab" onclick="showPage('h2h')"><span class="bnav-icon">⚡</span>H2H</button>
-    <button class="bnav-tab" onclick="showPage('field')"><span class="bnav-icon">🏇</span>Field</button>
+    <button class="bnav-tab" onclick="showPage('h2h')"><span class="bnav-icon">&#x26A1;</span>H2H</button>
+    <button class="bnav-tab" onclick="showPage('field')"><span class="bnav-icon">&#x1F3C7;</span>Field</button>
     <button class="bnav-tab" onclick="showPage('profile')"><span class="bnav-icon">👤</span>Profile</button>
   </div>
 </nav>
@@ -400,11 +400,11 @@ tr:hover td{background:var(--bg3)}
 <div id="page-results" class="page active">
   <div class="filter-bar">
     <div class="filter-group"><span class="filter-label">Horse</span>
-      <div class="ac-wrap"><input type="text" id="f-horse" placeholder="Horse name…" oninput="acUpdate(this,'horse');applyFilters()" onkeydown="acKey(event,'f-horse-ac')" autocomplete="off"><div class="ac-dropdown" id="f-horse-ac"></div></div></div>
+      <div class="ac-wrap"><input type="text" id="f-horse" placeholder="Horse name..." oninput="acUpdate(this,'horse');applyFilters()" onkeydown="acKey(event,'f-horse-ac')" autocomplete="off"><div class="ac-dropdown" id="f-horse-ac"></div></div></div>
     <div class="filter-group"><span class="filter-label">Jockey</span>
-      <div class="ac-wrap"><input type="text" id="f-jockey" placeholder="Jockey name…" oninput="acUpdate(this,'jockey');applyFilters()" onkeydown="acKey(event,'f-jockey-ac')" autocomplete="off"><div class="ac-dropdown" id="f-jockey-ac"></div></div></div>
+      <div class="ac-wrap"><input type="text" id="f-jockey" placeholder="Jockey name..." oninput="acUpdate(this,'jockey');applyFilters()" onkeydown="acKey(event,'f-jockey-ac')" autocomplete="off"><div class="ac-dropdown" id="f-jockey-ac"></div></div></div>
     <div class="filter-group"><span class="filter-label">Trainer</span>
-      <div class="ac-wrap"><input type="text" id="f-trainer" placeholder="Trainer name…" oninput="acUpdate(this,'trainer');applyFilters()" onkeydown="acKey(event,'f-trainer-ac')" autocomplete="off"><div class="ac-dropdown" id="f-trainer-ac"></div></div></div>
+      <div class="ac-wrap"><input type="text" id="f-trainer" placeholder="Trainer name..." oninput="acUpdate(this,'trainer');applyFilters()" onkeydown="acKey(event,'f-trainer-ac')" autocomplete="off"><div class="ac-dropdown" id="f-trainer-ac"></div></div></div>
     <div class="filter-group"><span class="filter-label">Track</span>
       <select id="f-track" onchange="applyFilters()"><option value="">All tracks</option></select></div>
     <div class="filter-group"><span class="filter-label">Going</span>
@@ -412,13 +412,13 @@ tr:hover td{background:var(--bg3)}
     <div class="filter-group"><span class="filter-label">Race class</span>
       <select id="f-class" onchange="applyFilters()">
         <option value="">All classes</option>
-        <option value="1">G1 — Group 1</option>
-        <option value="2">G2 — Group 2</option>
-        <option value="3">G3 — Group 3</option>
-        <option value="4">LR — Listed</option>
+        <option value="1">G1 -- Group 1</option>
+        <option value="2">G2 -- Group 2</option>
+        <option value="3">G3 -- Group 3</option>
+        <option value="4">LR -- Listed</option>
         <option value="5">Open</option>
-        <option value="6">BM — Benchmark</option>
-        <option value="7">Mdn — Maiden</option>
+        <option value="6">BM -- Benchmark</option>
+        <option value="7">Mdn -- Maiden</option>
       </select></div>
     <div class="filter-group"><span class="filter-label">Position</span>
       <select id="f-position" onchange="applyFilters()">
@@ -435,7 +435,7 @@ tr:hover td{background:var(--bg3)}
   <div class="table-wrap">
     <div class="table-header">
       <span class="table-title">Race Results</span>
-      <span class="table-count" id="results-count">— results</span>
+      <span class="table-count" id="results-count">-- results</span>
     </div>
     <div class="tbl-scroll">
       <table id="results-table">
@@ -465,7 +465,7 @@ tr:hover td{background:var(--bg3)}
 <div id="page-trends" class="page">
   <div class="filter-bar">
     <div class="filter-group"><span class="filter-label">Search</span>
-      <div class="ac-wrap"><input type="text" id="t-search" placeholder="Filter by name…" oninput="acUpdateMulti(this);loadTrends()" onkeydown="acKey(event,'t-search-ac')" autocomplete="off"><div class="ac-dropdown" id="t-search-ac"></div></div></div>
+      <div class="ac-wrap"><input type="text" id="t-search" placeholder="Filter by name..." oninput="acUpdateMulti(this);loadTrends()" onkeydown="acKey(event,'t-search-ac')" autocomplete="off"><div class="ac-dropdown" id="t-search-ac"></div></div></div>
     <div class="filter-group"><span class="filter-label">Group by</span>
       <select id="t-type" onchange="loadTrends()">
         <option value="horse">Horse</option><option value="jockey">Jockey</option>
@@ -497,7 +497,7 @@ tr:hover td{background:var(--bg3)}
   <div class="table-wrap">
     <div class="table-header">
       <span class="table-title">Leaderboard</span>
-      <span class="table-count" id="trends-count">—</span>
+      <span class="table-count" id="trends-count">--</span>
     </div>
     <div class="tbl-scroll">
       <table><thead><tr>
@@ -536,9 +536,9 @@ tr:hover td{background:var(--bg3)}
 <div id="page-h2h" class="page">
   <div class="filter-bar">
     <div class="filter-group"><span class="filter-label">Name A</span>
-      <div class="ac-wrap"><input type="text" id="h-a" placeholder="Horse / jockey / trainer…" oninput="acUpdateMulti(this)" onkeydown="acKey(event,'h-a-ac')" autocomplete="off"><div class="ac-dropdown" id="h-a-ac"></div></div></div>
+      <div class="ac-wrap"><input type="text" id="h-a" placeholder="Horse / jockey / trainer..." oninput="acUpdateMulti(this)" onkeydown="acKey(event,'h-a-ac')" autocomplete="off"><div class="ac-dropdown" id="h-a-ac"></div></div></div>
     <div class="filter-group"><span class="filter-label">Name B</span>
-      <div class="ac-wrap"><input type="text" id="h-b" placeholder="Horse / jockey / trainer…" oninput="acUpdateMulti(this)" onkeydown="acKey(event,'h-b-ac')" autocomplete="off"><div class="ac-dropdown" id="h-b-ac"></div></div></div>
+      <div class="ac-wrap"><input type="text" id="h-b" placeholder="Horse / jockey / trainer..." oninput="acUpdateMulti(this)" onkeydown="acKey(event,'h-b-ac')" autocomplete="off"><div class="ac-dropdown" id="h-b-ac"></div></div></div>
     <div class="filter-group"><span class="filter-label">Compare by</span>
       <select id="h-type">
         <option value="horse">Horse</option><option value="jockey">Jockey</option>
@@ -547,7 +547,7 @@ tr:hover td{background:var(--bg3)}
       <button class="btn btn-primary" onclick="loadH2H()">Compare</button></div>
   </div>
   <div id="h2h-content">
-    <div class="empty-state"><div class="empty-icon">⚡</div>
+    <div class="empty-state"><div class="empty-icon">&#x26A1;</div>
       <div class="empty-text">Enter two names above and click Compare</div></div>
   </div>
 </div>
@@ -569,7 +569,7 @@ tr:hover td{background:var(--bg3)}
         <span class="field-count" id="field-sidebar-count">0 / 16</span>
       </div>
       <div class="horse-search-wrap">
-        <input type="text" id="field-search" placeholder="Search horse name…" oninput="searchHorsesForField()" style="width:100%">
+        <input type="text" id="field-search" placeholder="Search horse name..." oninput="searchHorsesForField()" style="width:100%">
       </div>
       <div class="horse-suggestions" id="field-suggestions">
         <div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:13px">Type to search horses</div>
@@ -622,7 +622,7 @@ tr:hover td{background:var(--bg3)}
           <span></span>
         </div>
         <div id="field-runners-body">
-          <div class="field-empty">No runners added — search horses on the left</div>
+          <div class="field-empty">No runners added -- search horses on the left</div>
         </div>
       </div>
       <div class="field-comparison" id="field-comparison-wrap" style="display:none">
@@ -657,6 +657,7 @@ tr:hover td{background:var(--bg3)}
 </div>
 
 <script>
+console.log('SCRIPT STARTED OK');
 
 // ===================== AUTOCOMPLETE ENGINE =====================
 let acIndex = -1;
@@ -675,7 +676,7 @@ function acGetAllNames() {
 function acStats(name, field) {
   const rows = allResults.filter(r => r[field] === name);
   const wins = rows.filter(r => r.finish_position === 1).length;
-  return rows.length ? `${rows.length} starts · ${wins}W · ${rows.length?(wins/rows.length*100).toFixed(0):0}%` : '';
+  return rows.length ? `${rows.length} starts / ${wins}W / ${rows.length?(wins/rows.length*100).toFixed(0):0}%` : '';
 }
 
 function acUpdate(input, field) {
@@ -691,7 +692,7 @@ function acUpdateMulti(input) {
   const dropId = input.parentElement.querySelector('.ac-dropdown').id;
   if (!q || q.length < 1) { acClose(dropId); return; }
   const matches = acGetAllNames().filter(x => x.name.toLowerCase().includes(q)).slice(0, 12);
-  acRender(dropId, matches.map(x => ({ label: x.name, meta: x.type + ' · ' + acStats(x.name, x.type.toLowerCase()) })), input);
+  acRender(dropId, matches.map(x => ({ label: x.name, meta: x.type + ' / ' + acStats(x.name, x.type.toLowerCase()) })), input);
 }
 
 function acRender(dropId, items, input) {
@@ -786,7 +787,7 @@ function classifyRace(raceName, raceClass, prizeMoney) {
   const cls  = (raceClass || '').toUpperCase();
   const prize = prizeMoney || 0;
 
-  // G1/G2/G3: require GROUP N to be followed by a letter/end — prevents "GROUP 1300" matching
+  // G1/G2/G3: require GROUP N to be followed by a letter/end -- prevents "GROUP 1300" matching
   const g1 = /\bGR\.?\s*1\s+[A-Z]/.test(name) || /\bGROUP\s+1\s+[A-Z]/.test(name) ||
               /\bGROUP\s+1$/.test(name) || /\bGR1\b/.test(name) || /\bG1\b/.test(cls);
   const g2 = /\bGR\.?\s*2\s+[A-Z]/.test(name) || /\bGROUP\s+2\s+[A-Z]/.test(name) ||
@@ -814,7 +815,7 @@ function classifyRace(raceName, raceClass, prizeMoney) {
   // Trial
   if (/TRIAL/.test(cls+name)) return 8;
 
-  // Open races — use prize money as tiebreaker
+  // Open races -- use prize money as tiebreaker
   if (/OPEN/.test(cls+name)) return 5;
 
   // Fallback: use prize money
@@ -834,7 +835,7 @@ function getClassBadge(raceName, raceClass, prizeMoney) {
 }
 
 function getClassName(tier) {
-  return CLASS_LABELS[tier] || '—';
+  return CLASS_LABELS[tier] || '--';
 }
 
 // Enrich all results with tier on load
@@ -895,13 +896,13 @@ function init() {
       allResults = enrichWithClass(decodeRacingData(window.RACING_DATA));
       const s = window.RACING_DATA.summary;
       document.getElementById('db-status').textContent =
-        `${s.total_results?.toLocaleString()} results · ${s.exported_at}`;
+        `${s.total_results?.toLocaleString()} results / ${s.exported_at}`;
     } else if (window.RACING_DATA?.results?.length) {
       if (loadingText) loadingText.textContent = `Loaded ${window.RACING_DATA.results.length.toLocaleString()} results...`;
       allResults = enrichWithClass(window.RACING_DATA.results);
       const s = window.RACING_DATA.summary;
       document.getElementById('db-status').textContent =
-        `${s.total_results?.toLocaleString()} results · ${s.exported_at}`;
+        `${s.total_results?.toLocaleString()} results / ${s.exported_at}`;
     } else {
       allResults = enrichWithClass(generateMockData());
       document.getElementById('db-status').textContent = 'demo mode';
@@ -979,7 +980,7 @@ function globalSearch(q) {
     const wins = rows.filter(x=>x.finish_position===1).length;
     return `<div class="search-result-item" onclick="openProfile('${r.name.replace(/'/g,"\\'")}','${r.type}')">
       <div><div class="sri-name">${r.name}</div>
-        <div class="sri-meta">${rows.length} starts · ${wins} wins</div></div>
+        <div class="sri-meta">${rows.length} starts / ${wins} wins</div></div>
       <span class="sri-type">${r.label}</span></div>`;
   }).join('');
   container.style.display = 'block';
@@ -1008,7 +1009,7 @@ function openProfile(name, type) {
   // Best track
   const trackMap = {};
   rows.filter(r=>r.finish_position===1).forEach(r=>{ trackMap[r.track]=(trackMap[r.track]||0)+1; });
-  const bestTrack = Object.entries(trackMap).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+  const bestTrack = Object.entries(trackMap).sort((a,b)=>b[1]-a[1])[0]?.[0]||'--';
 
   // Best distance
   const distMap = {};
@@ -1020,7 +1021,7 @@ function openProfile(name, type) {
   const bestTier = winRows.length ? Math.min(...winRows.map(r=>r.class_tier||7)) : null;
   const bestClassWonBadge = bestTier
     ? `<span class="class-badge ${CLASS_CSS[bestTier]}">${CLASS_LABELS[bestTier]}</span>`
-    : '—';
+    : '--';
 
   // Going record
   const goingMap = {};
@@ -1053,7 +1054,7 @@ function openProfile(name, type) {
         <div class="profile-stat-row"><span class="profile-stat-label">Places (top 3)</span><span class="profile-stat-val">${places} (${placePct}%)</span></div>
         <div class="profile-stat-row"><span class="profile-stat-label">Avg finish pos</span><span class="profile-stat-val">${avgPos}</span></div>
         <div class="profile-stat-row"><span class="profile-stat-label">Best track</span><span class="profile-stat-val">${bestTrack}</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Best distance</span><span class="profile-stat-val">${bestDist?bestDist+'m':'—'}</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Best distance</span><span class="profile-stat-val">${bestDist?bestDist+'m':'--'}</span></div>
         <div class="profile-stat-row"><span class="profile-stat-label">Best class won</span><span class="profile-stat-val">${bestClassWonBadge}</span></div>
         <div class="profile-stat-row"><span class="profile-stat-label">Career earnings</span><span class="profile-stat-val" style="color:var(--green)">$${totalPrize.toLocaleString()}</span></div>
         ${daysSince!==null?`<div class="profile-stat-row"><span class="profile-stat-label">Days since last run</span><span class="profile-stat-val">${daysSince}</span></div>`:''}
@@ -1080,14 +1081,14 @@ function openProfile(name, type) {
                 <span class="pos-badge ${posClass}">${r.finish_position}</span>
               </div>
               <div class="rr-main">
-                <div class="rr-race">${r.race_name||'—'} · ${r.track||'—'}</div>
-                <div class="rr-meta">${r.date||'—'} · ${r.distance_m?r.distance_m+'m':'—'}
-                  ${r.going?`· <span class="going-badge ${goingClass(r.going)}">${normaliseGoing(r.going)}</span>`:''}
+                <div class="rr-race">${r.race_name||'--'} / ${r.track||'--'}</div>
+                <div class="rr-meta">${r.date||'--'} / ${r.distance_m?r.distance_m+'m':'--'}
+                  ${r.going?`/ <span class="going-badge ${goingClass(r.going)}">${normaliseGoing(r.going)}</span>`:''}
                 </div>
               </div>
               <div class="rr-right">
-                <div class="rr-odds">${r.odds_sp?'$'+r.odds_sp:'—'}</div>
-                <div class="rr-margin">${r.finish_position===1?'Winner':(r.margin_trad||'—')}</div>
+                <div class="rr-odds">${r.odds_sp?'$'+r.odds_sp:'--'}</div>
+                <div class="rr-margin">${r.finish_position===1?'Winner':(r.margin_trad||'--')}</div>
               </div>
             </div>`;
           }).join('')}
@@ -1106,12 +1107,12 @@ function openProfile(name, type) {
               color:var(--text);text-decoration:none;transition:border-color .15s;font-size:13px"
             onmouseover="this.style.borderColor='var(--green2)'"
             onmouseout="this.style.borderColor='var(--border2)'">
-            <span style="font-size:18px">📰</span>
+            <span style="font-size:18px">&#x1F4F0;</span>
             <div>
               <div style="font-weight:500">Search Google News for "${name}"</div>
               <div style="font-size:11px;color:var(--text3);margin-top:2px">Opens latest news articles in a new tab</div>
             </div>
-            <span style="margin-left:auto;color:var(--green);font-size:16px">→</span>
+            <span style="margin-left:auto;color:var(--green);font-size:16px">-></span>
           </a>
           <a href="https://www.loveracing.nz/RaceInfoSearch.aspx?q=${encodeURIComponent(name)}&s=Current&g=All&r=undefined&t=Name"
             target="_blank" rel="noopener"
@@ -1120,12 +1121,12 @@ function openProfile(name, type) {
               color:var(--text);text-decoration:none;transition:border-color .15s;font-size:13px"
             onmouseover="this.style.borderColor='var(--green2)'"
             onmouseout="this.style.borderColor='var(--border2)'">
-            <span style="font-size:18px">🏇</span>
+            <span style="font-size:18px">&#x1F3C7;</span>
             <div>
               <div style="font-weight:500">View "${name}" on LoveRacing.NZ</div>
               <div style="font-size:11px;color:var(--text3);margin-top:2px">Full form, videos and race history</div>
             </div>
-            <span style="margin-left:auto;color:var(--green);font-size:16px">→</span>
+            <span style="margin-left:auto;color:var(--green);font-size:16px">-></span>
           </a>
         </div>
       </div>
@@ -1211,18 +1212,18 @@ function renderResultsTable() {
     const pc = p===1?'pos-1':p===2?'pos-2':p===3?'pos-3':'pos-other';
     return `<tr>
       <td><span class="pos-badge ${pc}">${p}</span></td>
-      <td><span class="horse-link" onclick="openProfile('${(r.horse||'').replace(/'/g,"\\'")}','horse')">${r.horse||'—'}</span></td>
-      <td><span class="horse-link" onclick="openProfile('${(r.jockey||'').replace(/'/g,"\\'")}','jockey')">${r.jockey||'—'}</span></td>
-      <td class="r-hide" style="color:var(--text2);font-size:12px">${r.trainer||'—'}</td>
-      <td style="color:var(--text2)">${r.track||'—'}</td>
-      <td class="time-val">${r.date||'—'}</td>
-      <td class="r-hide" style="color:var(--text2);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis">${r.race_name||'—'}</td>
+      <td><span class="horse-link" onclick="openProfile('${(r.horse||'').replace(/'/g,"\\'")}','horse')">${r.horse||'--'}</span></td>
+      <td><span class="horse-link" onclick="openProfile('${(r.jockey||'').replace(/'/g,"\\'")}','jockey')">${r.jockey||'--'}</span></td>
+      <td class="r-hide" style="color:var(--text2);font-size:12px">${r.trainer||'--'}</td>
+      <td style="color:var(--text2)">${r.track||'--'}</td>
+      <td class="time-val">${r.date||'--'}</td>
+      <td class="r-hide" style="color:var(--text2);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis">${r.race_name||'--'}</td>
       <td class="r-hide">${getClassBadge(r.race_name,r.race_class,r.prize_money)}</td>
-      <td class="time-val r-hide">${r.distance_m?r.distance_m+'m':'—'}</td>
-      <td class="time-val r-hide">${r.barrier||'—'}</td>
-      <td class="odds">${r.odds_sp?'$'+r.odds_sp:'—'}</td>
-      <td class="time-val r-hide">${r.finish_time||'—'}</td>
-      <td class="r-hide" style="color:var(--text3);font-size:12px">${p===1?'Winner':(r.margin_trad||'—')}</td>
+      <td class="time-val r-hide">${r.distance_m?r.distance_m+'m':'--'}</td>
+      <td class="time-val r-hide">${r.barrier||'--'}</td>
+      <td class="odds">${r.odds_sp?'$'+r.odds_sp:'--'}</td>
+      <td class="time-val r-hide">${r.finish_time||'--'}</td>
+      <td class="r-hide" style="color:var(--text3);font-size:12px">${p===1?'Winner':(r.margin_trad||'--')}</td>
     </tr>`;
   }).join('');
   renderPagination(Math.ceil(total/PAGE_SIZE));
@@ -1233,9 +1234,9 @@ function renderPagination(pages) {
   if (pages<=1){c.innerHTML='';return;}
   let h = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>&#8592;</button>`;
   const start=Math.max(1,currentPage-3), end=Math.min(pages,currentPage+3);
-  if(start>1) h+=`<button class="page-btn" onclick="goPage(1)">1</button><span class="page-info">…</span>`;
+  if(start>1) h+=`<button class="page-btn" onclick="goPage(1)">1</button><span class="page-info">...</span>`;
   for(let i=start;i<=end;i++) h+=`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
-  if(end<pages) h+=`<span class="page-info">…</span><button class="page-btn" onclick="goPage(${pages})">${pages}</button>`;
+  if(end<pages) h+=`<span class="page-info">...</span><button class="page-btn" onclick="goPage(${pages})">${pages}</button>`;
   h+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>&#8594;</button>`;
   c.innerHTML=h;
 }
@@ -1276,7 +1277,7 @@ function loadTrends() {
     const winPct=(wins/starts*100).toFixed(1), placePct=(places/starts*100).toFixed(1);
     const tw={};
     rows.filter(r=>r.finish_position===1).forEach(r=>{ tw[r.track]=(tw[r.track]||0)+1; });
-    const bestTrack=Object.entries(tw).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+    const bestTrack=Object.entries(tw).sort((a,b)=>b[1]-a[1])[0]?.[0]||'--';
     return {name,starts,wins,places,winPct,placePct,avgPos,bestTrack,rows};
   }).filter(x=>x.starts>=minStarts);
 
@@ -1290,8 +1291,8 @@ function loadTrends() {
   document.getElementById('trends-count').textContent=`${sorted.length} ${type}s`;
   document.getElementById('trends-stats').innerHTML=`
     <div class="stat-card"><div class="stat-label">Total ${type}s</div><div class="stat-value">${Object.keys(grouped).length}</div></div>
-    <div class="stat-card"><div class="stat-label">Best win rate</div><div class="stat-value green">${sorted[0]?.winPct||0}%</div><div class="stat-sub">${sorted[0]?.name||'—'}</div></div>
-    <div class="stat-card"><div class="stat-label">Most wins</div><div class="stat-value amber">${[...sorted].sort((a,b)=>b.wins-a.wins)[0]?.wins||0}</div><div class="stat-sub">${[...sorted].sort((a,b)=>b.wins-a.wins)[0]?.name||'—'}</div></div>
+    <div class="stat-card"><div class="stat-label">Best win rate</div><div class="stat-value green">${sorted[0]?.winPct||0}%</div><div class="stat-sub">${sorted[0]?.name||'--'}</div></div>
+    <div class="stat-card"><div class="stat-label">Most wins</div><div class="stat-value amber">${[...sorted].sort((a,b)=>b.wins-a.wins)[0]?.wins||0}</div><div class="stat-sub">${[...sorted].sort((a,b)=>b.wins-a.wins)[0]?.name||'--'}</div></div>
     <div class="stat-card"><div class="stat-label">Total races</div><div class="stat-value">${data.length.toLocaleString()}</div></div>`;
 
   document.getElementById('trends-body').innerHTML=sorted.map((s,i)=>`
@@ -1369,13 +1370,13 @@ function loadH2H() {
   const nameB=document.getElementById('h-b').value.trim();
   const type=document.getElementById('h-type').value;
   if(!nameA||!nameB){
-    document.getElementById('h2h-content').innerHTML=`<div class="empty-state"><div class="empty-icon">⚡</div><div class="empty-text">Enter two names above</div></div>`;
+    document.getElementById('h2h-content').innerHTML=`<div class="empty-state"><div class="empty-icon">&#x26A1;</div><div class="empty-text">Enter two names above</div></div>`;
     return;
   }
   const rowsA=allResults.filter(r=>(r[type]||'').toLowerCase().includes(nameA.toLowerCase()));
   const rowsB=allResults.filter(r=>(r[type]||'').toLowerCase().includes(nameB.toLowerCase()));
   if(!rowsA.length||!rowsB.length){
-    document.getElementById('h2h-content').innerHTML=`<div class="empty-state"><div class="empty-icon">⚡</div><div class="empty-text">Could not find one or both names</div></div>`;
+    document.getElementById('h2h-content').innerHTML=`<div class="empty-state"><div class="empty-icon">&#x26A1;</div><div class="empty-text">Could not find one or both names</div></div>`;
     return;
   }
   const sharedA=rowsA.filter(r=>rowsB.some(rb=>rb.track===r.track&&rb.date===r.date&&rb.race_name===r.race_name));
@@ -1395,7 +1396,7 @@ function loadH2H() {
     <div class="table-wrap" style="margin-bottom:1.25rem">
       <div class="vs-banner">
         <div class="vs-text">${dispA.split(' ')[0]} vs ${dispB.split(' ')[0]}</div>
-        <div class="vs-record">Direct matchups: <span>${aWins}</span> — ${sharedA.length-aWins-bWins} — <span>${bWins}</span> (${sharedA.length} shared races)</div>
+        <div class="vs-record">Direct matchups: <span>${aWins}</span> -- ${sharedA.length-aWins-bWins} -- <span>${bWins}</span> (${sharedA.length} shared races)</div>
       </div>
       <div class="h2h-grid" style="padding:1.25rem">
         <div class="h2h-horse-card">
@@ -1422,7 +1423,7 @@ function loadH2H() {
           <td class="r-hide" style="font-size:12px;color:var(--text2)">${ra.race_name}</td>
           <td class="time-val r-hide">${ra.distance_m}m</td>
           <td class="time-val" style="color:var(--green)">${ra.finish_position}${ord(ra.finish_position)}</td>
-          <td class="time-val" style="color:var(--amber)">${rb?.finish_position||'—'}${rb?ord(rb.finish_position):''}</td>
+          <td class="time-val" style="color:var(--amber)">${rb?.finish_position||'--'}${rb?ord(rb.finish_position):''}</td>
           <td style="color:${wc};font-weight:500">${winner.split(' ')[0]}</td>
         </tr>`;
       }).join('')}</tbody></table></div>
@@ -1439,8 +1440,8 @@ function calcStats(rows) {
   return {starts:rows.length,wins,places,avgPos,
     winPct:(wins/rows.length*100).toFixed(1),
     placePct:(places/rows.length*100).toFixed(1),
-    bestOdds:isFinite(bestOdds)?'$'+bestOdds:'—',
-    bestTrack:Object.entries(tw).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—'};
+    bestOdds:isFinite(bestOdds)?'$'+bestOdds:'--',
+    bestTrack:Object.entries(tw).sort((a,b)=>b[1]-a[1])[0]?.[0]||'--'};
 }
 
 function renderH2HStats(s) {
@@ -1458,14 +1459,14 @@ function scoreRunner(runner, track, distance, going) {
   let score = 0;
   // Win rate (30pts)
   score += Math.min(runner.winPct/100*30, 30);
-  // Recent form — last 5 (20pts)
+  // Recent form -- last 5 (20pts)
   const recent = allResults.filter(r=>r.horse===runner.horse)
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
   if (recent.length) {
     const avg = recent.reduce((s,r)=>s+r.finish_position,0)/recent.length;
     score += Math.max(0, 20-((avg-1)/9)*20);
   }
-  // Race class quality bonus (up to 10pts) — wins in better races score higher
+  // Race class quality bonus (up to 10pts) -- wins in better races score higher
   const classWins = allResults.filter(r=>r.horse===runner.horse && r.finish_position===1);
   if (classWins.length) {
     const bestTier = Math.min(...classWins.map(r=>r.class_tier||7));
@@ -1489,7 +1490,7 @@ function scoreRunner(runner, track, distance, going) {
   // Barrier (5pts)
   const b=runner.barrier||8;
   score += b<=3?5:b<=6?3.5:b<=10?2:0.5;
-  // Days since last run — penalise 60+ days (0 to -3pts)
+  // Days since last run -- penalise 60+ days (0 to -3pts)
   const lastRow = allResults.filter(r=>r.horse===runner.horse).sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
   if (lastRow?.date) {
     const days = Math.floor((Date.now()-new Date(lastRow.date))/(1000*60*60*24));
@@ -1531,12 +1532,12 @@ function aiVerdictHTML(ranked, context) {
         <div class="ai-rank" style="color:${i===0?'var(--green)':i===1?'var(--amber)':i===2?'var(--text2)':'var(--text3)'}">${ordinals[i]}</div>
         <div class="ai-horse">
           <div class="ai-horse-name" style="color:${i===0?'var(--green)':i===1?'var(--amber)':'var(--text)'}">${r.horse||r.name}</div>
-          <div class="ai-horse-meta">score: ${r.aiScore} · win rate: ${typeof r.winPct==='number'?r.winPct.toFixed(1):r.winPct}%</div>
+          <div class="ai-horse-meta">score: ${r.aiScore} / win rate: ${typeof r.winPct==='number'?r.winPct.toFixed(1):r.winPct}%</div>
         </div>
         <div class="ai-score-bar"><div class="ai-score-fill" style="width:${(r.aiScore/maxScore*100).toFixed(0)}%;background:${i===0?'var(--green)':i===1?'var(--amber)':'var(--text3)'}"></div></div>
         ${i===0?'<span class="ai-top-badge">TOP PICK</span>':''}
       </div>`).join('')}
-    <div class="ai-footer">Scoring: win rate (30%) · recent form/last 5 (20%) · race class quality (10%) · track (15%) · distance (10%) · going (10%) · barrier (5%) · days since last run</div>
+    <div class="ai-footer">Scoring: win rate (30%) / recent form/last 5 (20%) / race class quality (10%) / track (15%) / distance (10%) / going (10%) / barrier (5%) / days since last run</div>
   </div>`;
 }
 
@@ -1570,7 +1571,7 @@ function addToField(horseName) {
   rows.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const wins=rows.filter(r=>r.finish_position===1).length;
   const places=rows.filter(r=>r.finish_position<=3).length;
-  const avgPos=rows.length?(rows.reduce((s,r)=>s+r.finish_position,0)/rows.length).toFixed(1):'—';
+  const avgPos=rows.length?(rows.reduce((s,r)=>s+r.finish_position,0)/rows.length).toFixed(1):'--';
   const winPct=rows.length?(wins/rows.length*100):0;
   const placePct=rows.length?(places/rows.length*100):0;
   const trackStats={}, distStats={}, goingStats={};
@@ -1582,7 +1583,7 @@ function addToField(horseName) {
   });
   // Form line last 5
   const form=rows.slice(0,5).map(r=>r.finish_position).join('-');
-  fieldRunners.push({horse:horseName,barrier:fieldRunners.length+1,trainer:rows[0]?.trainer||'—',
+  fieldRunners.push({horse:horseName,barrier:fieldRunners.length+1,trainer:rows[0]?.trainer||'--',
     starts:rows.length,wins,places,winPct,placePct,avgPos:parseFloat(avgPos)||0,
     trackStats,distStats,goingStats,form,color:RUNNER_COLORS[fieldRunners.length%RUNNER_COLORS.length]});
   renderFieldRunners();renderFieldComparison();searchHorsesForField();
@@ -1600,7 +1601,7 @@ function updateFieldMeta(){const n=document.getElementById('field-race-name').va
 function renderFieldRunners() {
   document.getElementById('field-sidebar-count').textContent=`${fieldRunners.length} / ${MAX_RUNNERS}`;
   const body=document.getElementById('field-runners-body');
-  if(!fieldRunners.length){body.innerHTML=`<div class="field-empty">No runners added — search horses on the left</div>`;return;}
+  if(!fieldRunners.length){body.innerHTML=`<div class="field-empty">No runners added -- search horses on the left</div>`;return;}
   body.innerHTML=fieldRunners.map((r,i)=>`
     <div class="runner-row">
       <div class="runner-num" style="color:${r.color}">${String(i+1).padStart(2,'0')}</div>
@@ -1610,13 +1611,13 @@ function renderFieldRunners() {
       <div class="runner-stat r-hide">${r.starts}</div>
       <div class="runner-stat r-hide" style="color:var(--amber)">${r.wins}</div>
       <div class="runner-stat r-hide" style="color:${r.winPct>=20?'var(--green)':r.winPct>=10?'var(--amber)':'var(--text2)'}">${r.winPct.toFixed(1)}%</div>
-      <div class="runner-stat r-hide">${r.avgPos||'—'}</div>
+      <div class="runner-stat r-hide">${r.avgPos||'--'}</div>
       <div class="runner-stat r-hide">
         <div class="form-line" style="justify-content:flex-end">
           ${(r.form||'').split('-').map(p=>{const n=parseInt(p);const cls=n===1?'fd-1':n===2?'fd-2':n===3?'fd-3':'fd-o';return `<div class="form-dot ${cls}" style="width:18px;height:18px;font-size:10px">${p}</div>`;}).join('')}
         </div>
       </div>
-      <button class="remove-btn" onclick="removeFromField('${r.horse.replace(/'/g,"\\'")}')">×</button>
+      <button class="remove-btn" onclick="removeFromField('${r.horse.replace(/'/g,"\\'")}')">&times;</button>
     </div>`).join('');
 }
 
@@ -1630,7 +1631,7 @@ function renderFieldComparison() {
   const ranked=getRankedField(track,distance,going);
   const ctx=[];
   if(track)ctx.push(track); if(distance)ctx.push(distance+'m'); if(going)ctx.push(going);
-  document.getElementById('field-ai-verdict').innerHTML=aiVerdictHTML(ranked,ctx.join(' · ')||'all conditions');
+  document.getElementById('field-ai-verdict').innerHTML=aiVerdictHTML(ranked,ctx.join(' / ')||'all conditions');
 
   const maxWin=Math.max(...fieldRunners.map(r=>r.winPct),1);
   document.getElementById('field-winrate-bars').innerHTML=fieldRunners.slice().sort((a,b)=>b.winPct-a.winPct).map(r=>ratingBar(r.horse,r.winPct,maxWin,r.color,`${r.winPct.toFixed(1)}%`)).join('');
@@ -1677,7 +1678,7 @@ function renderClassLB(tier) {
   // Highlight active button
   document.querySelectorAll('#class-lb-body').forEach(()=>{});
   const label = CLASS_LABELS[tier] || tier;
-  document.getElementById('class-lb-meta').textContent = `${label} races — top horses by wins`;
+  document.getElementById('class-lb-meta').textContent = `${label} races -- top horses by wins`;
 
   // Get all results at this tier
   const tierResults = allResults.filter(r => r.class_tier === tier);
@@ -1707,7 +1708,7 @@ function renderClassLB(tier) {
 
   document.getElementById('class-lb-body').innerHTML = sorted.map(([name, d], i) => {
     const winPct = (d.wins / d.starts * 100).toFixed(1);
-    const bestRace = d.races[0] || '—';
+    const bestRace = d.races[0] || '--';
     return `<tr>
       <td class="time-val" style="color:var(--text3)">${i+1}</td>
       <td><span class="horse-link" onclick="openProfile('${name.replace(/'/g,"\'")}','horse')">${name}</span></td>
@@ -1762,7 +1763,7 @@ function generateMockData(){
   return data;
 }
 
-// Hard fallback — always remove loading screen after 5 seconds
+// Hard fallback -- always remove loading screen after 5 seconds
 setTimeout(() => {
   const overlay = document.getElementById('loading-overlay');
   if (overlay) {
