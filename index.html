@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SuggysWinners</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="data.js" onerror="console.log('no data.js')"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#0b0c0b; --bg2:#141513; --bg3:#1c1d1a; --bg4:#242521;
+  --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.11);
+  --text:#e6e4dc; --text2:#948f83; --text3:#524f48;
+  --green:#7ec94a; --green2:#3d7018; --green-dim:rgba(126,201,74,0.1);
+  --amber:#e8a830; --red:#d95f4b; --blue:#4a9ed4;
+  --fd:'Bebas Neue',sans-serif; --fb:'DM Sans',sans-serif; --fm:'DM Mono',monospace;
+  --r:8px; --r2:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:14px;line-height:1.5;min-height:100vh;padding-bottom:60px}
+
+/* HEADER */
+header{display:flex;align-items:center;gap:12px;padding:0 1.25rem;height:54px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:200}
+.logo{font-family:var(--fd);font-size:22px;letter-spacing:2px;white-space:nowrap;flex-shrink:0}
+.logo span{color:var(--green)}
+.global-search-wrap{flex:1;max-width:380px;position:relative}
+.global-search-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:7px 12px 7px 34px;border-radius:20px;font-family:var(--fb);font-size:13px;outline:none;transition:border-color .15s}
+.global-search-wrap input:focus{border-color:var(--green2)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none}
+.search-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);overflow:hidden;z-index:300;display:none;max-height:320px;overflow-y:auto}
+.search-result-item{padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);transition:background .1s}
+.search-result-item:hover{background:var(--bg3)}
+.search-result-item:last-child{border-bottom:none}
+.sri-name{font-weight:500;font-size:13px}
+.sri-meta{font-size:11px;color:var(--text3);font-family:var(--fm)}
+.sri-type{font-size:10px;padding:2px 7px;border-radius:10px;font-family:var(--fm);background:var(--bg4);color:var(--text3)}
+.status-pill{font-size:11px;color:var(--text3);font-family:var(--fm);display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
+.status-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* BOTTOM NAV (mobile) */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:200;height:56px}
+.bottom-nav-inner{display:flex;height:100%}
+.bnav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-size:10px;color:var(--text3);border:none;background:transparent;transition:color .15s;font-family:var(--fb);padding:0}
+.bnav-tab.active{color:var(--green)}
+.bnav-icon{font-size:18px;line-height:1}
+
+/* DESKTOP NAV */
+.desktop-nav{display:flex;gap:2px;margin-left:auto;flex-shrink:0}
+.nav-tab{padding:6px 14px;border-radius:5px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);border:none;background:transparent;transition:all .15s;font-family:var(--fb)}
+.nav-tab:hover{color:var(--text);background:var(--bg3)}
+.nav-tab.active{color:var(--green);background:var(--green-dim)}
+
+/* PAGES */
+.page{display:none;padding:1.25rem;max-width:1440px;margin:0 auto;animation:fadeIn .2s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;padding:.875rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2)}
+.filter-group{display:flex;flex-direction:column;gap:3px;flex:1;min-width:130px}
+.filter-label{font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.8px;text-transform:uppercase}
+select,input[type=text],input[type=date]{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:7px 10px;border-radius:6px;font-family:var(--fb);font-size:13px;outline:none;transition:border-color .15s;width:100%;min-height:36px}
+select:focus,input:focus{border-color:var(--green2)}
+select option{background:var(--bg3)}
+.btn{padding:8px 18px;border-radius:6px;font-family:var(--fb);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;align-self:flex-end;min-height:36px}
+.btn-primary{background:var(--green);color:#0b0c0b}
+.btn-primary:hover{background:#92dd5a}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{color:var(--text);background:var(--bg4)}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:.875rem 1rem;transition:border-color .2s}
+.stat-card:hover{border-color:var(--border2)}
+.stat-label{font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px}
+.stat-value{font-family:var(--fm);font-size:22px;font-weight:500;color:var(--text)}
+.stat-value.green{color:var(--green)}
+.stat-value.amber{color:var(--amber)}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* FORM LINE */
+.form-line{display:flex;gap:3px;align-items:center}
+.form-dot{width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11px;font-weight:500}
+.fd-1{background:rgba(232,168,48,.2);color:var(--amber)}
+.fd-2{background:rgba(126,201,74,.12);color:var(--green)}
+.fd-3{background:rgba(74,158,212,.12);color:var(--blue)}
+.fd-o{background:var(--bg4);color:var(--text3)}
+
+/* TABLE */
+.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:1.25rem}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:.875rem 1.25rem;border-bottom:1px solid var(--border)}
+.table-title{font-family:var(--fm);font-size:11px;letter-spacing:.8px;color:var(--text2);text-transform:uppercase}
+.table-count{font-family:var(--fm);font-size:11px;color:var(--text3)}
+.tbl-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:9px 14px;font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg);cursor:pointer;white-space:nowrap;user-select:none}
+th:hover{color:var(--text2)}
+th.sorted{color:var(--green)}
+td{padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.pos-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:4px;font-family:var(--fm);font-size:11px;font-weight:500}
+.pos-1{background:rgba(232,168,48,.2);color:var(--amber)}
+.pos-2{background:rgba(255,255,255,.07);color:var(--text2)}
+.pos-3{background:rgba(126,201,74,.12);color:var(--green)}
+.pos-other{background:var(--bg3);color:var(--text3)}
+.odds{font-family:var(--fm);font-size:12px;color:var(--text2)}
+.time-val{font-family:var(--fm);font-size:12px;color:var(--text2)}
+.horse-link{color:var(--text);cursor:pointer;font-weight:500}
+.horse-link:hover{color:var(--green);text-decoration:underline}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:.875rem}
+.page-btn{padding:5px 11px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:var(--fm);font-size:12px;transition:all .15s;min-width:32px}
+.page-btn:hover{color:var(--text);border-color:var(--border2)}
+.page-btn.active{background:var(--green-dim);color:var(--green);border-color:var(--green2)}
+.page-btn:disabled{opacity:.3;cursor:default}
+.page-info{font-family:var(--fm);font-size:12px;color:var(--text3)}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem}
+.chart-title{font-family:var(--fm);font-size:10px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:1rem}
+
+/* H2H */
+.h2h-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+.h2h-horse-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem}
+.h2h-name{font-family:var(--fd);font-size:26px;letter-spacing:1px;margin-bottom:.875rem}
+.h2h-stat-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.h2h-stat-row:last-child{border-bottom:none}
+.h2h-stat-label{color:var(--text2)}
+.h2h-stat-val{font-family:var(--fm);font-weight:500}
+.h2h-win{color:var(--green)}
+.vs-banner{text-align:center;padding:1.5rem;background:var(--bg3);border-bottom:1px solid var(--border);border-radius:var(--r2) var(--r2) 0 0}
+.vs-text{font-family:var(--fd);font-size:38px;letter-spacing:3px;color:var(--text3)}
+.vs-record{font-family:var(--fm);font-size:12px;color:var(--text2);margin-top:4px}
+.vs-record span{color:var(--green);font-weight:500}
+.h2h-shared{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:1.25rem}
+.empty-state{text-align:center;padding:3.5rem 2rem;color:var(--text3)}
+.empty-icon{font-size:40px;margin-bottom:.75rem;opacity:.4}
+.empty-text{font-size:14px}
+
+/* PROFILE PAGE */
+.profile-wrap{display:grid;grid-template-columns:300px 1fr;gap:1.25rem;align-items:start}
+.profile-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;position:sticky;top:70px}
+.profile-name{font-family:var(--fd);font-size:32px;letter-spacing:1px;margin-bottom:.25rem}
+.profile-badge{display:inline-block;font-size:10px;font-family:var(--fm);padding:3px 8px;border-radius:10px;background:var(--green-dim);color:var(--green);border:1px solid var(--green2);margin-bottom:1rem}
+.profile-stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.profile-stat-row:last-child{border-bottom:none}
+.profile-stat-label{color:var(--text2)}
+.profile-stat-val{font-family:var(--fm);font-weight:500}
+.profile-right{display:flex;flex-direction:column;gap:1.25rem}
+.going-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}
+.going-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:.75rem;text-align:center}
+.going-label{font-size:10px;font-family:var(--fm);color:var(--text3);text-transform:uppercase;margin-bottom:4px}
+.going-val{font-family:var(--fm);font-size:18px;font-weight:500}
+.going-sub{font-size:10px;color:var(--text3);margin-top:2px}
+.recent-run{display:flex;align-items:center;gap:12px;padding:10px 1.25rem;border-bottom:1px solid var(--border);transition:background .1s}
+.recent-run:hover{background:var(--bg3)}
+.recent-run:last-child{border-bottom:none}
+.rr-pos{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:14px;font-weight:500;flex-shrink:0}
+.rr-main{flex:1}
+.rr-race{font-weight:500;font-size:13px}
+.rr-meta{font-size:11px;color:var(--text3);margin-top:1px}
+.rr-right{text-align:right;flex-shrink:0}
+.rr-odds{font-family:var(--fm);font-size:12px;color:var(--text2)}
+.rr-margin{font-size:11px;color:var(--text3);margin-top:1px}
+
+/* FIELD BUILDER */
+.field-layout{display:grid;grid-template-columns:300px 1fr;gap:1.25rem;align-items:start}
+.field-sidebar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;position:sticky;top:70px}
+.field-sidebar-header{padding:.875rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.horse-search-wrap{padding:.75rem}
+.horse-suggestions{max-height:320px;overflow-y:auto}
+.horse-suggestion-item{padding:9px 1.25rem;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;transition:background .1s}
+.horse-suggestion-item:hover{background:var(--bg3)}
+.horse-suggestion-item:last-child{border-bottom:none}
+.suggestion-name{font-weight:500;font-size:13px}
+.suggestion-meta{font-size:11px;color:var(--text3);font-family:var(--fm)}
+.add-btn{width:24px;height:24px;border-radius:50%;background:var(--green-dim);color:var(--green);border:1px solid var(--green2);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;line-height:1;flex-shrink:0;transition:all .15s}
+.add-btn:hover{background:var(--green);color:#0b0c0b}
+.add-btn.added{background:var(--bg3);color:var(--text3);border-color:var(--border);cursor:default}
+.field-main{display:flex;flex-direction:column;gap:1.25rem}
+.field-header-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:.875rem 1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2)}
+.field-title{font-family:var(--fd);font-size:20px;letter-spacing:1px}
+.field-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.field-count{font-family:var(--fm);font-size:12px;color:var(--text3)}
+.field-runners{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.runner-row{display:grid;grid-template-columns:32px 28px 1fr 90px 70px 70px 70px 70px 34px;align-items:center;gap:8px;padding:9px 1.25rem;border-bottom:1px solid var(--border);transition:background .1s}
+.runner-row:hover{background:var(--bg3)}
+.runner-row:last-child{border-bottom:none}
+.runner-row.header{background:var(--bg);padding:7px 1.25rem;border-bottom:1px solid var(--border)}
+.runner-row.header span{font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.8px;text-transform:uppercase}
+.runner-num{font-family:var(--fm);font-size:17px;font-weight:500;color:var(--text3)}
+.barrier-pill{width:26px;height:26px;border-radius:4px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:12px;color:var(--text2)}
+.runner-name{font-weight:500;font-size:13px}
+.runner-sub{font-size:11px;color:var(--text3)}
+.runner-stat{font-family:var(--fm);font-size:12px;text-align:right}
+.remove-btn{width:26px;height:26px;border-radius:4px;background:transparent;color:var(--text3);border:1px solid transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .15s}
+.remove-btn:hover{background:rgba(217,95,75,.15);color:var(--red);border-color:rgba(217,95,75,.3)}
+.field-comparison{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.rating-bar{display:flex;align-items:center;gap:10px;padding:9px 1.25rem;border-bottom:1px solid var(--border)}
+.rating-bar:last-child{border-bottom:none}
+.rating-name{width:160px;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rating-track{flex:1;background:var(--bg3);border-radius:3px;height:18px;overflow:hidden}
+.rating-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px;font-family:var(--fm);font-size:10px;font-weight:500;transition:width .4s ease}
+.rating-val{width:55px;text-align:right;font-family:var(--fm);font-size:11px;color:var(--text2)}
+.field-empty{padding:2.5rem;text-align:center;color:var(--text3);font-size:13px}
+
+/* AI VERDICT */
+.ai-verdict{background:var(--bg2);border:1px solid rgba(126,201,74,.2);border-radius:var(--r2);overflow:hidden;margin-bottom:1.25rem}
+.ai-verdict-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border);background:rgba(126,201,74,.05)}
+.ai-verdict-label{font-family:var(--fm);font-size:10px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px}
+.ai-verdict-pick{font-family:var(--fd);font-size:22px;color:var(--green)}
+.ai-verdict-context{font-size:12px;color:var(--text3);text-align:right}
+.ai-row{display:flex;align-items:center;gap:12px;padding:9px 1.25rem;border-bottom:1px solid var(--border)}
+.ai-row:last-child{border-bottom:none}
+.ai-rank{font-family:var(--fd);font-size:20px;width:40px;flex-shrink:0}
+.ai-horse{flex:1}
+.ai-horse-name{font-weight:500;font-size:13px}
+.ai-horse-meta{font-size:11px;color:var(--text3);font-family:var(--fm);margin-top:1px}
+.ai-score-bar{width:80px;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.ai-score-fill{height:100%;border-radius:3px;background:var(--green);transition:width .4s}
+.ai-top-badge{font-size:10px;background:var(--green-dim);color:var(--green);padding:2px 8px;border-radius:10px;border:1px solid var(--green2);font-family:var(--fm);white-space:nowrap}
+.ai-footer{padding:8px 1.25rem;font-size:11px;color:var(--text3);border-top:1px solid var(--border);background:var(--bg)}
+
+/* GOING BADGE */
+.going-badge{font-size:11px;font-family:var(--fm);padding:2px 8px;border-radius:10px;display:inline-block}
+.going-heavy{background:rgba(217,95,75,.15);color:var(--red)}
+.going-soft{background:rgba(74,158,212,.15);color:var(--blue)}
+.going-good{background:rgba(126,201,74,.12);color:var(--green)}
+
+/* MOBILE RESPONSIVE */
+@media(max-width:768px){
+  header{padding:0 .875rem;gap:8px}
+  .logo{font-size:18px}
+  .desktop-nav{display:none}
+  .status-pill{display:none}
+  .bottom-nav{display:block}
+  body{padding-bottom:56px}
+  .page{padding:.875rem}
+  .filter-bar{gap:6px;padding:.75rem}
+  .filter-group{min-width:calc(50% - 3px)}
+  .charts-grid{grid-template-columns:1fr}
+  .h2h-grid{grid-template-columns:1fr}
+  .field-layout{grid-template-columns:1fr}
+  .field-sidebar{position:static}
+  .profile-wrap{grid-template-columns:1fr}
+  .profile-card{position:static}
+  .runner-row{grid-template-columns:28px 24px 1fr 60px 34px}
+  .runner-row .r-hide{display:none}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .global-search-wrap{max-width:none}
+  .vs-text{font-size:28px}
+}
+@media(max-width:480px){
+  .filter-group{min-width:100%}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ===================== AUTOCOMPLETE ===================== */
+.ac-wrap { position: relative; }
+.ac-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--r); z-index: 500; max-height: 220px;
+  overflow-y: auto; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.ac-dropdown.open { display: block; }
+.ac-item {
+  padding: 8px 12px; cursor: pointer; display: flex;
+  align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border); font-size: 13px;
+  transition: background .1s;
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover, .ac-item.selected { background: var(--bg3); }
+.ac-item-name { font-weight: 500; }
+.ac-item-meta { font-size: 11px; color: var(--text3); font-family: var(--fm); }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SUGGYS<span>WINNERS</span></div>
+
+  <div class="global-search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="global-search" placeholder="Search horse, jockey or trainer..." autocomplete="off"
+      oninput="globalSearch(this.value)" onfocus="showSearchResults()" onblur="setTimeout(hideSearchResults,200)">
+    <div class="search-results" id="search-results"></div>
+  </div>
+
+  <nav class="desktop-nav">
+    <button class="nav-tab active" onclick="showPage('results')">Results</button>
+    <button class="nav-tab" onclick="showPage('trends')">Trends</button>
+    <button class="nav-tab" onclick="showPage('h2h')">Head to Head</button>
+    <button class="nav-tab" onclick="showPage('field')">Field Builder</button>
+  </nav>
+
+  <div class="status-pill">
+    <div class="status-dot"></div>
+    <span id="db-status">loading...</span>
+  </div>
+</header>
+
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-tab active" onclick="showPage('results')"><span class="bnav-icon">📋</span>Results</button>
+    <button class="bnav-tab" onclick="showPage('trends')"><span class="bnav-icon">📈</span>Trends</button>
+    <button class="bnav-tab" onclick="showPage('h2h')"><span class="bnav-icon">⚡</span>H2H</button>
+    <button class="bnav-tab" onclick="showPage('field')"><span class="bnav-icon">🏇</span>Field</button>
+    <button class="bnav-tab" onclick="showPage('profile')"><span class="bnav-icon">👤</span>Profile</button>
+  </div>
+</nav>
+
+<!-- ===== RESULTS ===== -->
+<div id="page-results" class="page active">
+  <div class="filter-bar">
+    <div class="filter-group"><span class="filter-label">Horse</span>
+      <div class="ac-wrap"><input type="text" id="f-horse" placeholder="Horse name…" oninput="acUpdate(this,'horse');applyFilters()" onkeydown="acKey(event,'f-horse-ac')" autocomplete="off"><div class="ac-dropdown" id="f-horse-ac"></div></div></div>
+    <div class="filter-group"><span class="filter-label">Jockey</span>
+      <div class="ac-wrap"><input type="text" id="f-jockey" placeholder="Jockey name…" oninput="acUpdate(this,'jockey');applyFilters()" onkeydown="acKey(event,'f-jockey-ac')" autocomplete="off"><div class="ac-dropdown" id="f-jockey-ac"></div></div></div>
+    <div class="filter-group"><span class="filter-label">Trainer</span>
+      <div class="ac-wrap"><input type="text" id="f-trainer" placeholder="Trainer name…" oninput="acUpdate(this,'trainer');applyFilters()" onkeydown="acKey(event,'f-trainer-ac')" autocomplete="off"><div class="ac-dropdown" id="f-trainer-ac"></div></div></div>
+    <div class="filter-group"><span class="filter-label">Track</span>
+      <select id="f-track" onchange="applyFilters()"><option value="">All tracks</option></select></div>
+    <div class="filter-group"><span class="filter-label">Going</span>
+      <select id="f-going" onchange="applyFilters()"><option value="">Any going</option></select></div>
+    <div class="filter-group"><span class="filter-label">Position</span>
+      <select id="f-position" onchange="applyFilters()">
+        <option value="">Any</option><option value="1">1st only</option>
+        <option value="1-3">Top 3</option><option value="1-5">Top 5</option></select></div>
+    <div class="filter-group"><span class="filter-label">Date from</span>
+      <input type="date" id="f-date-from" onchange="applyFilters()"></div>
+    <div class="filter-group"><span class="filter-label">Date to</span>
+      <input type="date" id="f-date-to" onchange="applyFilters()"></div>
+    <div class="filter-group" style="min-width:70px"><span class="filter-label">&nbsp;</span>
+      <button class="btn btn-ghost" onclick="clearFilters()">Clear</button></div>
+  </div>
+  <div class="stats-row" id="results-stats"></div>
+  <div class="table-wrap">
+    <div class="table-header">
+      <span class="table-title">Race Results</span>
+      <span class="table-count" id="results-count">— results</span>
+    </div>
+    <div class="tbl-scroll">
+      <table id="results-table">
+        <thead><tr>
+          <th onclick="sortTable('finish_position')">Pos</th>
+          <th onclick="sortTable('horse')">Horse</th>
+          <th onclick="sortTable('jockey')">Jockey</th>
+          <th onclick="sortTable('trainer')" class="r-hide">Trainer</th>
+          <th onclick="sortTable('track')">Track</th>
+          <th onclick="sortTable('date')">Date</th>
+          <th onclick="sortTable('race_name')" class="r-hide">Race</th>
+          <th onclick="sortTable('distance_m')" class="r-hide">Dist</th>
+          <th onclick="sortTable('barrier')" class="r-hide">Bar</th>
+          <th onclick="sortTable('odds_sp')">SP</th>
+          <th onclick="sortTable('finish_time')" class="r-hide">Time</th>
+          <th class="r-hide">Margin</th>
+        </tr></thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="results-pagination"></div>
+  </div>
+</div>
+
+<!-- ===== TRENDS ===== -->
+<div id="page-trends" class="page">
+  <div class="filter-bar">
+    <div class="filter-group"><span class="filter-label">Search</span>
+      <div class="ac-wrap"><input type="text" id="t-search" placeholder="Filter by name…" oninput="acUpdateMulti(this);loadTrends()" onkeydown="acKey(event,'t-search-ac')" autocomplete="off"><div class="ac-dropdown" id="t-search-ac"></div></div></div>
+    <div class="filter-group"><span class="filter-label">Group by</span>
+      <select id="t-type" onchange="loadTrends()">
+        <option value="horse">Horse</option><option value="jockey">Jockey</option>
+        <option value="trainer">Trainer</option></select></div>
+    <div class="filter-group"><span class="filter-label">Metric</span>
+      <select id="t-metric" onchange="loadTrends()">
+        <option value="wins">Wins</option><option value="win_pct">Win %</option>
+        <option value="place_pct">Place %</option><option value="avg_position">Avg position</option></select></div>
+    <div class="filter-group"><span class="filter-label">Track</span>
+      <select id="t-track" onchange="loadTrends()"><option value="">All tracks</option></select></div>
+    <div class="filter-group"><span class="filter-label">Min starts</span>
+      <select id="t-min-starts" onchange="loadTrends()">
+        <option value="2">2+</option><option value="5">5+</option>
+        <option value="10">10+</option><option value="20">20+</option></select></div>
+  </div>
+  <div class="stats-row" id="trends-stats"></div>
+  <div class="charts-grid">
+    <div class="chart-card"><div class="chart-title">Performance over time</div>
+      <canvas id="chart-timeline" height="220"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Wins by track</div>
+      <canvas id="chart-track" height="220"></canvas></div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-card"><div class="chart-title">Finish position distribution</div>
+      <canvas id="chart-positions" height="220"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Win rate by distance</div>
+      <canvas id="chart-distance" height="220"></canvas></div>
+  </div>
+  <div class="table-wrap">
+    <div class="table-header">
+      <span class="table-title">Leaderboard</span>
+      <span class="table-count" id="trends-count">—</span>
+    </div>
+    <div class="tbl-scroll">
+      <table><thead><tr>
+        <th>#</th><th>Name</th><th>Starts</th><th>Wins</th>
+        <th class="r-hide">Places</th><th>Win %</th><th class="r-hide">Place %</th>
+        <th class="r-hide">Avg Pos</th><th class="r-hide">Best Track</th><th>View</th>
+      </tr></thead>
+      <tbody id="trends-body"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== H2H ===== -->
+<div id="page-h2h" class="page">
+  <div class="filter-bar">
+    <div class="filter-group"><span class="filter-label">Name A</span>
+      <div class="ac-wrap"><input type="text" id="h-a" placeholder="Horse / jockey / trainer…" oninput="acUpdateMulti(this)" onkeydown="acKey(event,'h-a-ac')" autocomplete="off"><div class="ac-dropdown" id="h-a-ac"></div></div></div>
+    <div class="filter-group"><span class="filter-label">Name B</span>
+      <div class="ac-wrap"><input type="text" id="h-b" placeholder="Horse / jockey / trainer…" oninput="acUpdateMulti(this)" onkeydown="acKey(event,'h-b-ac')" autocomplete="off"><div class="ac-dropdown" id="h-b-ac"></div></div></div>
+    <div class="filter-group"><span class="filter-label">Compare by</span>
+      <select id="h-type">
+        <option value="horse">Horse</option><option value="jockey">Jockey</option>
+        <option value="trainer">Trainer</option></select></div>
+    <div class="filter-group" style="min-width:80px"><span class="filter-label">&nbsp;</span>
+      <button class="btn btn-primary" onclick="loadH2H()">Compare</button></div>
+  </div>
+  <div id="h2h-content">
+    <div class="empty-state"><div class="empty-icon">⚡</div>
+      <div class="empty-text">Enter two names above and click Compare</div></div>
+  </div>
+</div>
+
+<!-- ===== PROFILE ===== -->
+<div id="page-profile" class="page">
+  <div id="profile-content">
+    <div class="empty-state"><div class="empty-icon">👤</div>
+      <div class="empty-text">Search for a horse, jockey or trainer to view their profile</div></div>
+  </div>
+</div>
+
+<!-- ===== FIELD BUILDER ===== -->
+<div id="page-field" class="page">
+  <div class="field-layout">
+    <div class="field-sidebar">
+      <div class="field-sidebar-header">
+        <span class="table-title">Add runners</span>
+        <span class="field-count" id="field-sidebar-count">0 / 16</span>
+      </div>
+      <div class="horse-search-wrap">
+        <input type="text" id="field-search" placeholder="Search horse name…" oninput="searchHorsesForField()" style="width:100%">
+      </div>
+      <div class="horse-suggestions" id="field-suggestions">
+        <div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:13px">Type to search horses</div>
+      </div>
+    </div>
+    <div class="field-main">
+      <div class="field-header-bar">
+        <div>
+          <div class="field-title" id="field-race-name-display">RACE FIELD</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">Build your field by adding horses</div>
+        </div>
+        <div class="field-meta">
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <span class="filter-label">Race name</span>
+            <input type="text" id="field-race-name" placeholder="e.g. Ellerslie Cup" oninput="updateFieldMeta()" style="width:160px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <span class="filter-label">Distance</span>
+            <select id="field-distance" onchange="updateFieldMeta();renderFieldComparison()" style="width:100px">
+              <option value="">Any</option>
+              <option value="1000">1000m</option><option value="1150">1150m</option>
+              <option value="1200">1200m</option><option value="1400">1400m</option>
+              <option value="1600">1600m</option><option value="1800">1800m</option>
+              <option value="2000">2000m</option><option value="2400">2400m</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <span class="filter-label">Track</span>
+            <select id="field-track" onchange="updateFieldMeta();renderFieldComparison()" style="width:130px">
+              <option value="">Any track</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <span class="filter-label">Going</span>
+            <select id="field-going" onchange="renderFieldComparison()" style="width:110px">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost" onclick="clearField()">Clear</button>
+        </div>
+      </div>
+      <div class="field-runners" id="field-runners-wrap">
+        <div class="runner-row header">
+          <span>#</span><span>Bar</span><span>Horse</span>
+          <span class="r-hide" style="text-align:right">Starts</span>
+          <span class="r-hide" style="text-align:right">Wins</span>
+          <span class="r-hide" style="text-align:right">Win%</span>
+          <span class="r-hide" style="text-align:right">AvgPos</span>
+          <span class="r-hide" style="text-align:right">Form</span>
+          <span></span>
+        </div>
+        <div id="field-runners-body">
+          <div class="field-empty">No runners added — search horses on the left</div>
+        </div>
+      </div>
+      <div class="field-comparison" id="field-comparison-wrap" style="display:none">
+        <div id="field-ai-verdict"></div>
+        <div class="table-header" style="border-top:1px solid var(--border)">
+          <span class="table-title">Win rate (all time)</span>
+          <span class="table-count" id="field-comp-meta"></span>
+        </div>
+        <div id="field-winrate-bars"></div>
+        <div class="table-header" style="border-top:1px solid var(--border)">
+          <span class="table-title">Place rate (top 3)</span></div>
+        <div id="field-placerate-bars"></div>
+        <div class="table-header" style="border-top:1px solid var(--border)">
+          <span class="table-title">Average finish position</span>
+          <span class="table-count">lower = better</span></div>
+        <div id="field-avgpos-bars"></div>
+        <div class="table-header" style="border-top:1px solid var(--border)">
+          <span class="table-title">At this distance</span>
+          <span class="table-count" id="field-dist-label"></span></div>
+        <div id="field-distance-bars"></div>
+        <div class="table-header" style="border-top:1px solid var(--border)">
+          <span class="table-title">At this track</span>
+          <span class="table-count" id="field-track-label"></span></div>
+        <div id="field-track-bars"></div>
+        <div class="table-header" style="border-top:1px solid var(--border)">
+          <span class="table-title">On this going</span>
+          <span class="table-count" id="field-going-label"></span></div>
+        <div id="field-going-bars"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ===================== AUTOCOMPLETE ENGINE =====================
+let acIndex = -1;
+
+function acGetNames(field) {
+  return [...new Set(allResults.map(r => r[field]).filter(Boolean))].sort();
+}
+
+function acGetAllNames() {
+  const horses  = [...new Set(allResults.map(r=>r.horse).filter(Boolean))].map(n=>({name:n,type:'Horse'}));
+  const jockeys = [...new Set(allResults.map(r=>r.jockey).filter(Boolean))].map(n=>({name:n,type:'Jockey'}));
+  const trainers= [...new Set(allResults.map(r=>r.trainer).filter(Boolean))].map(n=>({name:n,type:'Trainer'}));
+  return [...horses,...jockeys,...trainers];
+}
+
+function acStats(name, field) {
+  const rows = allResults.filter(r => r[field] === name);
+  const wins = rows.filter(r => r.finish_position === 1).length;
+  return rows.length ? `${rows.length} starts · ${wins}W · ${rows.length?(wins/rows.length*100).toFixed(0):0}%` : '';
+}
+
+function acUpdate(input, field) {
+  const q = input.value.toLowerCase().trim();
+  const dropId = input.parentElement.querySelector('.ac-dropdown').id;
+  if (!q || q.length < 1) { acClose(dropId); return; }
+  const matches = acGetNames(field).filter(n => n.toLowerCase().includes(q)).slice(0, 10);
+  acRender(dropId, matches.map(n => ({ label: n, meta: acStats(n, field) })), input);
+}
+
+function acUpdateMulti(input) {
+  const q = input.value.toLowerCase().trim();
+  const dropId = input.parentElement.querySelector('.ac-dropdown').id;
+  if (!q || q.length < 1) { acClose(dropId); return; }
+  const matches = acGetAllNames().filter(x => x.name.toLowerCase().includes(q)).slice(0, 12);
+  acRender(dropId, matches.map(x => ({ label: x.name, meta: x.type + ' · ' + acStats(x.name, x.type.toLowerCase()) })), input);
+}
+
+function acRender(dropId, items, input) {
+  const drop = document.getElementById(dropId);
+  if (!items.length) { acClose(dropId); return; }
+  acIndex = -1;
+  drop.innerHTML = items.map((item, i) =>
+    `<div class="ac-item" onmousedown="acSelect('${dropId}','${item.label.replace(/'/g,"\'")}',event)">`
+    + `<span class="ac-item-name">${item.label}</span>`
+    + `<span class="ac-item-meta">${item.meta}</span>`
+    + `</div>`
+  ).join('');
+  drop.classList.add('open');
+}
+
+function acSelect(dropId, value, event) {
+  event.preventDefault();
+  const drop = document.getElementById(dropId);
+  const input = drop.previousElementSibling;
+  input.value = value;
+  acClose(dropId);
+  // Trigger the appropriate action
+  input.dispatchEvent(new Event('input', {bubbles: true}));
+}
+
+function acClose(dropId) {
+  const el = document.getElementById(dropId);
+  if (el) { el.classList.remove('open'); el.innerHTML = ''; }
+  acIndex = -1;
+}
+
+function acCloseAll() {
+  document.querySelectorAll('.ac-dropdown').forEach(d => { d.classList.remove('open'); d.innerHTML = ''; });
+  acIndex = -1;
+}
+
+function acKey(event, dropId) {
+  const drop = document.getElementById(dropId);
+  const items = drop.querySelectorAll('.ac-item');
+  if (!drop.classList.contains('open') || !items.length) return;
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    acIndex = Math.min(acIndex + 1, items.length - 1);
+    items.forEach((el,i) => el.classList.toggle('selected', i === acIndex));
+    items[acIndex]?.scrollIntoView({block:'nearest'});
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    acIndex = Math.max(acIndex - 1, -1);
+    items.forEach((el,i) => el.classList.toggle('selected', i === acIndex));
+    if (acIndex >= 0) items[acIndex]?.scrollIntoView({block:'nearest'});
+  } else if (event.key === 'Enter' && acIndex >= 0) {
+    event.preventDefault();
+    items[acIndex]?.dispatchEvent(new MouseEvent('mousedown', {bubbles:true}));
+  } else if (event.key === 'Escape') {
+    acClose(dropId);
+  }
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.ac-wrap')) acCloseAll();
+});
+
+
+// ===================== STATE =====================
+let allResults = [], filteredResults = [], currentPage = 1;
+const PAGE_SIZE = 50;
+let sortKey = 'date', sortDir = -1;
+let charts = {};
+let fieldRunners = [];
+const MAX_RUNNERS = 16;
+const RUNNER_COLORS = ['#7ec94a','#e8a830','#d95f4b','#4a9ed4','#c47fd4','#4bc4c4','#e87c4a','#a8d45b','#d45b8a','#5bc4a8','#d4b45b','#5b7cd4','#d45b5b','#5bd48a','#c4a84b','#8a5bd4'];
+
+// ===================== INIT =====================
+function init() {
+  if (window.RACING_DATA?.results?.length) {
+    allResults = window.RACING_DATA.results;
+    const s = window.RACING_DATA.summary;
+    document.getElementById('db-status').textContent =
+      `${s.total_results?.toLocaleString()} results · ${s.exported_at}`;
+  } else {
+    allResults = generateMockData();
+    document.getElementById('db-status').textContent = 'demo mode';
+  }
+  populateDropdowns();
+  applyFilters();
+  loadTrends();
+}
+
+// ===================== DROPDOWNS =====================
+function populateDropdowns() {
+  const tracks = [...new Set(allResults.map(r=>r.track).filter(Boolean))].sort();
+  const goings = [...new Set(allResults.map(r=>normaliseGoing(r.going)).filter(Boolean))].sort();
+
+  ['f-track','t-track','field-track'].forEach(id => {
+    const sel = document.getElementById(id); if(!sel) return;
+    tracks.forEach(t => { const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
+  });
+  ['f-going','field-going'].forEach(id => {
+    const sel = document.getElementById(id); if(!sel) return;
+    goings.forEach(g => { const o=document.createElement('option'); o.value=g; o.textContent=g; sel.appendChild(o); });
+  });
+}
+
+function normaliseGoing(going) {
+  if (!going) return null;
+  const g = going.toLowerCase();
+  if (g.includes('heavy')) return 'Heavy';
+  if (g.includes('slow')) return 'Slow';
+  if (g.includes('soft')) return 'Soft';
+  if (g.includes('good')) return 'Good';
+  if (g.includes('firm')) return 'Firm';
+  if (g.includes('hard')) return 'Hard';
+  return going.split(/\s/)[0];
+}
+
+function goingClass(going) {
+  if (!going) return '';
+  const g = going.toLowerCase();
+  if (g.includes('heavy') || g.includes('slow')) return 'going-heavy';
+  if (g.includes('soft')) return 'going-soft';
+  return 'going-good';
+}
+
+// ===================== GLOBAL SEARCH =====================
+function globalSearch(q) {
+  const container = document.getElementById('search-results');
+  if (!q || q.length < 2) { container.style.display='none'; return; }
+  const lq = q.toLowerCase();
+  const horses = [...new Set(allResults.map(r=>r.horse).filter(Boolean))].filter(h=>h.toLowerCase().includes(lq)).slice(0,5);
+  const jockeys = [...new Set(allResults.map(r=>r.jockey).filter(Boolean))].filter(j=>j.toLowerCase().includes(lq)).slice(0,3);
+  const trainers = [...new Set(allResults.map(r=>r.trainer).filter(Boolean))].filter(t=>t.toLowerCase().includes(lq)).slice(0,3);
+  const results = [
+    ...horses.map(h=>({name:h,type:'horse',label:'Horse'})),
+    ...jockeys.map(j=>({name:j,type:'jockey',label:'Jockey'})),
+    ...trainers.map(t=>({name:t,type:'trainer',label:'Trainer'})),
+  ];
+  if (!results.length) { container.style.display='none'; return; }
+  container.innerHTML = results.map(r => {
+    const rows = allResults.filter(x=>(x[r.type]||'')===r.name);
+    const wins = rows.filter(x=>x.finish_position===1).length;
+    return `<div class="search-result-item" onclick="openProfile('${r.name.replace(/'/g,"\\'")}','${r.type}')">
+      <div><div class="sri-name">${r.name}</div>
+        <div class="sri-meta">${rows.length} starts · ${wins} wins</div></div>
+      <span class="sri-type">${r.label}</span></div>`;
+  }).join('');
+  container.style.display = 'block';
+}
+function showSearchResults() {
+  const q = document.getElementById('global-search').value;
+  if (q.length >= 2) globalSearch(q);
+}
+function hideSearchResults() { document.getElementById('search-results').style.display='none'; }
+
+// ===================== PROFILE =====================
+function openProfile(name, type) {
+  hideSearchResults();
+  document.getElementById('global-search').value = '';
+  showPage('profile');
+  const rows = allResults.filter(r=>(r[type]||'')=== name);
+  if (!rows.length) return;
+  rows.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const wins = rows.filter(r=>r.finish_position===1).length;
+  const places = rows.filter(r=>r.finish_position<=3).length;
+  const avgPos = (rows.reduce((s,r)=>s+r.finish_position,0)/rows.length).toFixed(1);
+  const winPct = (wins/rows.length*100).toFixed(1);
+  const placePct = (places/rows.length*100).toFixed(1);
+  const totalPrize = rows.reduce((s,r)=>s+(r.prize_money||0),0);
+
+  // Best track
+  const trackMap = {};
+  rows.filter(r=>r.finish_position===1).forEach(r=>{ trackMap[r.track]=(trackMap[r.track]||0)+1; });
+  const bestTrack = Object.entries(trackMap).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+
+  // Best distance
+  const distMap = {};
+  rows.filter(r=>r.finish_position===1).forEach(r=>{ distMap[r.distance_m]=(distMap[r.distance_m]||0)+1; });
+  const bestDist = Object.entries(distMap).sort((a,b)=>b[1]-a[1])[0]?.[0];
+
+  // Going record
+  const goingMap = {};
+  rows.forEach(r=>{
+    const g = normaliseGoing(r.going);
+    if (!g) return;
+    if (!goingMap[g]) goingMap[g]={starts:0,wins:0};
+    goingMap[g].starts++;
+    if (r.finish_position===1) goingMap[g].wins++;
+  });
+
+  // Form line (last 8)
+  const formLine = rows.slice(0,8).map(r=>{
+    const cls = r.finish_position===1?'fd-1':r.finish_position===2?'fd-2':r.finish_position===3?'fd-3':'fd-o';
+    return `<div class="form-dot ${cls}">${r.finish_position}</div>`;
+  }).join('');
+
+  // Days since last run
+  const lastDate = rows[0]?.date;
+  const daysSince = lastDate ? Math.floor((Date.now()-new Date(lastDate))/(1000*60*60*24)) : null;
+
+  document.getElementById('profile-content').innerHTML = `
+    <div class="profile-wrap">
+      <div class="profile-card">
+        <div class="profile-badge">${type.toUpperCase()}</div>
+        <div class="profile-name">${name}</div>
+        <div class="form-line" style="margin-bottom:1rem">${formLine}</div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Starts</span><span class="profile-stat-val">${rows.length}</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Wins</span><span class="profile-stat-val" style="color:var(--amber)">${wins} (${winPct}%)</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Places (top 3)</span><span class="profile-stat-val">${places} (${placePct}%)</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Avg finish pos</span><span class="profile-stat-val">${avgPos}</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Best track</span><span class="profile-stat-val">${bestTrack}</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Best distance</span><span class="profile-stat-val">${bestDist?bestDist+'m':'—'}</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Career earnings</span><span class="profile-stat-val" style="color:var(--green)">$${totalPrize.toLocaleString()}</span></div>
+        ${daysSince!==null?`<div class="profile-stat-row"><span class="profile-stat-label">Days since last run</span><span class="profile-stat-val">${daysSince}</span></div>`:''}
+      </div>
+      <div class="profile-right">
+        <div class="table-wrap" style="margin-bottom:0">
+          <div class="table-header"><span class="table-title">Going record</span></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:1rem">
+            ${Object.entries(goingMap).sort((a,b)=>b[1].starts-a[1].starts).map(([g,d])=>`
+              <div class="going-card">
+                <div class="going-label"><span class="going-badge ${goingClass(g)}">${g}</span></div>
+                <div class="going-val" style="color:${d.wins>0?'var(--green)':'var(--text2)'}">${d.wins>0?(d.wins/d.starts*100).toFixed(0)+'%':'0%'}</div>
+                <div class="going-sub">${d.wins}W from ${d.starts}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="table-wrap" style="margin-bottom:0">
+          <div class="table-header"><span class="table-title">Recent runs</span><span class="table-count">${rows.length} total</span></div>
+          ${rows.slice(0,20).map(r=>{
+            const posClass = r.finish_position===1?'pos-1':r.finish_position===2?'pos-2':r.finish_position===3?'pos-3':'pos-other';
+            const bg = r.finish_position===1?'rgba(232,168,48,.2)':r.finish_position<=3?'rgba(126,201,74,.12)':'var(--bg4)';
+            return `<div class="recent-run" onclick="filterByHorse('${(r.horse||'').replace(/'/g,"\\'")}')">
+              <div class="rr-pos" style="background:${bg}">
+                <span class="pos-badge ${posClass}">${r.finish_position}</span>
+              </div>
+              <div class="rr-main">
+                <div class="rr-race">${r.race_name||'—'} · ${r.track||'—'}</div>
+                <div class="rr-meta">${r.date||'—'} · ${r.distance_m?r.distance_m+'m':'—'}
+                  ${r.going?`· <span class="going-badge ${goingClass(r.going)}">${normaliseGoing(r.going)}</span>`:''}
+                </div>
+              </div>
+              <div class="rr-right">
+                <div class="rr-odds">${r.odds_sp?'$'+r.odds_sp:'—'}</div>
+                <div class="rr-margin">${r.finish_position===1?'Winner':(r.margin_trad||'—')}</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ===================== RESULTS =====================
+function applyFilters() {
+  const horse   = document.getElementById('f-horse').value.toLowerCase();
+  const jockey  = document.getElementById('f-jockey').value.toLowerCase();
+  const trainer = document.getElementById('f-trainer').value.toLowerCase();
+  const track   = document.getElementById('f-track').value;
+  const going   = document.getElementById('f-going').value;
+  const pos     = document.getElementById('f-position').value;
+  const df      = document.getElementById('f-date-from').value;
+  const dt      = document.getElementById('f-date-to').value;
+
+  filteredResults = allResults.filter(r => {
+    if (horse   && !(r.horse||'').toLowerCase().includes(horse))   return false;
+    if (jockey  && !(r.jockey||'').toLowerCase().includes(jockey)) return false;
+    if (trainer && !(r.trainer||'').toLowerCase().includes(trainer)) return false;
+    if (track   && r.track !== track) return false;
+    if (going   && normaliseGoing(r.going) !== going) return false;
+    if (pos==='1'   && r.finish_position!==1)  return false;
+    if (pos==='1-3' && r.finish_position>3)    return false;
+    if (pos==='1-5' && r.finish_position>5)    return false;
+    if (df && r.date < df) return false;
+    if (dt && r.date > dt) return false;
+    return true;
+  });
+  currentPage = 1;
+  renderStats();
+  renderResultsTable();
+}
+
+function clearFilters() {
+  ['f-horse','f-jockey','f-trainer','f-date-from','f-date-to'].forEach(id=>document.getElementById(id).value='');
+  ['f-track','f-going','f-position'].forEach(id=>document.getElementById(id).value='');
+  acCloseAll();
+  applyFilters();
+}
+
+function renderStats() {
+  const data = filteredResults.length ? filteredResults : allResults;
+  const wins   = data.filter(r=>r.finish_position===1).length;
+  const places = data.filter(r=>r.finish_position<=3).length;
+  const winPct = data.length ? (wins/data.length*100).toFixed(1) : 0;
+  const tracks = new Set(data.map(r=>r.track)).size;
+  const horses = new Set(data.map(r=>r.horse)).size;
+  const prize  = data.reduce((s,r)=>s+(r.prize_money||0),0);
+
+  document.getElementById('results-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Results</div><div class="stat-value">${data.length.toLocaleString()}</div></div>
+    <div class="stat-card"><div class="stat-label">Wins</div><div class="stat-value amber">${wins.toLocaleString()}</div></div>
+    <div class="stat-card"><div class="stat-label">Win rate</div><div class="stat-value green">${winPct}%</div></div>
+    <div class="stat-card"><div class="stat-label">Top 3</div><div class="stat-value">${places.toLocaleString()}</div></div>
+    <div class="stat-card"><div class="stat-label">Horses</div><div class="stat-value">${horses.toLocaleString()}</div></div>
+    <div class="stat-card"><div class="stat-label">Tracks</div><div class="stat-value">${tracks}</div></div>
+    <div class="stat-card"><div class="stat-label">Total prize</div><div class="stat-value" style="font-size:16px">$${(prize/1000).toFixed(0)}k</div></div>`;
+}
+
+function sortTable(key) {
+  if (sortKey===key) sortDir*=-1; else { sortKey=key; sortDir=1; }
+  renderResultsTable();
+}
+
+function renderResultsTable() {
+  const isFiltered = filteredResults.length || ['f-horse','f-jockey','f-trainer'].some(id=>document.getElementById(id)?.value);
+  const data = isFiltered ? filteredResults : allResults;
+  const sorted = [...data].sort((a,b)=>{
+    let av=a[sortKey]??'', bv=b[sortKey]??'';
+    if (typeof av==='number') return sortDir*(av-bv);
+    return sortDir*String(av).localeCompare(String(bv));
+  });
+  const total = sorted.length;
+  const slice = sorted.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+  document.getElementById('results-count').textContent = `${total.toLocaleString()} results`;
+  document.getElementById('results-body').innerHTML = slice.map(r=>{
+    const p = r.finish_position;
+    const pc = p===1?'pos-1':p===2?'pos-2':p===3?'pos-3':'pos-other';
+    return `<tr>
+      <td><span class="pos-badge ${pc}">${p}</span></td>
+      <td><span class="horse-link" onclick="openProfile('${(r.horse||'').replace(/'/g,"\\'")}','horse')">${r.horse||'—'}</span></td>
+      <td><span class="horse-link" onclick="openProfile('${(r.jockey||'').replace(/'/g,"\\'")}','jockey')">${r.jockey||'—'}</span></td>
+      <td class="r-hide" style="color:var(--text2);font-size:12px">${r.trainer||'—'}</td>
+      <td style="color:var(--text2)">${r.track||'—'}</td>
+      <td class="time-val">${r.date||'—'}</td>
+      <td class="r-hide" style="color:var(--text2);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis">${r.race_name||'—'}</td>
+      <td class="time-val r-hide">${r.distance_m?r.distance_m+'m':'—'}</td>
+      <td class="time-val r-hide">${r.barrier||'—'}</td>
+      <td class="odds">${r.odds_sp?'$'+r.odds_sp:'—'}</td>
+      <td class="time-val r-hide">${r.finish_time||'—'}</td>
+      <td class="r-hide" style="color:var(--text3);font-size:12px">${p===1?'Winner':(r.margin_trad||'—')}</td>
+    </tr>`;
+  }).join('');
+  renderPagination(Math.ceil(total/PAGE_SIZE));
+}
+
+function renderPagination(pages) {
+  const c = document.getElementById('results-pagination');
+  if (pages<=1){c.innerHTML='';return;}
+  let h = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>&#8592;</button>`;
+  const start=Math.max(1,currentPage-3), end=Math.min(pages,currentPage+3);
+  if(start>1) h+=`<button class="page-btn" onclick="goPage(1)">1</button><span class="page-info">…</span>`;
+  for(let i=start;i<=end;i++) h+=`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  if(end<pages) h+=`<span class="page-info">…</span><button class="page-btn" onclick="goPage(${pages})">${pages}</button>`;
+  h+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>&#8594;</button>`;
+  c.innerHTML=h;
+}
+
+function goPage(p){
+  const data=filteredResults.length?filteredResults:allResults;
+  const pages=Math.ceil(data.length/PAGE_SIZE);
+  if(p<1||p>pages)return;
+  currentPage=p; renderResultsTable();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function filterByHorse(name){showPage('results');document.getElementById('f-horse').value=name;applyFilters();}
+
+// ===================== TRENDS =====================
+function loadTrends() {
+  const search    = document.getElementById('t-search').value.toLowerCase();
+  const type      = document.getElementById('t-type').value;
+  const metric    = document.getElementById('t-metric').value;
+  const track     = document.getElementById('t-track').value;
+  const minStarts = parseInt(document.getElementById('t-min-starts').value)||2;
+
+  let data = allResults;
+  if (track) data = data.filter(r=>r.track===track);
+
+  const grouped = {};
+  data.forEach(r=>{
+    const key = r[type]||'Unknown';
+    if (search && !key.toLowerCase().includes(search)) return;
+    if (!grouped[key]) grouped[key]=[];
+    grouped[key].push(r);
+  });
+
+  const lb = Object.entries(grouped).map(([name,rows])=>{
+    const starts=rows.length, wins=rows.filter(r=>r.finish_position===1).length;
+    const places=rows.filter(r=>r.finish_position<=3).length;
+    const avgPos=(rows.reduce((s,r)=>s+r.finish_position,0)/starts).toFixed(1);
+    const winPct=(wins/starts*100).toFixed(1), placePct=(places/starts*100).toFixed(1);
+    const tw={};
+    rows.filter(r=>r.finish_position===1).forEach(r=>{ tw[r.track]=(tw[r.track]||0)+1; });
+    const bestTrack=Object.entries(tw).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+    return {name,starts,wins,places,winPct,placePct,avgPos,bestTrack,rows};
+  }).filter(x=>x.starts>=minStarts);
+
+  const sorted = lb.sort((a,b)=>{
+    if(metric==='wins')      return b.wins-a.wins;
+    if(metric==='win_pct')   return parseFloat(b.winPct)-parseFloat(a.winPct);
+    if(metric==='place_pct') return parseFloat(b.placePct)-parseFloat(a.placePct);
+    return parseFloat(a.avgPos)-parseFloat(b.avgPos);
+  }).slice(0,50);
+
+  document.getElementById('trends-count').textContent=`${sorted.length} ${type}s`;
+  document.getElementById('trends-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Total ${type}s</div><div class="stat-value">${Object.keys(grouped).length}</div></div>
+    <div class="stat-card"><div class="stat-label">Best win rate</div><div class="stat-value green">${sorted[0]?.winPct||0}%</div><div class="stat-sub">${sorted[0]?.name||'—'}</div></div>
+    <div class="stat-card"><div class="stat-label">Most wins</div><div class="stat-value amber">${[...sorted].sort((a,b)=>b.wins-a.wins)[0]?.wins||0}</div><div class="stat-sub">${[...sorted].sort((a,b)=>b.wins-a.wins)[0]?.name||'—'}</div></div>
+    <div class="stat-card"><div class="stat-label">Total races</div><div class="stat-value">${data.length.toLocaleString()}</div></div>`;
+
+  document.getElementById('trends-body').innerHTML=sorted.map((s,i)=>`
+    <tr>
+      <td class="time-val" style="color:var(--text3)">${i+1}</td>
+      <td><span class="horse-link" onclick="openProfile('${s.name.replace(/'/g,"\\'")}','${type}')">${s.name}</span></td>
+      <td class="time-val">${s.starts}</td>
+      <td class="time-val" style="color:var(--amber)">${s.wins}</td>
+      <td class="time-val r-hide">${s.places}</td>
+      <td class="time-val" style="color:var(--green)">${s.winPct}%</td>
+      <td class="time-val r-hide">${s.placePct}%</td>
+      <td class="time-val r-hide">${s.avgPos}</td>
+      <td class="time-val r-hide" style="color:var(--text2)">${s.bestTrack}</td>
+      <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;min-height:28px" onclick="openProfile('${s.name.replace(/'/g,"\\'")}','${type}')">Profile</button></td>
+    </tr>`).join('');
+
+  if (sorted[0]) renderCharts(sorted[0], type, data, sorted);
+}
+
+function renderCharts(target, type, allData, leaderboard) {
+  const rows = target.rows;
+  const monthWins={};
+  rows.forEach(r=>{
+    const m=r.date?.slice(0,7); if(!m)return;
+    if(!monthWins[m]){monthWins[m]={wins:0,starts:0};}
+    monthWins[m].starts++; if(r.finish_position===1)monthWins[m].wins++;
+  });
+  const months=Object.keys(monthWins).sort();
+  makeChart('chart-timeline','bar',{
+    labels:months,
+    datasets:[
+      {label:'Wins',data:months.map(m=>monthWins[m].wins),backgroundColor:'#7ec94a'},
+      {label:'Starts',data:months.map(m=>monthWins[m].starts),backgroundColor:'rgba(255,255,255,0.08)'},
+    ]
+  });
+  const tw={};
+  rows.filter(r=>r.finish_position===1).forEach(r=>{ tw[r.track]=(tw[r.track]||0)+1; });
+  const twArr=Object.entries(tw).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  makeChart('chart-track','bar',{
+    labels:twArr.map(x=>x[0]),
+    datasets:[{label:'Wins',data:twArr.map(x=>x[1]),backgroundColor:'#e8a830'}]
+  },{indexAxis:'y'});
+  const pos=Array(10).fill(0);
+  rows.forEach(r=>{ pos[Math.min(r.finish_position,10)-1]++; });
+  makeChart('chart-positions','bar',{
+    labels:['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10+'],
+    datasets:[{label:'Count',data:pos,backgroundColor:['#e8a830','#7ec94a','#4a9ed4','rgba(255,255,255,0.1)','rgba(255,255,255,0.08)','rgba(255,255,255,0.07)','rgba(255,255,255,0.06)','rgba(255,255,255,0.05)','rgba(255,255,255,0.04)','rgba(255,255,255,0.03)']}]
+  });
+  const dw={};
+  rows.forEach(r=>{ if(!r.distance_m)return; if(!dw[r.distance_m]){dw[r.distance_m]={wins:0,starts:0};} dw[r.distance_m].starts++; if(r.finish_position===1)dw[r.distance_m].wins++; });
+  const dists=Object.keys(dw).map(Number).sort((a,b)=>a-b);
+  makeChart('chart-distance','line',{
+    labels:dists.map(d=>d+'m'),
+    datasets:[{label:'Win %',data:dists.map(d=>dw[d].starts>0?(dw[d].wins/dw[d].starts*100).toFixed(1):0),borderColor:'#7ec94a',backgroundColor:'rgba(126,201,74,0.08)',tension:0.3,fill:true,pointBackgroundColor:'#7ec94a'}]
+  });
+}
+
+function makeChart(id, type, data, extraOpts={}) {
+  if(charts[id]) charts[id].destroy();
+  const ctx=document.getElementById(id)?.getContext('2d'); if(!ctx)return;
+  charts[id]=new Chart(ctx,{type,data,options:{
+    responsive:true,
+    plugins:{legend:{display:data.datasets.length>1,labels:{color:'#948f83',font:{size:11}}}},
+    scales:{
+      x:{ticks:{color:'#524f48',font:{size:10}},grid:{color:'rgba(255,255,255,0.03)'}},
+      y:{ticks:{color:'#524f48',font:{size:10}},grid:{color:'rgba(255,255,255,0.03)'}},
+      ...(extraOpts.scales||{})
+    },...extraOpts
+  }});
+}
+
+// ===================== H2H =====================
+function loadH2H() {
+  const nameA=document.getElementById('h-a').value.trim();
+  const nameB=document.getElementById('h-b').value.trim();
+  const type=document.getElementById('h-type').value;
+  if(!nameA||!nameB){
+    document.getElementById('h2h-content').innerHTML=`<div class="empty-state"><div class="empty-icon">⚡</div><div class="empty-text">Enter two names above</div></div>`;
+    return;
+  }
+  const rowsA=allResults.filter(r=>(r[type]||'').toLowerCase().includes(nameA.toLowerCase()));
+  const rowsB=allResults.filter(r=>(r[type]||'').toLowerCase().includes(nameB.toLowerCase()));
+  if(!rowsA.length||!rowsB.length){
+    document.getElementById('h2h-content').innerHTML=`<div class="empty-state"><div class="empty-icon">⚡</div><div class="empty-text">Could not find one or both names</div></div>`;
+    return;
+  }
+  const sharedA=rowsA.filter(r=>rowsB.some(rb=>rb.track===r.track&&rb.date===r.date&&rb.race_name===r.race_name));
+  const sharedB=rowsB.filter(r=>sharedA.some(ra=>ra.track===r.track&&ra.date===r.date&&ra.race_name===r.race_name));
+  const statsA=calcStats(rowsA), statsB=calcStats(rowsB);
+  let aWins=0,bWins=0;
+  sharedA.forEach(ra=>{
+    const rb=sharedB.find(r=>r.track===ra.track&&r.date===ra.date&&r.race_name===ra.race_name);
+    if(rb){ if(ra.finish_position<rb.finish_position)aWins++; else if(rb.finish_position<ra.finish_position)bWins++; }
+  });
+  const dispA=rowsA[0]?.[type]||nameA, dispB=rowsB[0]?.[type]||nameB;
+  const scoreA=getH2HScore(rowsA,'',''), scoreB=getH2HScore(rowsB,'','');
+  const ranked=[{horse:dispA,aiScore:scoreA,winPct:statsA.winPct},{horse:dispB,aiScore:scoreB,winPct:statsB.winPct}].sort((a,b)=>b.aiScore-a.aiScore);
+
+  document.getElementById('h2h-content').innerHTML=`
+    ${aiVerdictHTML(ranked,'head to head')}
+    <div class="table-wrap" style="margin-bottom:1.25rem">
+      <div class="vs-banner">
+        <div class="vs-text">${dispA.split(' ')[0]} vs ${dispB.split(' ')[0]}</div>
+        <div class="vs-record">Direct matchups: <span>${aWins}</span> — ${sharedA.length-aWins-bWins} — <span>${bWins}</span> (${sharedA.length} shared races)</div>
+      </div>
+      <div class="h2h-grid" style="padding:1.25rem">
+        <div class="h2h-horse-card">
+          <div class="h2h-name" style="color:var(--green)">${dispA}</div>${renderH2HStats(statsA)}
+        </div>
+        <div class="h2h-horse-card">
+          <div class="h2h-name" style="color:var(--amber)">${dispB}</div>${renderH2HStats(statsB)}
+        </div>
+      </div>
+    </div>
+    ${sharedA.length?`
+    <div class="h2h-shared">
+      <div class="table-header"><span class="table-title">Shared races</span><span class="table-count">${sharedA.length} races</span></div>
+      <div class="tbl-scroll"><table><thead><tr>
+        <th>Date</th><th>Track</th><th class="r-hide">Race</th><th class="r-hide">Dist</th>
+        <th style="color:var(--green)">${dispA.split(' ')[0]}</th>
+        <th style="color:var(--amber)">${dispB.split(' ')[0]}</th><th>Winner</th>
+      </tr></thead><tbody>${sharedA.map(ra=>{
+        const rb=sharedB.find(r=>r.track===ra.track&&r.date===ra.date&&r.race_name===ra.race_name);
+        const winner=ra.finish_position<(rb?.finish_position||99)?dispA:dispB;
+        const wc=winner===dispA?'var(--green)':'var(--amber)';
+        return `<tr>
+          <td class="time-val">${ra.date}</td><td>${ra.track}</td>
+          <td class="r-hide" style="font-size:12px;color:var(--text2)">${ra.race_name}</td>
+          <td class="time-val r-hide">${ra.distance_m}m</td>
+          <td class="time-val" style="color:var(--green)">${ra.finish_position}${ord(ra.finish_position)}</td>
+          <td class="time-val" style="color:var(--amber)">${rb?.finish_position||'—'}${rb?ord(rb.finish_position):''}</td>
+          <td style="color:${wc};font-weight:500">${winner.split(' ')[0]}</td>
+        </tr>`;
+      }).join('')}</tbody></table></div>
+    </div>`:`<div class="empty-state" style="padding:2rem"><div class="empty-text">No shared races found</div></div>`}`;
+}
+
+function calcStats(rows) {
+  const wins=rows.filter(r=>r.finish_position===1).length;
+  const places=rows.filter(r=>r.finish_position<=3).length;
+  const avgPos=(rows.reduce((s,r)=>s+r.finish_position,0)/rows.length).toFixed(1);
+  const bestOdds=Math.min(...rows.filter(r=>r.finish_position===1&&r.odds_sp).map(r=>parseFloat(r.odds_sp)));
+  const tw={};
+  rows.filter(r=>r.finish_position===1).forEach(r=>{tw[r.track]=(tw[r.track]||0)+1;});
+  return {starts:rows.length,wins,places,avgPos,
+    winPct:(wins/rows.length*100).toFixed(1),
+    placePct:(places/rows.length*100).toFixed(1),
+    bestOdds:isFinite(bestOdds)?'$'+bestOdds:'—',
+    bestTrack:Object.entries(tw).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—'};
+}
+
+function renderH2HStats(s) {
+  return `
+    <div class="h2h-stat-row"><span class="h2h-stat-label">Starts</span><span class="h2h-stat-val">${s.starts}</span></div>
+    <div class="h2h-stat-row"><span class="h2h-stat-label">Wins</span><span class="h2h-stat-val h2h-win">${s.wins} (${s.winPct}%)</span></div>
+    <div class="h2h-stat-row"><span class="h2h-stat-label">Places (top 3)</span><span class="h2h-stat-val">${s.places} (${s.placePct}%)</span></div>
+    <div class="h2h-stat-row"><span class="h2h-stat-label">Avg finish pos</span><span class="h2h-stat-val">${s.avgPos}</span></div>
+    <div class="h2h-stat-row"><span class="h2h-stat-label">Best winning odds</span><span class="h2h-stat-val">${s.bestOdds}</span></div>
+    <div class="h2h-stat-row"><span class="h2h-stat-label">Best track</span><span class="h2h-stat-val">${s.bestTrack}</span></div>`;
+}
+
+// ===================== AI SCORING =====================
+function scoreRunner(runner, track, distance, going) {
+  let score = 0;
+  // Win rate (35pts)
+  score += Math.min(runner.winPct/100*35, 35);
+  // Recent form — last 5 (25pts)
+  const recent = allResults.filter(r=>r.horse===runner.horse)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
+  if (recent.length) {
+    const avg = recent.reduce((s,r)=>s+r.finish_position,0)/recent.length;
+    score += Math.max(0, 25-((avg-1)/9)*25);
+  }
+  // Track suitability (15pts)
+  if (track) {
+    const ts=runner.trackStats?.[track]||{starts:0,wins:0};
+    score += ts.starts>=2?(ts.wins/ts.starts)*15:ts.starts===1?ts.wins*7:0;
+  }
+  // Distance suitability (10pts)
+  if (distance) {
+    const ds=runner.distStats?.[distance]||{starts:0,wins:0};
+    score += ds.starts>=2?(ds.wins/ds.starts)*10:ds.starts===1?ds.wins*5:0;
+  }
+  // Going suitability (10pts)
+  if (going) {
+    const gs=runner.goingStats?.[going]||{starts:0,wins:0};
+    score += gs.starts>=2?(gs.wins/gs.starts)*10:gs.starts===1?gs.wins*5:0;
+  }
+  // Barrier (5pts)
+  const b=runner.barrier||8;
+  score += b<=3?5:b<=6?3.5:b<=10?2:0.5;
+  // Days since last run — penalise 60+ days (0 to -3pts)
+  const lastRow = allResults.filter(r=>r.horse===runner.horse).sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+  if (lastRow?.date) {
+    const days = Math.floor((Date.now()-new Date(lastRow.date))/(1000*60*60*24));
+    if (days>60) score -= Math.min(3, (days-60)/30);
+  }
+  return Math.round(Math.max(0,score)*10)/10;
+}
+
+function getH2HScore(rows, track, distance) {
+  const wins=rows.filter(r=>r.finish_position===1).length;
+  const winPct=rows.length?wins/rows.length*100:0;
+  const trackStats={}, distStats={}, goingStats={};
+  rows.forEach(r=>{
+    if(r.track){if(!trackStats[r.track])trackStats[r.track]={starts:0,wins:0};trackStats[r.track].starts++;if(r.finish_position===1)trackStats[r.track].wins++;}
+    if(r.distance_m){const k=String(r.distance_m);if(!distStats[k])distStats[k]={starts:0,wins:0};distStats[k].starts++;if(r.finish_position===1)distStats[k].wins++;}
+    const g=normaliseGoing(r.going);
+    if(g){if(!goingStats[g])goingStats[g]={starts:0,wins:0};goingStats[g].starts++;if(r.finish_position===1)goingStats[g].wins++;}
+  });
+  return scoreRunner({horse:rows[0]?.horse||'',barrier:5,winPct,trackStats,distStats,goingStats},track,distance,'');
+}
+
+function getRankedField(track,distance,going) {
+  return fieldRunners.map(r=>({...r,aiScore:scoreRunner(r,track,distance,going)})).sort((a,b)=>b.aiScore-a.aiScore);
+}
+
+function aiVerdictHTML(ranked, context) {
+  if(!ranked.length)return'';
+  const top=ranked[0];
+  const maxScore=Math.max(...ranked.map(r=>r.aiScore),1);
+  const ordinals=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th','13th','14th','15th','16th'];
+  return `<div class="ai-verdict">
+    <div class="ai-verdict-header">
+      <div><div class="ai-verdict-label">AI likely winner</div>
+        <div class="ai-verdict-pick">${top.horse||top.name}</div></div>
+      <div class="ai-verdict-context">${context}</div>
+    </div>
+    ${ranked.map((r,i)=>`
+      <div class="ai-row" style="${i===0?'background:rgba(126,201,74,0.04)':''}">
+        <div class="ai-rank" style="color:${i===0?'var(--green)':i===1?'var(--amber)':i===2?'var(--text2)':'var(--text3)'}">${ordinals[i]}</div>
+        <div class="ai-horse">
+          <div class="ai-horse-name" style="color:${i===0?'var(--green)':i===1?'var(--amber)':'var(--text)'}">${r.horse||r.name}</div>
+          <div class="ai-horse-meta">score: ${r.aiScore} · win rate: ${typeof r.winPct==='number'?r.winPct.toFixed(1):r.winPct}%</div>
+        </div>
+        <div class="ai-score-bar"><div class="ai-score-fill" style="width:${(r.aiScore/maxScore*100).toFixed(0)}%;background:${i===0?'var(--green)':i===1?'var(--amber)':'var(--text3)'}"></div></div>
+        ${i===0?'<span class="ai-top-badge">TOP PICK</span>':''}
+      </div>`).join('')}
+    <div class="ai-footer">Scoring: win rate (35%) · recent form/last 5 (25%) · track (15%) · distance (10%) · going (10%) · barrier (5%) · days since last run</div>
+  </div>`;
+}
+
+// ===================== FIELD BUILDER =====================
+function searchHorsesForField() {
+  const q=document.getElementById('field-search').value.toLowerCase().trim();
+  const c=document.getElementById('field-suggestions');
+  if(!q){c.innerHTML=`<div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:13px">Type to search horses</div>`;return;}
+  const matches=[...new Set(allResults.map(r=>r.horse).filter(Boolean))].filter(h=>h.toLowerCase().includes(q)).slice(0,20);
+  if(!matches.length){c.innerHTML='<div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:13px">No horses found</div>';return;}
+  c.innerHTML=matches.map(function(horse){
+    const rows=allResults.filter(r=>r.horse===horse);
+    const wins=rows.filter(r=>r.finish_position===1).length;
+    const already=fieldRunners.some(r=>r.horse===horse);
+    const full=fieldRunners.length>=MAX_RUNNERS;
+    const safeName=horse.replace(/'/g,"\\'");
+    const clickFn=(!already&&!full)?"addToField('"+safeName+"')":'';
+    const winPct=rows.length?(wins/rows.length*100).toFixed(0):0;
+    return '<div class="horse-suggestion-item">'
+      +'<div><div class="suggestion-name">'+horse+'</div>'
+      +'<div class="suggestion-meta">'+rows.length+' starts &middot; '+wins+'W &middot; '+winPct+'%</div></div>'
+      +'<button class="add-btn '+(already?'added':'')+' " onclick="'+clickFn+'" title="'+(already?'Already added':full?'Field full':'Add')+'">'
+      +(already?'&#10003;':'+')
+      +'</button></div>';
+  }).join('');
+}
+
+function addToField(horseName) {
+  if(fieldRunners.length>=MAX_RUNNERS||fieldRunners.some(r=>r.horse===horseName))return;
+  const rows=allResults.filter(r=>r.horse===horseName);
+  rows.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const wins=rows.filter(r=>r.finish_position===1).length;
+  const places=rows.filter(r=>r.finish_position<=3).length;
+  const avgPos=rows.length?(rows.reduce((s,r)=>s+r.finish_position,0)/rows.length).toFixed(1):'—';
+  const winPct=rows.length?(wins/rows.length*100):0;
+  const placePct=rows.length?(places/rows.length*100):0;
+  const trackStats={}, distStats={}, goingStats={};
+  rows.forEach(r=>{
+    if(r.track){if(!trackStats[r.track])trackStats[r.track]={starts:0,wins:0};trackStats[r.track].starts++;if(r.finish_position===1)trackStats[r.track].wins++;}
+    if(r.distance_m){const k=String(r.distance_m);if(!distStats[k])distStats[k]={starts:0,wins:0};distStats[k].starts++;if(r.finish_position===1)distStats[k].wins++;}
+    const g=normaliseGoing(r.going);
+    if(g){if(!goingStats[g])goingStats[g]={starts:0,wins:0};goingStats[g].starts++;if(r.finish_position===1)goingStats[g].wins++;}
+  });
+  // Form line last 5
+  const form=rows.slice(0,5).map(r=>r.finish_position).join('-');
+  fieldRunners.push({horse:horseName,barrier:fieldRunners.length+1,trainer:rows[0]?.trainer||'—',
+    starts:rows.length,wins,places,winPct,placePct,avgPos:parseFloat(avgPos)||0,
+    trackStats,distStats,goingStats,form,color:RUNNER_COLORS[fieldRunners.length%RUNNER_COLORS.length]});
+  renderFieldRunners();renderFieldComparison();searchHorsesForField();
+}
+
+function removeFromField(horse) {
+  fieldRunners=fieldRunners.filter(r=>r.horse!==horse);
+  fieldRunners.forEach((r,i)=>r.barrier=i+1);
+  renderFieldRunners();renderFieldComparison();searchHorsesForField();
+}
+
+function clearField(){fieldRunners=[];renderFieldRunners();renderFieldComparison();searchHorsesForField();}
+function updateFieldMeta(){const n=document.getElementById('field-race-name').value||'RACE FIELD';document.getElementById('field-race-name-display').textContent=n.toUpperCase();}
+
+function renderFieldRunners() {
+  document.getElementById('field-sidebar-count').textContent=`${fieldRunners.length} / ${MAX_RUNNERS}`;
+  const body=document.getElementById('field-runners-body');
+  if(!fieldRunners.length){body.innerHTML=`<div class="field-empty">No runners added — search horses on the left</div>`;return;}
+  body.innerHTML=fieldRunners.map((r,i)=>`
+    <div class="runner-row">
+      <div class="runner-num" style="color:${r.color}">${String(i+1).padStart(2,'0')}</div>
+      <div class="barrier-pill">${r.barrier}</div>
+      <div><div class="runner-name">${r.horse}</div>
+        <div class="runner-sub">${r.form?'Form: '+r.form:r.trainer}</div></div>
+      <div class="runner-stat r-hide">${r.starts}</div>
+      <div class="runner-stat r-hide" style="color:var(--amber)">${r.wins}</div>
+      <div class="runner-stat r-hide" style="color:${r.winPct>=20?'var(--green)':r.winPct>=10?'var(--amber)':'var(--text2)'}">${r.winPct.toFixed(1)}%</div>
+      <div class="runner-stat r-hide">${r.avgPos||'—'}</div>
+      <div class="runner-stat r-hide">
+        <div class="form-line" style="justify-content:flex-end">
+          ${(r.form||'').split('-').map(p=>{const n=parseInt(p);const cls=n===1?'fd-1':n===2?'fd-2':n===3?'fd-3':'fd-o';return`<div class="form-dot ${cls}" style="width:18px;height:18px;font-size:10px">${p}</div>`;}).join('')}
+        </div>
+      </div>
+      <button class="remove-btn" onclick="removeFromField('${r.horse.replace(/'/g,"\\'")}')">×</button>
+    </div>`).join('');
+}
+
+function renderFieldComparison() {
+  const wrap=document.getElementById('field-comparison-wrap');
+  if(fieldRunners.length<2){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  const distance=document.getElementById('field-distance').value;
+  const track=document.getElementById('field-track').value;
+  const going=document.getElementById('field-going').value;
+  const ranked=getRankedField(track,distance,going);
+  const ctx=[];
+  if(track)ctx.push(track); if(distance)ctx.push(distance+'m'); if(going)ctx.push(going);
+  document.getElementById('field-ai-verdict').innerHTML=aiVerdictHTML(ranked,ctx.join(' · ')||'all conditions');
+
+  const maxWin=Math.max(...fieldRunners.map(r=>r.winPct),1);
+  document.getElementById('field-winrate-bars').innerHTML=fieldRunners.slice().sort((a,b)=>b.winPct-a.winPct).map(r=>ratingBar(r.horse,r.winPct,maxWin,r.color,`${r.winPct.toFixed(1)}%`)).join('');
+  const maxPlace=Math.max(...fieldRunners.map(r=>r.placePct),1);
+  document.getElementById('field-placerate-bars').innerHTML=fieldRunners.slice().sort((a,b)=>b.placePct-a.placePct).map(r=>ratingBar(r.horse,r.placePct,maxPlace,r.color,`${r.placePct.toFixed(1)}%`)).join('');
+  const maxAvg=Math.max(...fieldRunners.map(r=>r.avgPos),1);
+  document.getElementById('field-avgpos-bars').innerHTML=fieldRunners.slice().sort((a,b)=>a.avgPos-b.avgPos).map(r=>ratingBar(r.horse,maxAvg-r.avgPos+1,maxAvg,r.color,`${r.avgPos}`)).join('');
+
+  document.getElementById('field-dist-label').textContent=distance?`${distance}m`:'select a distance';
+  if(distance){
+    const dd=fieldRunners.map(r=>{const ds=r.distStats?.[distance]||{starts:0,wins:0};return{...r,dw:ds.starts?(ds.wins/ds.starts*100).toFixed(1):0,ds:ds.starts};});
+    const mx=Math.max(...dd.map(r=>parseFloat(r.dw)),1);
+    document.getElementById('field-distance-bars').innerHTML=dd.slice().sort((a,b)=>b.dw-a.dw).map(r=>ratingBar(r.horse,parseFloat(r.dw),mx,r.color,r.ds?`${r.dw}% (${r.ds})`:'no data')).join('');
+  } else document.getElementById('field-distance-bars').innerHTML=`<div style="padding:1rem 1.25rem;color:var(--text3);font-size:13px">Select a distance above</div>`;
+
+  document.getElementById('field-track-label').textContent=track||'select a track';
+  if(track){
+    const td=fieldRunners.map(r=>{const ts=r.trackStats?.[track]||{starts:0,wins:0};return{...r,tw:ts.starts?(ts.wins/ts.starts*100).toFixed(1):0,ts:ts.starts};});
+    const mx=Math.max(...td.map(r=>parseFloat(r.tw)),1);
+    document.getElementById('field-track-bars').innerHTML=td.slice().sort((a,b)=>b.tw-a.tw).map(r=>ratingBar(r.horse,parseFloat(r.tw),mx,r.color,r.ts?`${r.tw}% (${r.ts})`:'no data')).join('');
+  } else document.getElementById('field-track-bars').innerHTML=`<div style="padding:1rem 1.25rem;color:var(--text3);font-size:13px">Select a track above</div>`;
+
+  document.getElementById('field-going-label').textContent=going||'select going';
+  if(going){
+    const gd=fieldRunners.map(r=>{const gs=r.goingStats?.[going]||{starts:0,wins:0};return{...r,gw:gs.starts?(gs.wins/gs.starts*100).toFixed(1):0,gs:gs.starts};});
+    const mx=Math.max(...gd.map(r=>parseFloat(r.gw)),1);
+    document.getElementById('field-going-bars').innerHTML=gd.slice().sort((a,b)=>b.gw-a.gw).map(r=>ratingBar(r.horse,parseFloat(r.gw),mx,r.color,r.gs?`${r.gw}% (${r.gs})`:'no data')).join('');
+  } else document.getElementById('field-going-bars').innerHTML=`<div style="padding:1rem 1.25rem;color:var(--text3);font-size:13px">Select going above</div>`;
+}
+
+function ratingBar(name,val,max,color,label){
+  const pct=max>0?Math.min(val/max*100,100):0;
+  return`<div class="rating-bar">
+    <div class="rating-name" title="${name}">${name}</div>
+    <div class="rating-track"><div class="rating-fill" style="width:${pct.toFixed(0)}%;background:${color};color:#0b0c0b">${pct>18?label:''}</div></div>
+    <div class="rating-val">${pct<=18?label:''}</div>
+  </div>`;
+}
+
+// ===================== UTILS =====================
+function ord(n){const s=['th','st','nd','rd'],v=n%100;return s[(v-20)%10]||s[v]||s[0];}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab,.bnav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const pages=['results','trends','h2h','profile','field'];
+  const idx=pages.indexOf(name);
+  document.querySelectorAll('.nav-tab')[Math.min(idx,3)]?.classList.add('active');
+  document.querySelectorAll('.bnav-tab')[idx]?.classList.add('active');
+  if(name==='trends') loadTrends();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function generateMockData(){
+  const horses=['Wine Rocs','Hell Island (AUS)','Dink','Armagh','Purosangue','Happy Traveller','Brutal Reality','Geneva Queen','Omega Boy','Silver Flash','Dark Matter','Coastal Dream','Thunder Ridge','Morning Star','Pacific Gem','Iron Will'];
+  const jockeys=['Jack Taplin','Corentin Berge','Sam McNab','Elen Nicholas','Hayley Hassman','Rihaan Goyaram','Joe Nishizuka','Courtney Barnes'];
+  const trainers=['Debbie Sweeney','Chris Wood','Ben & Ryan Foote','Danny Walker','Lance O\'Sullivan','Ralph Manning'];
+  const tracks=['Te Aroha','Ellerslie','Trentham','Riccarton','Hastings','Awapuni'];
+  const races=['Maiden 1150','BM65 1400','BM72 1600','Open 2000','Gr3 1400','Stakes 1200'];
+  const goings=['Good','Soft','Heavy','Slow'];
+  const data=[];const now=new Date();
+  for(let i=0;i<800;i++){
+    const daysAgo=Math.floor(Math.random()*90);
+    const d=new Date(now);d.setDate(d.getDate()-daysAgo);
+    const pos=Math.floor(Math.random()*12)+1;
+    data.push({id:i,finish_position:pos,
+      horse:horses[Math.floor(Math.random()*horses.length)],
+      jockey:jockeys[Math.floor(Math.random()*jockeys.length)],
+      trainer:trainers[Math.floor(Math.random()*trainers.length)],
+      track:tracks[Math.floor(Math.random()*tracks.length)],
+      date:d.toISOString().slice(0,10),
+      race_name:races[Math.floor(Math.random()*races.length)],
+      distance_m:[1150,1200,1400,1600,1800,2000][Math.floor(Math.random()*6)],
+      barrier:Math.floor(Math.random()*14)+1,
+      going:goings[Math.floor(Math.random()*goings.length)],
+      odds_sp:pos===1?(Math.random()*8+1.5).toFixed(2):(Math.random()*20+2).toFixed(2),
+      finish_time:pos<=10?`1.${String(Math.floor(Math.random()*20)+35).padStart(2,'0')}.${String(Math.floor(Math.random()*99)).padStart(2,'0')}`:'',
+      margin_trad:pos===1?'':['1/2 LEN','1 LEN','2 LEN','NOSE','NECK','HEAD'][Math.floor(Math.random()*6)],
+      prize_money:pos===1?14375:pos===2?4625:pos===3?2250:375});
+  }
+  return data;
+}
+
+init();
+</script>
+</body>
+</html>
