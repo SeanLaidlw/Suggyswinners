@@ -29,15 +29,10 @@ def export(db_path="racing.db", out_path="data.js"):
     # --- Results (join everything into flat rows for the frontend) ---
     results = conn.execute("""
         SELECT
-            res.id,
             res.finish_position,
             res.barrier,
-            res.weight_kg,
-            res.weight_carried,
-            res.margin_dec,
             res.margin_trad,
             res.finish_time,
-            res.last_600,
             res.odds_sp,
             res.prize_money,
             h.name  AS horse,
@@ -46,12 +41,9 @@ def export(db_path="racing.db", out_path="data.js"):
             t.name  AS track,
             m.date,
             m.going,
-            m.weather,
             r.race_name,
-            r.race_number,
             r.race_class,
-            r.distance_m,
-            r.start_time
+            r.distance_m
         FROM results res
         JOIN horses   h  ON h.id  = res.horse_id
         LEFT JOIN jockeys  j  ON j.id  = res.jockey_id
@@ -94,13 +86,13 @@ def export(db_path="racing.db", out_path="data.js"):
         "results": results_list,
     }
 
-    js_content = f"window.RACING_DATA = {json.dumps(payload, default=str)};"
+    js_content = f"window.RACING_DATA = {json.dumps(payload, default=str, separators=(',', ':'))};"
 
     Path(out_path).write_text(js_content, encoding="utf-8")
 
     size_kb = Path(out_path).stat().st_size / 1024
     print(f"  Exported to: {out_path} ({size_kb:.0f} KB)")
-    print(f"  Date range:  {summary['date_from']} → {summary['date_to']}")
+    print(f"  Date range:  {summary['date_from']} -> {summary['date_to']}")
     print(f"  Meetings: {total_meetings} | Races: {total_races} | Horses: {total_horses}")
     print(f"\nDone! Upload {out_path} alongside your index.html on GitHub.")
 

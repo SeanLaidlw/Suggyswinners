@@ -337,9 +337,31 @@ tr:hover td{background:var(--bg3)}
 .news-loading-dot:nth-child(3) { animation-delay: .4s; }
 @keyframes newsBounce { from { opacity: .2; transform: translateY(0); } to { opacity: 1; transform: translateY(-4px); } }
 
+
+/* ===================== LOADING ===================== */
+#loading-overlay {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 9999; transition: opacity .4s ease;
+}
+#loading-overlay.fade-out { opacity: 0; pointer-events: none; }
+.loading-logo { font-family: var(--fd); font-size: 36px; letter-spacing: 3px; margin-bottom: 1.5rem; }
+.loading-logo span { color: var(--green); }
+.loading-bar-wrap { width: 200px; height: 3px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.loading-bar { height: 100%; background: var(--green); border-radius: 2px; animation: loadBar 1.5s ease-in-out infinite; }
+@keyframes loadBar { 0% { width: 0%; margin-left: 0; } 50% { width: 60%; margin-left: 20%; } 100% { width: 0%; margin-left: 100%; } }
+.loading-text { margin-top: 1rem; font-size: 12px; color: var(--text3); font-family: var(--fm); }
+
 </style>
 </head>
 <body>
+
+<div id="loading-overlay">
+  <div class="loading-logo">SUGGYS<span>WINNERS</span></div>
+  <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
+  <div class="loading-text" id="loading-text">Loading race data...</div>
+</div>
 
 <header>
   <div class="logo">SUGGYS<span>WINNERS</span></div>
@@ -836,7 +858,9 @@ const RUNNER_COLORS = ['#7ec94a','#e8a830','#d95f4b','#4a9ed4','#c47fd4','#4bc4c
 
 // ===================== INIT =====================
 function init() {
+  const loadingText = document.getElementById('loading-text');
   if (window.RACING_DATA?.results?.length) {
+    if (loadingText) loadingText.textContent = `Loaded ${window.RACING_DATA.results.length.toLocaleString()} results...`;
     allResults = enrichWithClass(window.RACING_DATA.results);
     const s = window.RACING_DATA.summary;
     document.getElementById('db-status').textContent =
@@ -848,6 +872,13 @@ function init() {
   populateDropdowns();
   applyFilters();
   loadTrends();
+
+  // Hide loading overlay
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) {
+    overlay.classList.add('fade-out');
+    setTimeout(() => overlay.remove(), 450);
+  }
 }
 
 // ===================== DROPDOWNS =====================
