@@ -1,101 +1,59 @@
-"""
-export_data.py -- Export racing.db to a JSON file for the frontend.
-
-Usage:
-    python export_data.py
-    python export_data.py --db racing.db --out data.js
-"""
-
-import sqlite3
-import json
-import argparse
+import sqlite3, json, argparse
 from datetime import datetime
 from pathlib import Path
-
 
 def get_conn(db_path):
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
-
 def export(db_path="racing.db", out_path="data.js"):
     print(f"Reading from: {db_path}")
     conn = get_conn(db_path)
-
-    results = conn.execute("""
-        SELECT
-            res.finish_position,
-            res.barrier,
-            res.margin_trad,
-            res.finish_time,
-            res.odds_sp,
-            res.prize_money,
-            h.name  AS horse,
-            j.name  AS jockey,
-            tr.name AS trainer,
-            t.name  AS track,
-            m.date,
-            m.going,
-            r.race_name,
-            r.race_class,
-            r.distance_m
+    rows = conn.execute("""
+        SELECT res.finish_position, res.barrier, res.margin_trad,
+            res.finish_time, res.odds_sp, res.prize_money,
+            h.name AS horse, j.name AS jockey, tr.name AS trainer,
+            t.name AS track, m.date, m.going,
+            r.race_name, r.race_class, r.distance_m
         FROM results res
-        JOIN horses   h  ON h.id  = res.horse_id
-        LEFT JOIN jockeys  j  ON j.id  = res.jockey_id
+        JOIN horses h ON h.id = res.horse_id
+        LEFT JOIN jockeys j ON j.id = res.jockey_id
         LEFT JOIN trainers tr ON tr.id = res.trainer_id
-        JOIN races    r  ON r.id  = res.race_fk
-        JOIN meetings m  ON m.id  = r.meeting_fk
-        JOIN tracks   t  ON t.id  = m.track_id
+        JOIN races r ON r.id = res.race_fk
+        JOIN meetings m ON m.id = r.meeting_fk
+        JOIN tracks t ON t.id = m.track_id
         ORDER BY m.date DESC, r.race_number ASC, res.finish_position ASC
     """).fetchall()
-
-    results_list = [dict(row) for row in results]
-    print(f"  {len(results_list)} result rows")
-
+    print(f"  {len(rows)} result rows - building lookup tables...")
+    def make_lookup(values):
+        unique = sorted(set(v for v in values if v is not None), key=str)
+        return unique, {v: i for i, v in enumerate(unique)}
+    horses, hi = make_lookup(r["horse"] for r in rows)
+    jockeys, ji = make_lookup(r["jockey"] for r in rows)
+    trainers, ti = make_lookup(r["trainer"] for r in rows)
+    tracks, ki = make_lookup(r["track"] for r in rows)
+    goings, gi = make_lookup(r["going"] for r in rows)
+    races, ri = make_lookup(r["race_name"] for r in rows)
+    encoded = [[r["finish_position"],r["barrier"],r["margin_trad"],r["finish_time"],r["odds_sp"],r["prize_money"],hi.get(r["horse"]),ji.get(r["jockey"]),ti.get(r["trainer"]),ki.get(r["track"]),r["date"],gi.get(r["going"]),ri.get(r["race_name"]),r["race_class"],r["distance_m"]] for r in rows]
     total_meetings = conn.execute("SELECT COUNT(*) FROM meetings").fetchone()[0]
-    total_races    = conn.execute("SELECT COUNT(*) FROM races").fetchone()[0]
-    total_horses   = conn.execute("SELECT COUNT(*) FROM horses").fetchone()[0]
-    total_jockeys  = conn.execute("SELECT COUNT(*) FROM jockeys").fetchone()[0]
-    total_trainers = conn.execute("SELECT COUNT(*) FROM trainers").fetchone()[0]
-    date_range     = conn.execute("SELECT MIN(date), MAX(date) FROM meetings").fetchone()
+    total_races = conn.execute("SELECT COUNT(*) FROM races").fetchone()[0]
+    total_horses = conn.execute("SELECT COUNT(*) FROM horses").fetchone()[0]
+    date_range = conn.execute("SELECT MIN(date), MAX(date) FROM meetings").fetchone()
     conn.close()
-
-    summary = {
-        "total_results":  len(results_list),
-        "total_meetings": total_meetings,
-        "total_races":    total_races,
-        "total_horses":   total_horses,
-        "total_jockeys":  total_jockeys,
-        "total_trainers": total_trainers,
-        "date_from":      date_range[0],
-        "date_to":        date_range[1],
-        "exported_at":    datetime.now().strftime("%Y-%m-%d %H:%M"),
-    }
-
-    payload = {
-        "summary": summary,
-        "results": results_list,
-    }
-
-    js_content = (
-        "window.RACING_DATA = "
-        + json.dumps(payload, default=str, separators=(",", ":"))
-        + ";"
-    )
-
-    Path(out_path).write_text(js_content, encoding="utf-8")
-
+    summary = {"total_results":len(rows),"total_meetings":total_meetings,"total_races":total_races,"total_horses":total_horses,"date_from":date_range[0],"date_to":date_range[1],"exported_at":datetime.now().strftime("%Y-%m-%d %H:%M")}
+    payload = {"summary":summary,"lookups":{"horse":horses,"jockey":jockeys,"trainer":trainers,"track":tracks,"going":goings,"race_name":races},"rows":encoded}
+    js = "window.RACING_DATA = " + json.dumps(payload, default=str, separators=(",",":")) + ";"
+    Path(out_path).write_text(js, encoding="utf-8")
     size_kb = Path(out_path).stat().st_size / 1024
     print(f"  Exported to: {out_path} ({size_kb:.0f} KB)")
     print(f"  Date range:  {summary['date_from']} -> {summary['date_to']}")
     print(f"  Meetings: {total_meetings} | Races: {total_races} | Horses: {total_horses}")
-    print(f"\nDone! Upload {out_path} alongside your index.html on GitHub.")
-
+    print(f"\nDone!")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Export racing.db to JSON for the frontend")
-    parser.add_argument("--db",  default="racing.db", help="Path to SQLite database")
-    parser.add_argument("--out", default="data.js",   help="Output JS file path")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--db", default="racing.db")
+    parser.add_argument("--out", default="data.js")
     args = parser.parse_args()
     export(args.db, args.out)
