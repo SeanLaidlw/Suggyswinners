@@ -847,6 +847,36 @@ function enrichWithClass(results) {
 
 
 
+
+// ===================== DATA DECODER =====================
+// Decodes the compact lookup-table format from export_data.py
+function decodeRacingData(data) {
+  const { columns, lookups, rows } = data;
+  const colIdx = {};
+  columns.forEach((c, i) => colIdx[c] = i);
+
+  // Lookup index positions for encoded fields
+  const horseI    = colIdx['horse'];
+  const jockeyI   = colIdx['jockey'];
+  const trainerI  = colIdx['trainer'];
+  const trackI    = colIdx['track'];
+  const goingI    = colIdx['going'];
+  const raceNameI = colIdx['race_name'];
+
+  return rows.map(r => {
+    const obj = {};
+    columns.forEach((col, i) => { obj[col] = r[i]; });
+    // Decode lookup indices back to strings
+    obj.horse     = lookups.horse[r[horseI]]     ?? null;
+    obj.jockey    = lookups.jockey[r[jockeyI]]   ?? null;
+    obj.trainer   = lookups.trainer[r[trainerI]] ?? null;
+    obj.track     = lookups.track[r[trackI]]     ?? null;
+    obj.going     = lookups.going[r[goingI]]     ?? null;
+    obj.race_name = lookups.race_name[r[raceNameI]] ?? null;
+    return obj;
+  });
+}
+
 // ===================== STATE =====================
 let allResults = [], filteredResults = [], currentPage = 1;
 const PAGE_SIZE = 50;
@@ -859,7 +889,14 @@ const RUNNER_COLORS = ['#7ec94a','#e8a830','#d95f4b','#4a9ed4','#c47fd4','#4bc4c
 // ===================== INIT =====================
 function init() {
   const loadingText = document.getElementById('loading-text');
-  if (window.RACING_DATA?.results?.length) {
+  if (window.RACING_DATA?.rows?.length) {
+    if (loadingText) loadingText.textContent = `Decoding ${window.RACING_DATA.rows.length.toLocaleString()} results...`;
+    allResults = enrichWithClass(decodeRacingData(window.RACING_DATA));
+    const s = window.RACING_DATA.summary;
+    document.getElementById('db-status').textContent =
+      `${s.total_results?.toLocaleString()} results · ${s.exported_at}`;
+  } else if (window.RACING_DATA?.results?.length) {
+    // Legacy format fallback
     if (loadingText) loadingText.textContent = `Loaded ${window.RACING_DATA.results.length.toLocaleString()} results...`;
     allResults = enrichWithClass(window.RACING_DATA.results);
     const s = window.RACING_DATA.summary;
