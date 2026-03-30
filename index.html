@@ -836,11 +836,28 @@ const RUNNER_COLORS = ['#7ec94a','#e8a830','#d95f4b','#4a9ed4','#c47fd4','#4bc4c
 
 // ===================== INIT =====================
 function init() {
-  if (window.RACING_DATA?.results?.length) {
-    allResults = enrichWithClass(window.RACING_DATA.results);
-    const s = window.RACING_DATA.summary;
+  if (window.RACING_DATA?.rows?.length) {
+    // Compact format - decode lookup tables
+    var D = window.RACING_DATA;
+    var L = D.lookups;
+    allResults = enrichWithClass(D.rows.map(function(r) {
+      return {
+        finish_position: r[0], barrier: r[1], margin_trad: r[2],
+        finish_time: r[3], odds_sp: r[4], prize_money: r[5],
+        horse: L.horse[r[6]], jockey: L.jockey[r[7]], trainer: L.trainer[r[8]],
+        track: L.track[r[9]], date: r[10], going: L.going[r[11]],
+        race_name: L.race_name[r[12]], race_class: r[13], distance_m: r[14]
+      };
+    }));
+    var s = D.summary;
     document.getElementById('db-status').textContent =
-      `${s.total_results?.toLocaleString()} results · ${s.exported_at}`;
+      s.total_results.toLocaleString() + ' results · ' + s.exported_at;
+  } else if (window.RACING_DATA?.results?.length) {
+    // Flat format fallback
+    allResults = enrichWithClass(window.RACING_DATA.results);
+    var s = window.RACING_DATA.summary;
+    document.getElementById('db-status').textContent =
+      s.total_results.toLocaleString() + ' results · ' + s.exported_at;
   } else {
     allResults = enrichWithClass(generateMockData());
     document.getElementById('db-status').textContent = 'demo mode';
