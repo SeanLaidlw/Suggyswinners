@@ -1122,14 +1122,18 @@ function renderStats() {
   const horses = new Set(data.map(r=>r.horse)).size;
   const prize  = data.reduce((s,r)=>s+(r.prize_money||0),0);
 
-  document.getElementById('results-stats').innerHTML = `
-    <div class="stat-card"><div class="stat-label">Results</div><div class="stat-value">${data.length.toLocaleString()}</div></div>
-    <div class="stat-card"><div class="stat-label">Wins</div><div class="stat-value amber">${wins.toLocaleString()}</div></div>
-    <div class="stat-card"><div class="stat-label">Win rate</div><div class="stat-value green">${winPct}%</div></div>
-    <div class="stat-card"><div class="stat-label">Top 3</div><div class="stat-value">${places.toLocaleString()}</div></div>
-    <div class="stat-card"><div class="stat-label">Horses</div><div class="stat-value">${horses.toLocaleString()}</div></div>
-    <div class="stat-card"><div class="stat-label">Tracks</div><div class="stat-value">${tracks}</div></div>
-    <div class="stat-card"><div class="stat-label">Total prize</div><div class="stat-value" style="font-size:16px">$${(prize/1000).toFixed(0)}k</div></div>`;
+  document.getElementById('results-stats').innerHTML = [
+    ['Results', data.length.toLocaleString(), ''],
+    ['Wins', wins.toLocaleString(), 'amber'],
+    ['Win rate', winPct+'%', 'green'],
+    ['Top 3', places.toLocaleString(), ''],
+    ['Horses', horses.toLocaleString(), ''],
+    ['Tracks', String(tracks), ''],
+    ['Total prize', '$'+(prize/1000).toFixed(0)+'k', ''],
+  ].map(function(s){
+    return '<div class="stat-card"><div class="stat-label">'+s[0]+'</div>'
+      +'<div class="stat-value '+s[2]+'">'+s[1]+'</div></div>';
+  }).join('');
 }
 
 function sortTable(key) {
