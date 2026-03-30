@@ -1762,7 +1762,21 @@ function generateMockData(){
   return data;
 }
 
-init();
+// Hard fallback — always remove loading screen after 5 seconds
+setTimeout(() => {
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) {
+    overlay.classList.add('fade-out');
+    setTimeout(() => { if(overlay.parentNode) overlay.remove(); }, 450);
+  }
+}, 5000);
+
+init().catch(e => {
+  console.error('Init failed:', e);
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) overlay.remove();
+  document.getElementById('db-status').textContent = 'error - check console';
+});
 </script>
 </body>
 </html>
