@@ -725,11 +725,17 @@ function classifyRace(raceName, raceClass, prizeMoney) {
   const cls  = (raceClass || '').toUpperCase();
   const prize = prizeMoney || 0;
 
-  // Check race_class field first
-  if (/GR\.?1|GROUP\s*1|G1/.test(cls) || /GR\.?1|GROUP\s*1/.test(name)) return 1;
-  if (/GR\.?2|GROUP\s*2|G2/.test(cls) || /GR\.?2|GROUP\s*2/.test(name)) return 2;
-  if (/GR\.?3|GROUP\s*3|G3/.test(cls) || /GR\.?3|GROUP\s*3/.test(name)) return 3;
-  if (/LISTED|LR/.test(cls) || /LISTED/.test(name)) return 4;
+  // G1/G2/G3: require GROUP N to be followed by a letter/end — prevents "GROUP 1300" matching
+  const g1 = /\bGR\.?\s*1\s+[A-Z]/.test(name) || /\bGROUP\s+1\s+[A-Z]/.test(name) ||
+              /\bGROUP\s+1$/.test(name) || /\bGR1\b/.test(name) || /\bG1\b/.test(cls);
+  const g2 = /\bGR\.?\s*2\s+[A-Z]/.test(name) || /\bGROUP\s+2\s+[A-Z]/.test(name) ||
+              /\bGROUP\s+2$/.test(name) || /\bGR2\b/.test(name) || /\bG2\b/.test(cls);
+  const g3 = /\bGR\.?\s*3\s+[A-Z]/.test(name) || /\bGROUP\s+3\s+[A-Z]/.test(name) ||
+              /\bGROUP\s+3$/.test(name) || /\bGR3\b/.test(name) || /\bG3\b/.test(cls);
+  if (g1) return 1;
+  if (g2) return 2;
+  if (g3) return 3;
+  if (/\bLISTED\b/.test(name) || /\bLR\b/.test(cls)) return 4;
 
   // Benchmark classes
   if (/BM\s*100|BM100/.test(cls+name)) return 6;
