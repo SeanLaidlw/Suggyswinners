@@ -282,6 +282,22 @@ tr:hover td{background:var(--bg3)}
 .ac-item-name { font-weight: 500; }
 .ac-item-meta { font-size: 11px; color: var(--text3); font-family: var(--fm); }
 
+
+/* ===================== RACE CLASS BADGES ===================== */
+.class-badge {
+  display: inline-block; font-size: 10px; font-family: var(--fm);
+  padding: 2px 6px; border-radius: 4px; font-weight: 500;
+  white-space: nowrap; letter-spacing: 0.3px;
+}
+.cb-g1  { background: rgba(232,168,48,0.25); color: #e8a830; border: 1px solid rgba(232,168,48,0.4); }
+.cb-g2  { background: rgba(232,168,48,0.15); color: #d4922a; border: 1px solid rgba(232,168,48,0.3); }
+.cb-g3  { background: rgba(232,168,48,0.08); color: #c07820; border: 1px solid rgba(232,168,48,0.2); }
+.cb-lr  { background: rgba(74,158,212,0.15); color: #4a9ed4; border: 1px solid rgba(74,158,212,0.3); }
+.cb-open{ background: rgba(126,201,74,0.12); color: #7ec94a; border: 1px solid rgba(126,201,74,0.25); }
+.cb-bm  { background: rgba(255,255,255,0.07); color: #948f83; border: 1px solid rgba(255,255,255,0.12); }
+.cb-mdn { background: rgba(255,255,255,0.04); color: #524f48; border: 1px solid rgba(255,255,255,0.08); }
+.cb-trial{ background: rgba(217,95,75,0.1); color: #d95f4b; border: 1px solid rgba(217,95,75,0.2); }
+
 </style>
 </head>
 <body>
@@ -332,6 +348,17 @@ tr:hover td{background:var(--bg3)}
       <select id="f-track" onchange="applyFilters()"><option value="">All tracks</option></select></div>
     <div class="filter-group"><span class="filter-label">Going</span>
       <select id="f-going" onchange="applyFilters()"><option value="">Any going</option></select></div>
+    <div class="filter-group"><span class="filter-label">Race class</span>
+      <select id="f-class" onchange="applyFilters()">
+        <option value="">All classes</option>
+        <option value="1">G1 — Group 1</option>
+        <option value="2">G2 — Group 2</option>
+        <option value="3">G3 — Group 3</option>
+        <option value="4">LR — Listed</option>
+        <option value="5">Open</option>
+        <option value="6">BM — Benchmark</option>
+        <option value="7">Mdn — Maiden</option>
+      </select></div>
     <div class="filter-group"><span class="filter-label">Position</span>
       <select id="f-position" onchange="applyFilters()">
         <option value="">Any</option><option value="1">1st only</option>
@@ -362,6 +389,7 @@ tr:hover td{background:var(--bg3)}
           <th onclick="sortTable('distance_m')" class="r-hide">Dist</th>
           <th onclick="sortTable('barrier')" class="r-hide">Bar</th>
           <th onclick="sortTable('odds_sp')">SP</th>
+          <th onclick="sortTable('class_tier')" class="r-hide">Class</th>
           <th onclick="sortTable('finish_time')" class="r-hide">Time</th>
           <th class="r-hide">Margin</th>
         </tr></thead>
@@ -417,6 +445,28 @@ tr:hover td{background:var(--bg3)}
         <th class="r-hide">Avg Pos</th><th class="r-hide">Best Track</th><th>View</th>
       </tr></thead>
       <tbody id="trends-body"></tbody></table>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <span class="table-title">Class leaderboard</span>
+      <span class="table-count" id="class-lb-meta">top performers by race quality</span>
+    </div>
+    <div style="display:flex;gap:8px;padding:.875rem 1.25rem;border-bottom:1px solid var(--border);flex-wrap:wrap">
+      <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(1)">G1</button>
+      <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(2)">G2</button>
+      <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(3)">G3</button>
+      <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(4)">Listed</button>
+      <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(5)">Open</button>
+      <button class="btn btn-ghost active" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(6)">Benchmark</button>
+      <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(7)">Maiden</button>
+    </div>
+    <div class="tbl-scroll">
+      <table><thead><tr>
+        <th>#</th><th>Horse</th><th>Wins</th><th>Starts</th><th>Win %</th><th>Best race</th><th>View</th>
+      </tr></thead>
+      <tbody id="class-lb-body"></tbody></table>
     </div>
   </div>
 </div>
@@ -645,6 +695,90 @@ document.addEventListener('click', function(e) {
 });
 
 
+
+// ===================== RACE CLASSIFICATION ENGINE =====================
+// Tier 1=G1, 2=G2, 3=G3, 4=Listed, 5=Open, 6=Benchmark, 7=Maiden, 8=Trial
+const CLASS_TIERS = {
+  G1: 1, G2: 2, G3: 3, LR: 4, LISTED: 4,
+  OPEN: 5, OPEN_HCP: 5,
+  BM100: 6, BM90: 6, BM85: 6, BM78: 6, BM72: 6, BM65: 6, BM58: 6,
+  MDN: 7, MAIDEN: 7,
+  TRIAL: 8,
+};
+
+const CLASS_LABELS = {
+  1: 'G1', 2: 'G2', 3: 'G3', 4: 'LR', 5: 'Open', 6: 'BM', 7: 'Mdn', 8: 'Trial'
+};
+
+const CLASS_CSS = {
+  1: 'cb-g1', 2: 'cb-g2', 3: 'cb-g3', 4: 'cb-lr',
+  5: 'cb-open', 6: 'cb-bm', 7: 'cb-mdn', 8: 'cb-trial'
+};
+
+// AI scoring bonus by tier (added to base score)
+const CLASS_WIN_BONUS = {
+  1: 25, 2: 18, 3: 12, 4: 8, 5: 5, 6: 2, 7: 0, 8: 0
+};
+
+function classifyRace(raceName, raceClass, prizeMoney) {
+  const name = (raceName || '').toUpperCase();
+  const cls  = (raceClass || '').toUpperCase();
+  const prize = prizeMoney || 0;
+
+  // Check race_class field first
+  if (/GR\.?1|GROUP\s*1|G1/.test(cls) || /GR\.?1|GROUP\s*1/.test(name)) return 1;
+  if (/GR\.?2|GROUP\s*2|G2/.test(cls) || /GR\.?2|GROUP\s*2/.test(name)) return 2;
+  if (/GR\.?3|GROUP\s*3|G3/.test(cls) || /GR\.?3|GROUP\s*3/.test(name)) return 3;
+  if (/LISTED|LR/.test(cls) || /LISTED/.test(name)) return 4;
+
+  // Benchmark classes
+  if (/BM\s*100|BM100/.test(cls+name)) return 6;
+  if (/BM\s*90|BM90/.test(cls+name))  return 6;
+  if (/BM\s*85|BM85/.test(cls+name))  return 6;
+  if (/BM\s*78|BM78/.test(cls+name))  return 6;
+  if (/BM\s*72|BM72/.test(cls+name))  return 6;
+  if (/BM\s*65|BM65/.test(cls+name))  return 6;
+  if (/BM\s*58|BM58/.test(cls+name))  return 6;
+  if (/BM\s*\d+/.test(cls+name))      return 6;
+
+  // Maiden
+  if (/MDN|MAIDEN/.test(cls) || /MAIDEN/.test(name)) return 7;
+
+  // Trial
+  if (/TRIAL/.test(cls+name)) return 8;
+
+  // Open races — use prize money as tiebreaker
+  if (/OPEN/.test(cls+name)) return 5;
+
+  // Fallback: use prize money
+  if (prize >= 300000) return 1;
+  if (prize >= 120000) return 2;
+  if (prize >= 80000)  return 3;
+  if (prize >= 60000)  return 4;
+  if (prize >= 35000)  return 5;
+  if (prize >= 20000)  return 6;
+  if (prize >= 10000)  return 7;
+  return 6; // default benchmark
+}
+
+function getClassBadge(raceName, raceClass, prizeMoney) {
+  const tier = classifyRace(raceName, raceClass, prizeMoney);
+  return `<span class="class-badge ${CLASS_CSS[tier]}">${CLASS_LABELS[tier]}</span>`;
+}
+
+function getClassName(tier) {
+  return CLASS_LABELS[tier] || '—';
+}
+
+// Enrich all results with tier on load
+function enrichWithClass(results) {
+  return results.map(r => ({
+    ...r,
+    class_tier: classifyRace(r.race_name, r.race_class, r.prize_money)
+  }));
+}
+
+
 // ===================== STATE =====================
 let allResults = [], filteredResults = [], currentPage = 1;
 const PAGE_SIZE = 50;
@@ -657,12 +791,12 @@ const RUNNER_COLORS = ['#7ec94a','#e8a830','#d95f4b','#4a9ed4','#c47fd4','#4bc4c
 // ===================== INIT =====================
 function init() {
   if (window.RACING_DATA?.results?.length) {
-    allResults = window.RACING_DATA.results;
+    allResults = enrichWithClass(window.RACING_DATA.results);
     const s = window.RACING_DATA.summary;
     document.getElementById('db-status').textContent =
       `${s.total_results?.toLocaleString()} results · ${s.exported_at}`;
   } else {
-    allResults = generateMockData();
+    allResults = enrichWithClass(generateMockData());
     document.getElementById('db-status').textContent = 'demo mode';
   }
   populateDropdowns();
@@ -760,6 +894,13 @@ function openProfile(name, type) {
   rows.filter(r=>r.finish_position===1).forEach(r=>{ distMap[r.distance_m]=(distMap[r.distance_m]||0)+1; });
   const bestDist = Object.entries(distMap).sort((a,b)=>b[1]-a[1])[0]?.[0];
 
+  // Best class won
+  const winRows = rows.filter(r=>r.finish_position===1);
+  const bestTier = winRows.length ? Math.min(...winRows.map(r=>r.class_tier||7)) : null;
+  const bestClassWonBadge = bestTier
+    ? `<span class="class-badge ${CLASS_CSS[bestTier]}">${CLASS_LABELS[bestTier]}</span>`
+    : '—';
+
   // Going record
   const goingMap = {};
   rows.forEach(r=>{
@@ -792,6 +933,7 @@ function openProfile(name, type) {
         <div class="profile-stat-row"><span class="profile-stat-label">Avg finish pos</span><span class="profile-stat-val">${avgPos}</span></div>
         <div class="profile-stat-row"><span class="profile-stat-label">Best track</span><span class="profile-stat-val">${bestTrack}</span></div>
         <div class="profile-stat-row"><span class="profile-stat-label">Best distance</span><span class="profile-stat-val">${bestDist?bestDist+'m':'—'}</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Best class won</span><span class="profile-stat-val">${bestClassWonBadge}</span></div>
         <div class="profile-stat-row"><span class="profile-stat-label">Career earnings</span><span class="profile-stat-val" style="color:var(--green)">$${totalPrize.toLocaleString()}</span></div>
         ${daysSince!==null?`<div class="profile-stat-row"><span class="profile-stat-label">Days since last run</span><span class="profile-stat-val">${daysSince}</span></div>`:''}
       </div>
@@ -843,8 +985,10 @@ function applyFilters() {
   const pos     = document.getElementById('f-position').value;
   const df      = document.getElementById('f-date-from').value;
   const dt      = document.getElementById('f-date-to').value;
+  const cls     = document.getElementById('f-class')?.value;
 
   filteredResults = allResults.filter(r => {
+    if (cls && String(r.class_tier) !== cls) return false;
     if (horse   && !(r.horse||'').toLowerCase().includes(horse))   return false;
     if (jockey  && !(r.jockey||'').toLowerCase().includes(jockey)) return false;
     if (trainer && !(r.trainer||'').toLowerCase().includes(trainer)) return false;
@@ -915,6 +1059,7 @@ function renderResultsTable() {
       <td style="color:var(--text2)">${r.track||'—'}</td>
       <td class="time-val">${r.date||'—'}</td>
       <td class="r-hide" style="color:var(--text2);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis">${r.race_name||'—'}</td>
+      <td class="r-hide">${getClassBadge(r.race_name,r.race_class,r.prize_money)}</td>
       <td class="time-val r-hide">${r.distance_m?r.distance_m+'m':'—'}</td>
       <td class="time-val r-hide">${r.barrier||'—'}</td>
       <td class="odds">${r.odds_sp?'$'+r.odds_sp:'—'}</td>
@@ -1153,14 +1298,20 @@ function renderH2HStats(s) {
 // ===================== AI SCORING =====================
 function scoreRunner(runner, track, distance, going) {
   let score = 0;
-  // Win rate (35pts)
-  score += Math.min(runner.winPct/100*35, 35);
-  // Recent form — last 5 (25pts)
+  // Win rate (30pts)
+  score += Math.min(runner.winPct/100*30, 30);
+  // Recent form — last 5 (20pts)
   const recent = allResults.filter(r=>r.horse===runner.horse)
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
   if (recent.length) {
     const avg = recent.reduce((s,r)=>s+r.finish_position,0)/recent.length;
-    score += Math.max(0, 25-((avg-1)/9)*25);
+    score += Math.max(0, 20-((avg-1)/9)*20);
+  }
+  // Race class quality bonus (up to 10pts) — wins in better races score higher
+  const classWins = allResults.filter(r=>r.horse===runner.horse && r.finish_position===1);
+  if (classWins.length) {
+    const bestTier = Math.min(...classWins.map(r=>r.class_tier||7));
+    score += CLASS_WIN_BONUS[bestTier] || 0;
   }
   // Track suitability (15pts)
   if (track) {
@@ -1227,7 +1378,7 @@ function aiVerdictHTML(ranked, context) {
         <div class="ai-score-bar"><div class="ai-score-fill" style="width:${(r.aiScore/maxScore*100).toFixed(0)}%;background:${i===0?'var(--green)':i===1?'var(--amber)':'var(--text3)'}"></div></div>
         ${i===0?'<span class="ai-top-badge">TOP PICK</span>':''}
       </div>`).join('')}
-    <div class="ai-footer">Scoring: win rate (35%) · recent form/last 5 (25%) · track (15%) · distance (10%) · going (10%) · barrier (5%) · days since last run</div>
+    <div class="ai-footer">Scoring: win rate (30%) · recent form/last 5 (20%) · race class quality (10%) · track (15%) · distance (10%) · going (10%) · barrier (5%) · days since last run</div>
   </div>`;
 }
 
@@ -1364,6 +1515,53 @@ function ratingBar(name,val,max,color,label){
 // ===================== UTILS =====================
 function ord(n){const s=['th','st','nd','rd'],v=n%100;return s[(v-20)%10]||s[v]||s[0];}
 
+function renderClassLB(tier) {
+  // Highlight active button
+  document.querySelectorAll('#class-lb-body').forEach(()=>{});
+  const label = CLASS_LABELS[tier] || tier;
+  document.getElementById('class-lb-meta').textContent = `${label} races — top horses by wins`;
+
+  // Get all results at this tier
+  const tierResults = allResults.filter(r => r.class_tier === tier);
+
+  // Group by horse
+  const horses = {};
+  tierResults.forEach(r => {
+    if (!r.horse) return;
+    if (!horses[r.horse]) horses[r.horse] = { starts:0, wins:0, races:[] };
+    horses[r.horse].starts++;
+    if (r.finish_position === 1) {
+      horses[r.horse].wins++;
+      horses[r.horse].races.push(r.race_name);
+    }
+  });
+
+  const sorted = Object.entries(horses)
+    .filter(([,d]) => d.starts > 0)
+    .sort((a,b) => b[1].wins - a[1].wins || b[1].starts - a[1].starts)
+    .slice(0, 20);
+
+  if (!sorted.length) {
+    document.getElementById('class-lb-body').innerHTML =
+      '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:2rem">No ' + label + ' race results in database yet</td></tr>';
+    return;
+  }
+
+  document.getElementById('class-lb-body').innerHTML = sorted.map(([name, d], i) => {
+    const winPct = (d.wins / d.starts * 100).toFixed(1);
+    const bestRace = d.races[0] || '—';
+    return `<tr>
+      <td class="time-val" style="color:var(--text3)">${i+1}</td>
+      <td><span class="horse-link" onclick="openProfile('${name.replace(/'/g,"\'")}','horse')">${name}</span></td>
+      <td class="time-val" style="color:var(--amber)">${d.wins}</td>
+      <td class="time-val">${d.starts}</td>
+      <td class="time-val" style="color:var(--green)">${winPct}%</td>
+      <td style="font-size:11px;color:var(--text3);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${bestRace}</td>
+      <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;min-height:28px" onclick="openProfile('${name.replace(/'/g,"\'")}','horse')">Profile</button></td>
+    </tr>`;
+  }).join('');
+}
+
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab,.bnav-tab').forEach(t=>t.classList.remove('active'));
@@ -1372,7 +1570,7 @@ function showPage(name) {
   const idx=pages.indexOf(name);
   document.querySelectorAll('.nav-tab')[Math.min(idx,3)]?.classList.add('active');
   document.querySelectorAll('.bnav-tab')[idx]?.classList.add('active');
-  if(name==='trends') loadTrends();
+  if(name==='trends') { loadTrends(); renderClassLB(6); }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 

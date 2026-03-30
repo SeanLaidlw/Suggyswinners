@@ -320,11 +320,64 @@ def scrape_race(page, meeting_id, race_num, meeting_fk, conn):
         distance_m = int(detail_match.group(2))
         prize_money = int(detail_match.group(3).replace(",", ""))
 
-    # Fallback: extract distance from race name e.g. "TEAM WEALLEANS MAIDEN 1150"
+    # Also try to extract prize money separately
+    if prize_money is None:
+        prize_match = re.search(r"\$\s*([\d,]+)", text)
+        if prize_match:
+            val = int(prize_match.group(1).replace(",", ""))
+            if val >= 1000:
+                prize_money = val
+
+    # Extract distance from race name — handles all patterns
     if distance_m is None and race_name:
-        dist_match = re.search(r"\b(\d{3,5})\b", race_name)
-        if dist_match:
-            distance_m = int(dist_match.group(1))
+        name_upper = race_name.upper()
+        NAMED_DIST = {"MILE":1600,"MILES":1600,"SPRINT":1200,"TWO MILES":3200,"2 MILES":3200}
+        for word, metres in NAMED_DIST.items():
+            if word in name_upper:
+                distance_m = metres
+                break
+
+    if distance_m is None and race_name:
+        name_upper = race_name.upper()
+        # R65 1000M, MDN 2YO 1000M style
+        m = re.search(r"\b(?:R\d+|MDN|BM\d+|2YO|3YO)\s+(\d{3,5})M\b", name_upper)
+        if m:
+            val = int(m.group(1))
+            if 800 <= val <= 4000:
+                distance_m = val
+
+    if distance_m is None and race_name:
+        name_upper = race_name.upper()
+        # Bare \d{3,5}M e.g. "2050M", "1200M"
+        m = re.search(r"\b(\d{3,5})M\b", name_upper)
+        if m:
+            val = int(m.group(1))
+            if 800 <= val <= 4000:
+                distance_m = val
+
+    if distance_m is None and race_name:
+        # lowercase m suffix e.g. "1150m"
+        m = re.search(r"\b(\d{3,5})m\b", race_name)
+        if m:
+            val = int(m.group(1))
+            if 800 <= val <= 4000:
+                distance_m = val
+
+    if distance_m is None and race_name:
+        # Bare number e.g. "MAIDEN 1150"
+        m = re.search(r"\b(\d{3,5})\b", race_name)
+        if m:
+            val = int(m.group(1))
+            if 800 <= val <= 4000:
+                distance_m = val
+
+    if distance_m is None:
+        # Last resort: scan page text for Xm pattern
+        page_dist = re.search(r"\b(\d{3,5})m\b", text)
+        if page_dist:
+            val = int(page_dist.group(1))
+            if 800 <= val <= 4000:
+                distance_m = val
 
     time_match = re.search(r"(\d{1,2}:\d{2}\s*[ap]m)", text, re.I)
     if time_match:
