@@ -1613,7 +1613,7 @@ function renderFieldRunners() {
       <div class="runner-stat r-hide">${r.avgPos||'—'}</div>
       <div class="runner-stat r-hide">
         <div class="form-line" style="justify-content:flex-end">
-          ${(r.form||'').split('-').map(p=>{const n=parseInt(p);const cls=n===1?'fd-1':n===2?'fd-2':n===3?'fd-3':'fd-o';return`<div class="form-dot ${cls}" style="width:18px;height:18px;font-size:10px">${p}</div>`;}).join('')}
+          ${(r.form||'').split('-').map(p=>{const n=parseInt(p);const cls=n===1?'fd-1':n===2?'fd-2':n===3?'fd-3':'fd-o';return `<div class="form-dot ${cls}" style="width:18px;height:18px;font-size:10px">${p}</div>`;}).join('')}
         </div>
       </div>
       <button class="remove-btn" onclick="removeFromField('${r.horse.replace(/'/g,"\\'")}')">×</button>
@@ -1663,7 +1663,7 @@ function renderFieldComparison() {
 
 function ratingBar(name,val,max,color,label){
   const pct=max>0?Math.min(val/max*100,100):0;
-  return`<div class="rating-bar">
+  return `<div class="rating-bar">
     <div class="rating-name" title="${name}">${name}</div>
     <div class="rating-track"><div class="rating-fill" style="width:${pct.toFixed(0)}%;background:${color};color:#0b0c0b">${pct>18?label:''}</div></div>
     <div class="rating-val">${pct<=18?label:''}</div>
