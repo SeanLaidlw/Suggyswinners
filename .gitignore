@@ -1,0 +1,8 @@
+racing.db 
+debug.py 
+debug.png 
+race.html 
+__pycache__/ 
+*.pyc 
+scrape_log.txt 
+update_log.txt 
