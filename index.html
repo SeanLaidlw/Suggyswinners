@@ -889,33 +889,40 @@ const RUNNER_COLORS = ['#7ec94a','#e8a830','#d95f4b','#4a9ed4','#c47fd4','#4bc4c
 // ===================== INIT =====================
 function init() {
   const loadingText = document.getElementById('loading-text');
-  if (window.RACING_DATA?.rows?.length) {
-    if (loadingText) loadingText.textContent = `Decoding ${window.RACING_DATA.rows.length.toLocaleString()} results...`;
-    allResults = enrichWithClass(decodeRacingData(window.RACING_DATA));
-    const s = window.RACING_DATA.summary;
-    document.getElementById('db-status').textContent =
-      `${s.total_results?.toLocaleString()} results · ${s.exported_at}`;
-  } else if (window.RACING_DATA?.results?.length) {
-    // Legacy format fallback
-    if (loadingText) loadingText.textContent = `Loaded ${window.RACING_DATA.results.length.toLocaleString()} results...`;
-    allResults = enrichWithClass(window.RACING_DATA.results);
-    const s = window.RACING_DATA.summary;
-    document.getElementById('db-status').textContent =
-      `${s.total_results?.toLocaleString()} results · ${s.exported_at}`;
-  } else {
+  try {
+    if (window.RACING_DATA?.rows?.length) {
+      if (loadingText) loadingText.textContent = `Decoding ${window.RACING_DATA.rows.length.toLocaleString()} results...`;
+      allResults = enrichWithClass(decodeRacingData(window.RACING_DATA));
+      const s = window.RACING_DATA.summary;
+      document.getElementById('db-status').textContent =
+        `${s.total_results?.toLocaleString()} results · ${s.exported_at}`;
+    } else if (window.RACING_DATA?.results?.length) {
+      if (loadingText) loadingText.textContent = `Loaded ${window.RACING_DATA.results.length.toLocaleString()} results...`;
+      allResults = enrichWithClass(window.RACING_DATA.results);
+      const s = window.RACING_DATA.summary;
+      document.getElementById('db-status').textContent =
+        `${s.total_results?.toLocaleString()} results · ${s.exported_at}`;
+    } else {
+      allResults = enrichWithClass(generateMockData());
+      document.getElementById('db-status').textContent = 'demo mode';
+    }
+  } catch(e) {
+    console.error('Data load error:', e);
     allResults = enrichWithClass(generateMockData());
-    document.getElementById('db-status').textContent = 'demo mode';
+    document.getElementById('db-status').textContent = 'error loading data';
   }
   populateDropdowns();
   applyFilters();
   loadTrends();
 
-  // Hide loading overlay
-  const overlay = document.getElementById('loading-overlay');
-  if (overlay) {
-    overlay.classList.add('fade-out');
-    setTimeout(() => overlay.remove(), 450);
-  }
+  // Always hide loading overlay
+  try {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+      overlay.classList.add('fade-out');
+      setTimeout(() => overlay.remove(), 450);
+    }
+  } catch(e) {}
 }
 
 // ===================== DROPDOWNS =====================
