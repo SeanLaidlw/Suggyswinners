@@ -242,6 +242,23 @@ tr:hover td{background:var(--bg3)}
   .r-hide{display:none}
 }
 @media(max-width:480px){.fg{min-width:100%}}
+
+/* ---- RACE MODAL ---- */
+#race-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);overflow-y:auto}
+#race-modal.open{display:flex}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);width:100%;max-width:760px;overflow:hidden;animation:fadeIn .2s ease}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;padding:1.25rem;border-bottom:1px solid var(--border);gap:12px}
+.modal-title{font-family:var(--fd);font-size:26px;letter-spacing:1px}
+.modal-meta{font-size:12px;color:var(--text2);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.modal-close{width:32px;height:32px;border-radius:6px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.modal-close:hover{color:var(--red);border-color:rgba(217,95,75,.3)}
+.modal-stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)}
+.modal-stat{padding:.875rem 1.25rem;border-right:1px solid var(--border)}
+.modal-stat:last-child{border-right:none}
+.modal-stat-label{font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px}
+.modal-stat-val{font-family:var(--fm);font-size:18px;font-weight:500}
+@media(max-width:600px){.modal-stats{grid-template-columns:repeat(2,1fr)}.modal-stat:nth-child(2){border-right:none}.modal-stat:nth-child(3){border-top:1px solid var(--border)}}
+
 </style>
 </head>
 <body>
@@ -455,5 +472,12 @@ tr:hover td{background:var(--bg3)}
 </div>
 
 <script src="app.js"></script>
+
+<div id="race-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div id="race-modal-body"></div>
+  </div>
+</div>
+
 </body>
 </html>

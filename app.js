@@ -67,7 +67,8 @@ function decodeRacingData(data) {
       finish_time:r[3], odds_sp:r[4], prize_money:r[5],
       horse:L.horse[r[6]], jockey:L.jockey[r[7]], trainer:L.trainer[r[8]],
       track:L.track[r[9]], date:r[10], going:L.going[r[11]],
-      race_name:L.race_name[r[12]], race_class:r[13], distance_m:r[14]
+      race_name:L.race_name[r[12]], race_class:r[13], distance_m:r[14],
+      race_number:r[15]
     };
   });
 }
@@ -169,6 +170,13 @@ function wireEvents() {
   var gs=document.getElementById('global-search');
   gs.addEventListener('input',function(){ globalSearch(this.value); });
   gs.addEventListener('focus',function(){ if(this.value.length>=2) globalSearch(this.value); });
+  // Race field links via event delegation
+  document.addEventListener('click',function(e){
+    var mh=e.target.closest('.modal-horse');
+    if(mh){closeModal();openProfile(mh.dataset.name,mh.dataset.type);return;}
+    var rl=e.target.closest('.race-link');
+    if(rl&&rl.dataset.track){openRace(rl.dataset.track,rl.dataset.date,parseInt(rl.dataset.racenum));return;}
+  });
   document.addEventListener('click',function(e){
     if(!e.target.closest('.gsearch-wrap')&&!e.target.closest('.ac-wrap')) closeAllDropdowns();
   });
@@ -343,21 +351,15 @@ function renderResultsTable() {
   document.getElementById('results-body').innerHTML=slice.map(function(r){
     var p=r.finish_position;
     var pc=p===1?'pos-1':p===2?'pos-2':p===3?'pos-3':'pos-other';
-    var hn=(r.horse||'').replace(/'/g,"\\'");
-    var jn=(r.jockey||'').replace(/'/g,"\\'");
-    return '<tr>'
+        return '<tr>'
       +'<td><span class="pos-badge '+pc+'">'+p+'</span></td>'
-      +'<td><span class="horse-link" onclick="openProfile(\''+hn+'\',\'horse\')">'+( r.horse||'--')+'</span></td>'
-      +'<td><span class="horse-link" onclick="openProfile(\''+jn+'\',\'jockey\')">'+( r.jockey||'--')+'</span></td>'
-      +'<td class="r-hide" style="color:var(--text2);font-size:12px">'+(r.trainer||'--')+'</td>'
-      +'<td style="color:var(--text2)">'+(r.track||'--')+'</td>'
-      +'<td class="tv">'+(r.date||'--')+'</td>'
-      +'<td class="r-hide" style="color:var(--text2);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis">'+(r.race_name||'--')+'</td>'
-      +'<td class="r-hide">'+getClassBadge(r.race_name,r.race_class,r.prize_money)+'</td>'
-      +'<td class="tv r-hide">'+(r.distance_m?r.distance_m+'m':'--')+'</td>'
-      +'<td class="tv r-hide">'+(r.barrier||'--')+'</td>'
-      +'<td class="tv">'+(r.finish_time||'--')+'</td>'
-      +'<td class="r-hide" style="color:var(--text3);font-size:12px">'+(p===1?'Winner':(r.margin_trad||'--'))+'</td>'
+      +'<td class="tv" style="color:var(--text3)">'+(r.barrier||'--')+'</td>'
+      +'<td><span class="horse-link modal-horse" data-name="'+(r.horse||'')+'" data-type="horse">'+( r.horse||'--')+'</span></td>'
+      +'<td><span class="horse-link modal-horse" data-name="'+(r.jockey||'')+'" data-type="jockey">'+( r.jockey||'--')+'</span></td>'
+      +'<td class="tv" style="color:var(--green)">'+(r.finish_time||'--')+'</td>'
+      +'<td class="tv" style="color:var(--text3)">'+(p===1?'Winner':(r.margin_trad||'--'))+'</td>'
+      +'<td class="tv odds">'+(r.odds_sp?'$'+r.odds_sp:'--')+'</td>'
+      +'<td>'+(r.prize_money?'$'+r.prize_money.toLocaleString():'--')+'</td>'
       +'</tr>';
   }).join('');
   renderPagination(Math.ceil(total/PAGE_SIZE));
@@ -604,7 +606,7 @@ function openProfile(name, type) {
     return '<div class="rr">'
       +'<div class="rr-pos" style="background:'+bg+'"><span class="pos-badge '+posClass+'">'+pos+'</span></div>'
       +'<div class="rr-main">'
-      +'<div class="rr-race">'+(r.race_name||'--')+' / '+(r.track||'--')+'</div>'
+      +'<div class="rr-race"><span class="horse-link race-link" data-track="'+(r.track||'')+'" data-date="'+(r.date||'')+'" data-racenum="'+(r.race_number||'')+'">'+( r.race_name||'Race '+r.race_number)+'</span> / '+(r.track||'--')+'</div>'
       +'<div class="rr-meta">'+(r.date||'--')+' / '+(r.distance_m?r.distance_m+'m':'--')+' '+gBadge+'</div>'
       +'</div>'
       +'<div class="rr-right">'
@@ -964,6 +966,70 @@ function ratingBar(name,val,max,color,label){
     +'<div class="rating-track"><div class="rating-fill" style="width:'+pct.toFixed(0)+'%;background:'+color+';color:#0b0c0b">'+(pct>18?label:'')+'</div></div>'
     +'<div class="rating-val">'+(pct<=18?label:'')+'</div>'
     +'</div>';
+}
+
+
+// ---- RACE FIELD MODAL ----
+function getRaceKey(r) {
+  return (r.track||'') + '|' + (r.date||'') + '|' + (r.race_number||'');
+}
+
+function openRace(track, date, raceNum) {
+  var key = track+'|'+date+'|'+raceNum;
+  var runners = allResults.filter(function(r){ return getRaceKey(r)===key; });
+  if(!runners.length) return;
+  runners.sort(function(a,b){ return (a.finish_position||99)-(b.finish_position||99); });
+  var r0=runners[0];
+  var raceName=(r0.race_name&&r0.race_name.trim())||('Race '+raceNum);
+  var going=r0.going?'<span class="going-badge '+goingClass(r0.going)+'">'+normaliseGoing(r0.going)+'</span>':'';
+  var classBadge=getClassBadge(r0.race_name,r0.race_class,r0.prize_money);
+  var winnerTime=runners[0].finish_time||'--';
+
+  var rows=runners.map(function(r){
+    var p=r.finish_position;
+    var pc=p===1?'pos-1':p===2?'pos-2':p===3?'pos-3':'pos-other';
+    return '<tr>'
+      +'<td><span class="pos-badge '+pc+'">'+p+'</span></td>'
+      +'<td class="tv" style="color:var(--text3)">'+(r.barrier||'--')+'</td>'
+      +'<td><span class="horse-link modal-horse" data-name="'+(r.horse||'')+'" data-type="horse">'+( r.horse||'--')+'</span></td>'
+      +'<td><span class="horse-link modal-horse" data-name="'+(r.jockey||'')+'" data-type="jockey">'+( r.jockey||'--')+'</span></td>'
+      +'<td class="tv" style="color:var(--green)">'+(r.finish_time||'--')+'</td>'
+      +'<td class="tv" style="color:var(--text3)">'+(p===1?'Winner':(r.margin_trad||'--'))+'</td>'
+      +'<td class="tv odds">'+(r.odds_sp?'$'+r.odds_sp:'--')+'</td>'
+      +'<td>'+(r.prize_money?'$'+r.prize_money.toLocaleString():'--')+'</td>'
+      +'</tr>';
+  }).join('');
+
+  var html=
+    '<div class="modal-header">'
+    +'<div>'
+    +'<div class="modal-title">'+raceName+'</div>'
+    +'<div class="modal-meta">'+track+' &bull; '+date+' &bull; '+(r0.distance_m?r0.distance_m+'m':'')+'  '+going+' '+classBadge+'</div>'
+    +'</div>'
+    +'<button class="modal-close" onclick="closeModal()">&#x00D7;</button>'
+    +'</div>'
+    +'<div class="modal-stats">'
+    +'<div class="modal-stat"><div class="modal-stat-label">Runners</div><div class="modal-stat-val">'+runners.length+'</div></div>'
+    +'<div class="modal-stat"><div class="modal-stat-label">Distance</div><div class="modal-stat-val">'+(r0.distance_m?r0.distance_m+'m':'--')+'</div></div>'
+    +'<div class="modal-stat"><div class="modal-stat-label">Winner time</div><div class="modal-stat-val" style="color:var(--green)">'+winnerTime+'</div></div>'
+    +'<div class="modal-stat"><div class="modal-stat-label">Total prize</div><div class="modal-stat-val">$'+runners.reduce(function(s,r){return s+(r.prize_money||0);},0).toLocaleString()+'</div></div>'
+    +'</div>'
+    +'<div class="tbl-scroll">'
+    +'<table><thead><tr>'
+    +'<th>Pos</th><th>Bar</th><th>Horse</th><th>Jockey</th>'
+    +'<th>Time</th><th>Margin</th><th>SP</th><th>Prize</th>'
+    +'</tr></thead><tbody>'+rows+'</tbody></table>'
+    +'</div>';
+
+  var modal=document.getElementById('race-modal');
+  document.getElementById('race-modal-body').innerHTML=html;
+  modal.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal() {
+  document.getElementById('race-modal').classList.remove('open');
+  document.body.style.overflow='';
 }
 
 // ---- PAGES ----
