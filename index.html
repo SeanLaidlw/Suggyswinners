@@ -984,38 +984,72 @@ function openProfile(name, type) {
   const lastDate = rows[0]?.date;
   const daysSince = lastDate ? Math.floor((Date.now()-new Date(lastDate))/(1000*60*60*24)) : null;
 
-  document.getElementById('profile-content').innerHTML = '
-    <div class="profile-wrap">
-      <div class="profile-card">
-        <div class="profile-badge">'+((type.toUpperCase())===undefined||(type.toUpperCase())===null?'':(type.toUpperCase()))+'</div>
-        <div class="profile-name">'+((name)===undefined||(name)===null?'':(name))+'</div>
-        <div class="form-line" style="margin-bottom:1rem">'+((formLine)===undefined||(formLine)===null?'':(formLine))+'</div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Starts</span><span class="profile-stat-val">'+((rows.length)===undefined||(rows.length)===null?'':(rows.length))+'</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Wins</span><span class="profile-stat-val" style="color:var(--amber)">'+((wins)===undefined||(wins)===null?'':(wins))+' ('+((winPct)===undefined||(winPct)===null?'':(winPct))+'%)</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Places (top 3)</span><span class="profile-stat-val">'+((places)===undefined||(places)===null?'':(places))+' ('+((placePct)===undefined||(placePct)===null?'':(placePct))+'%)</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Avg finish pos</span><span class="profile-stat-val">'+((avgPos)===undefined||(avgPos)===null?'':(avgPos))+'</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Best track</span><span class="profile-stat-val">'+((bestTrack)===undefined||(bestTrack)===null?'':(bestTrack))+'</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Best distance</span><span class="profile-stat-val">'+((bestDist?bestDist+'m':'—')===undefined||(bestDist?bestDist+'m':'—')===null?'':(bestDist?bestDist+'m':'—'))+'</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Best class won</span><span class="profile-stat-val">'+((bestClassWonBadge)===undefined||(bestClassWonBadge)===null?'':(bestClassWonBadge))+'</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Career earnings</span><span class="profile-stat-val" style="color:var(--green)">$'+((totalPrize.toLocaleString())===undefined||(totalPrize.toLocaleString())===null?'':(totalPrize.toLocaleString()))+'</span></div>
-        ${daysSince!==null?'<div class="profile-stat-row"><span class="profile-stat-label">Days since last run</span><span class="profile-stat-val">${daysSince}</span></div>':''}
-      </div>
-      <div class="profile-right">
-        <div class="table-wrap" style="margin-bottom:0">
-          <div class="table-header"><span class="table-title">Going record</span></div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:1rem">
-            ${Object.entries(goingMap).sort((a,b)=>b[1].starts-a[1].starts).map(([g,d])=>'
-              <div class="going-card">
-                <div class="going-label"><span class="going-badge ${goingClass(g)}">${g}</span></div>
-                <div class="going-val" style="color:${d.wins>0?'var(--green)':'var(--text2)'}">${d.wins>0?(d.wins/d.starts*100).toFixed(0)+'%':'0%'}</div>
-                <div class="going-sub">${d.wins}W from ${d.starts}</div>
-              </div>').join('')}
-          </div>
-        </div>
-        <div class="table-wrap" style="margin-bottom:0">
-          <div class="table-header"><span class="table-title">Recent runs</span><span class="table-count">'+((rows.length)===undefined||(rows.length)===null?'':(rows.length))+' total</span></div>
-          ${rows.slice(0,20).map(r=>{
-            const posClass = r.finish_position===1?'pos-1':r.finish_position===2?'pos-2':r.finish_position===3?'pos-3':'pos-other';
+  document.getElementById('profile-content').innerHTML =
+    '<div class="profile-wrap">'
+    +'<div class="profile-card">'
+    +'<div class="profile-badge">'+type.toUpperCase()+'</div>'
+    +'<div class="profile-name">'+name+'</div>'
+    +'<div class="form-line" style="margin-bottom:1rem">'+formLine+'</div>'
+    +'<div class="profile-stat-row"><span class="profile-stat-label">Starts</span><span class="profile-stat-val">'+rows.length+'</span></div>'
+    +'<div class="profile-stat-row"><span class="profile-stat-label">Wins</span><span class="profile-stat-val" style="color:var(--amber)">'+wins+' ('+winPct+'%)</span></div>'
+    +'<div class="profile-stat-row"><span class="profile-stat-label">Places (top 3)</span><span class="profile-stat-val">'+places+' ('+placePct+'%)</span></div>'
+    +'<div class="profile-stat-row"><span class="profile-stat-label">Avg finish pos</span><span class="profile-stat-val">'+avgPos+'</span></div>'
+    +'<div class="profile-stat-row"><span class="profile-stat-label">Best track</span><span class="profile-stat-val">'+bestTrack+'</span></div>'
+    +'<div class="profile-stat-row"><span class="profile-stat-label">Best distance</span><span class="profile-stat-val">'+(bestDist?bestDist+'m':'--')+'</span></div>'
+    +'<div class="profile-stat-row"><span class="profile-stat-label">Best class won</span><span class="profile-stat-val">'+bestClassWonBadge+'</span></div>'
+    +'<div class="profile-stat-row"><span class="profile-stat-label">Career earnings</span><span class="profile-stat-val" style="color:var(--green)">$'+totalPrize.toLocaleString()+'</span></div>'
+    +(daysSince!==null?'<div class="profile-stat-row"><span class="profile-stat-label">Days since last run</span><span class="profile-stat-val">'+daysSince+'</span></div>':'')
+    +'</div>'
+    +'<div class="profile-right">'
+    +'<div class="table-wrap" style="margin-bottom:0">'
+    +'<div class="table-header"><span class="table-title">Going record</span></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:1rem">'
+    +Object.entries(goingMap).sort(function(a,b){return b[1].starts-a[1].starts;}).map(function(entry){
+      var g=entry[0], d=entry[1];
+      var pct=d.wins>0?(d.wins/d.starts*100).toFixed(0)+'%':'0%';
+      var col=d.wins>0?'var(--green)':'var(--text2)';
+      return '<div class="going-card">'
+        +'<div class="going-label"><span class="going-badge '+goingClass(g)+'">'+g+'</span></div>'
+        +'<div class="going-val" style="color:'+col+'">'+pct+'</div>'
+        +'<div class="going-sub">'+d.wins+'W from '+d.starts+'</div>'
+        +'</div>';
+    }).join('')
+    +'</div></div>'
+    +'<div class="table-wrap" style="margin-bottom:0">'
+    +'<div class="table-header"><span class="table-title">Recent runs</span><span class="table-count">'+rows.length+' total</span></div>'
+    +rows.slice(0,20).map(function(r){
+      var pos=r.finish_position;
+      var posClass=pos===1?'pos-1':pos===2?'pos-2':pos===3?'pos-3':'pos-other';
+      var bg=pos===1?'rgba(232,168,48,.2)':pos<=3?'rgba(126,201,74,.12)':'var(--bg4)';
+      var going=r.going?'<span class="going-badge '+goingClass(r.going)+'">'+normaliseGoing(r.going)+'</span>':'';
+      return '<div class="recent-run">'
+        +'<div class="rr-pos" style="background:'+bg+'">'
+        +'<span class="pos-badge '+posClass+'">'+pos+'</span></div>'
+        +'<div class="rr-main">'
+        +'<div class="rr-race">'+(r.race_name||'--')+' / '+(r.track||'--')+'</div>'
+        +'<div class="rr-meta">'+(r.date||'--')+' / '+(r.distance_m?r.distance_m+'m':'--')+' '+going+'</div>'
+        +'</div>'
+        +'<div class="rr-right">'
+        +'<div class="rr-odds">'+(r.odds_sp?'$'+r.odds_sp:'--')+'</div>'
+        +'<div class="rr-margin">'+(pos===1?'Winner':(r.margin_trad||'--'))+'</div>'
+        +'</div></div>';
+    }).join('')
+    +'</div>'
+    +'<div class="table-wrap news-section" style="margin-bottom:0">'
+    +'<div class="table-header"><span class="table-title">News & Articles</span></div>'
+    +'<div style="padding:1rem 1.25rem;display:flex;flex-direction:column;gap:10px">'
+    +'<a href="https://news.google.com/search?q='+encodeURIComponent(name+' NZ racing horse')+'" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);text-decoration:none;font-size:13px">'
+    +'<span style="font-size:18px">&#x1F4F0;</span>'
+    +'<div><div style="font-weight:500">Search Google News for &quot;'+name+'&quot;</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin-top:2px">Opens latest news in a new tab</div></div>'
+    +'<span style="margin-left:auto;color:var(--green);font-size:16px">-&gt;</span></a>'
+    +'<a href="https://www.loveracing.nz/RaceInfoSearch.aspx?q='+encodeURIComponent(name)+'&s=Current&g=All&r=undefined&t=Name" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);text-decoration:none;font-size:13px">'
+    +'<span style="font-size:18px">&#x1F3C7;</span>'
+    +'<div><div style="font-weight:500">View &quot;'+name+'&quot; on LoveRacing.NZ</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin-top:2px">Full form, videos and race history</div></div>'
+    +'<span style="margin-left:auto;color:var(--green);font-size:16px">-&gt;</span></a>'
+    +'</div></div>'
+    +'</div></div>';
             const bg = r.finish_position===1?'rgba(232,168,48,.2)':r.finish_position<=3?'rgba(126,201,74,.12)':'var(--bg4)';
             return '<div class="recent-run" onclick="filterByHorse('${(r.horse||'').replace(/'/g,"\\'")}')">
               <div class="rr-pos" style="background:${bg}">
