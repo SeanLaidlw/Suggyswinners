@@ -677,9 +677,9 @@ function acRender(dropId, items, input) {
   if (!items.length) { acClose(dropId); return; }
   acIndex = -1;
   drop.innerHTML = items.map((item, i) =>
-    `<div class="ac-item" onmousedown="acSelect('${dropId}','${item.label.replace(/'/g,"\'")}',event)">`
-    + `<span class="ac-item-name">${item.label}</span>`
-    + `<span class="ac-item-meta">${item.meta}</span>`
+    '<div class="ac-item" onmousedown="acSelect(''+((dropId)===undefined||(dropId)===null?'':(dropId))+'',''+((item.label.replace(/'/g,"\'"))===undefined||(item.label.replace(/'/g,"\'"))===null?'':(item.label.replace(/'/g,"\'")))+'',event)">'
+    + '<span class="ac-item-name">'+((item.label)===undefined||(item.label)===null?'':(item.label))+'</span>'
+    + '<span class="ac-item-meta">'+((item.meta)===undefined||(item.meta)===null?'':(item.meta))+'</span>'
     + `</div>`
   ).join('');
   drop.classList.add('open');
@@ -808,7 +808,7 @@ function classifyRace(raceName, raceClass, prizeMoney) {
 
 function getClassBadge(raceName, raceClass, prizeMoney) {
   const tier = classifyRace(raceName, raceClass, prizeMoney);
-  return `<span class="class-badge ${CLASS_CSS[tier]}">${CLASS_LABELS[tier]}</span>`;
+  return '<span class="class-badge '+((CLASS_CSS[tier])===undefined||(CLASS_CSS[tier])===null?'':(CLASS_CSS[tier]))+'">'+((CLASS_LABELS[tier])===undefined||(CLASS_LABELS[tier])===null?'':(CLASS_LABELS[tier]))+'</span>';
 }
 
 function getClassName(tier) {
@@ -919,10 +919,10 @@ function globalSearch(q) {
   container.innerHTML = results.map(r => {
     const rows = allResults.filter(x=>(x[r.type]||'')===r.name);
     const wins = rows.filter(x=>x.finish_position===1).length;
-    return `<div class="search-result-item" onclick="openProfile('${r.name.replace(/'/g,"\\'")}','${r.type}')">
-      <div><div class="sri-name">${r.name}</div>
-        <div class="sri-meta">${rows.length} starts · ${wins} wins</div></div>
-      <span class="sri-type">${r.label}</span></div>`;
+    return '<div class="search-result-item" onclick="openProfile(''+((r.name.replace(/'/g,"\\'"))===undefined||(r.name.replace(/'/g,"\\'"))===null?'':(r.name.replace(/'/g,"\\'")))+'',''+((r.type)===undefined||(r.type)===null?'':(r.type))+'')">
+      <div><div class="sri-name">'+((r.name)===undefined||(r.name)===null?'':(r.name))+'</div>
+        <div class="sri-meta">'+((rows.length)===undefined||(rows.length)===null?'':(rows.length))+' starts · '+((wins)===undefined||(wins)===null?'':(wins))+' wins</div></div>
+      <span class="sri-type">'+((r.label)===undefined||(r.label)===null?'':(r.label))+'</span></div>';
   }).join('');
   container.style.display = 'block';
 }
@@ -961,7 +961,7 @@ function openProfile(name, type) {
   const winRows = rows.filter(r=>r.finish_position===1);
   const bestTier = winRows.length ? Math.min(...winRows.map(r=>r.class_tier||7)) : null;
   const bestClassWonBadge = bestTier
-    ? `<span class="class-badge ${CLASS_CSS[bestTier]}">${CLASS_LABELS[bestTier]}</span>`
+    ? '<span class="class-badge '+((CLASS_CSS[bestTier])===undefined||(CLASS_CSS[bestTier])===null?'':(CLASS_CSS[bestTier]))+'">'+((CLASS_LABELS[bestTier])===undefined||(CLASS_LABELS[bestTier])===null?'':(CLASS_LABELS[bestTier]))+'</span>'
     : '—';
 
   // Going record
@@ -977,61 +977,61 @@ function openProfile(name, type) {
   // Form line (last 8)
   const formLine = rows.slice(0,8).map(r=>{
     const cls = r.finish_position===1?'fd-1':r.finish_position===2?'fd-2':r.finish_position===3?'fd-3':'fd-o';
-    return `<div class="form-dot ${cls}">${r.finish_position}</div>`;
+    return '<div class="form-dot '+((cls)===undefined||(cls)===null?'':(cls))+'">'+((r.finish_position)===undefined||(r.finish_position)===null?'':(r.finish_position))+'</div>';
   }).join('');
 
   // Days since last run
   const lastDate = rows[0]?.date;
   const daysSince = lastDate ? Math.floor((Date.now()-new Date(lastDate))/(1000*60*60*24)) : null;
 
-  document.getElementById('profile-content').innerHTML = `
+  document.getElementById('profile-content').innerHTML = '
     <div class="profile-wrap">
       <div class="profile-card">
-        <div class="profile-badge">${type.toUpperCase()}</div>
-        <div class="profile-name">${name}</div>
-        <div class="form-line" style="margin-bottom:1rem">${formLine}</div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Starts</span><span class="profile-stat-val">${rows.length}</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Wins</span><span class="profile-stat-val" style="color:var(--amber)">${wins} (${winPct}%)</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Places (top 3)</span><span class="profile-stat-val">${places} (${placePct}%)</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Avg finish pos</span><span class="profile-stat-val">${avgPos}</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Best track</span><span class="profile-stat-val">${bestTrack}</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Best distance</span><span class="profile-stat-val">${bestDist?bestDist+'m':'—'}</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Best class won</span><span class="profile-stat-val">${bestClassWonBadge}</span></div>
-        <div class="profile-stat-row"><span class="profile-stat-label">Career earnings</span><span class="profile-stat-val" style="color:var(--green)">$${totalPrize.toLocaleString()}</span></div>
-        ${daysSince!==null?`<div class="profile-stat-row"><span class="profile-stat-label">Days since last run</span><span class="profile-stat-val">${daysSince}</span></div>`:''}
+        <div class="profile-badge">'+((type.toUpperCase())===undefined||(type.toUpperCase())===null?'':(type.toUpperCase()))+'</div>
+        <div class="profile-name">'+((name)===undefined||(name)===null?'':(name))+'</div>
+        <div class="form-line" style="margin-bottom:1rem">'+((formLine)===undefined||(formLine)===null?'':(formLine))+'</div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Starts</span><span class="profile-stat-val">'+((rows.length)===undefined||(rows.length)===null?'':(rows.length))+'</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Wins</span><span class="profile-stat-val" style="color:var(--amber)">'+((wins)===undefined||(wins)===null?'':(wins))+' ('+((winPct)===undefined||(winPct)===null?'':(winPct))+'%)</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Places (top 3)</span><span class="profile-stat-val">'+((places)===undefined||(places)===null?'':(places))+' ('+((placePct)===undefined||(placePct)===null?'':(placePct))+'%)</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Avg finish pos</span><span class="profile-stat-val">'+((avgPos)===undefined||(avgPos)===null?'':(avgPos))+'</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Best track</span><span class="profile-stat-val">'+((bestTrack)===undefined||(bestTrack)===null?'':(bestTrack))+'</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Best distance</span><span class="profile-stat-val">'+((bestDist?bestDist+'m':'—')===undefined||(bestDist?bestDist+'m':'—')===null?'':(bestDist?bestDist+'m':'—'))+'</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Best class won</span><span class="profile-stat-val">'+((bestClassWonBadge)===undefined||(bestClassWonBadge)===null?'':(bestClassWonBadge))+'</span></div>
+        <div class="profile-stat-row"><span class="profile-stat-label">Career earnings</span><span class="profile-stat-val" style="color:var(--green)">$'+((totalPrize.toLocaleString())===undefined||(totalPrize.toLocaleString())===null?'':(totalPrize.toLocaleString()))+'</span></div>
+        ${daysSince!==null?'<div class="profile-stat-row"><span class="profile-stat-label">Days since last run</span><span class="profile-stat-val">${daysSince}</span></div>':''}
       </div>
       <div class="profile-right">
         <div class="table-wrap" style="margin-bottom:0">
           <div class="table-header"><span class="table-title">Going record</span></div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:1rem">
-            ${Object.entries(goingMap).sort((a,b)=>b[1].starts-a[1].starts).map(([g,d])=>`
+            ${Object.entries(goingMap).sort((a,b)=>b[1].starts-a[1].starts).map(([g,d])=>'
               <div class="going-card">
                 <div class="going-label"><span class="going-badge ${goingClass(g)}">${g}</span></div>
                 <div class="going-val" style="color:${d.wins>0?'var(--green)':'var(--text2)'}">${d.wins>0?(d.wins/d.starts*100).toFixed(0)+'%':'0%'}</div>
                 <div class="going-sub">${d.wins}W from ${d.starts}</div>
-              </div>`).join('')}
+              </div>').join('')}
           </div>
         </div>
         <div class="table-wrap" style="margin-bottom:0">
-          <div class="table-header"><span class="table-title">Recent runs</span><span class="table-count">${rows.length} total</span></div>
+          <div class="table-header"><span class="table-title">Recent runs</span><span class="table-count">'+((rows.length)===undefined||(rows.length)===null?'':(rows.length))+' total</span></div>
           ${rows.slice(0,20).map(r=>{
             const posClass = r.finish_position===1?'pos-1':r.finish_position===2?'pos-2':r.finish_position===3?'pos-3':'pos-other';
             const bg = r.finish_position===1?'rgba(232,168,48,.2)':r.finish_position<=3?'rgba(126,201,74,.12)':'var(--bg4)';
-            return `<div class="recent-run" onclick="filterByHorse('${(r.horse||'').replace(/'/g,"\\'")}')">
+            return '<div class="recent-run" onclick="filterByHorse('${(r.horse||'').replace(/'/g,"\\'")}')">
               <div class="rr-pos" style="background:${bg}">
                 <span class="pos-badge ${posClass}">${r.finish_position}</span>
               </div>
               <div class="rr-main">
                 <div class="rr-race">${r.race_name||'—'} · ${r.track||'—'}</div>
                 <div class="rr-meta">${r.date||'—'} · ${r.distance_m?r.distance_m+'m':'—'}
-                  ${r.going?`· <span class="going-badge ${goingClass(r.going)}">${normaliseGoing(r.going)}</span>`:''}
+                  ${r.going?'· <span class="going-badge '+((goingClass(r.going))===undefined||(goingClass(r.going))===null?'':(goingClass(r.going)))+'">'+((normaliseGoing(r.going))===undefined||(normaliseGoing(r.going))===null?'':(normaliseGoing(r.going)))+'</span>':''}
                 </div>
               </div>
               <div class="rr-right">
                 <div class="rr-odds">${r.odds_sp?'$'+r.odds_sp:'—'}</div>
                 <div class="rr-margin">${r.finish_position===1?'Winner':(r.margin_trad||'—')}</div>
               </div>
-            </div>`;
+            </div>';
           }).join('')}
         </div>
       </div>
@@ -1041,7 +1041,7 @@ function openProfile(name, type) {
           <span class="table-title">News & Articles</span>
         </div>
         <div style="padding:1rem 1.25rem;display:flex;flex-direction:column;gap:10px">
-          <a href="https://news.google.com/search?q=${encodeURIComponent(name+' NZ racing horse')}"
+          <a href="https://news.google.com/search?q='+((encodeURIComponent(name+' NZ racing horse'))===undefined||(encodeURIComponent(name+' NZ racing horse'))===null?'':(encodeURIComponent(name+' NZ racing horse')))+'"
             target="_blank" rel="noopener"
             style="display:flex;align-items:center;gap:10px;padding:12px 16px;
               background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);
@@ -1050,12 +1050,12 @@ function openProfile(name, type) {
             onmouseout="this.style.borderColor='var(--border2)'">
             <span style="font-size:18px">📰</span>
             <div>
-              <div style="font-weight:500">Search Google News for "${name}"</div>
+              <div style="font-weight:500">Search Google News for "'+((name)===undefined||(name)===null?'':(name))+'"</div>
               <div style="font-size:11px;color:var(--text3);margin-top:2px">Opens latest news articles in a new tab</div>
             </div>
             <span style="margin-left:auto;color:var(--green);font-size:16px">→</span>
           </a>
-          <a href="https://www.loveracing.nz/RaceInfoSearch.aspx?q=${encodeURIComponent(name)}&s=Current&g=All&r=undefined&t=Name"
+          <a href="https://www.loveracing.nz/RaceInfoSearch.aspx?q='+((encodeURIComponent(name))===undefined||(encodeURIComponent(name))===null?'':(encodeURIComponent(name)))+'&s=Current&g=All&r=undefined&t=Name"
             target="_blank" rel="noopener"
             style="display:flex;align-items:center;gap:10px;padding:12px 16px;
               background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);
@@ -1064,7 +1064,7 @@ function openProfile(name, type) {
             onmouseout="this.style.borderColor='var(--border2)'">
             <span style="font-size:18px">🏇</span>
             <div>
-              <div style="font-weight:500">View "${name}" on LoveRacing.NZ</div>
+              <div style="font-weight:500">View "'+((name)===undefined||(name)===null?'':(name))+'" on LoveRacing.NZ</div>
               <div style="font-size:11px;color:var(--text3);margin-top:2px">Full form, videos and race history</div>
             </div>
             <span style="margin-left:auto;color:var(--green);font-size:16px">→</span>
@@ -1072,7 +1072,7 @@ function openProfile(name, type) {
         </div>
       </div>
     </div>
-    </div>\`;
+    </div>\';
 }
 
 // ===================== RESULTS =====================
@@ -1355,7 +1355,7 @@ function loadH2H() {
   const rowsA=allResults.filter(r=>(r[type]||'').toLowerCase().includes(nameA.toLowerCase()));
   const rowsB=allResults.filter(r=>(r[type]||'').toLowerCase().includes(nameB.toLowerCase()));
   if(!rowsA.length||!rowsB.length){
-    document.getElementById('h2h-content').innerHTML=`<div class="empty-state"><div class="empty-icon">⚡</div><div class="empty-text">Could not find one or both names</div></div>`;
+    document.getElementById('h2h-content').innerHTML='<div class="empty-state"><div class="empty-icon">⚡</div><div class="empty-text">Could not find one or both names</div></div>';
     return;
   }
   const sharedA=rowsA.filter(r=>rowsB.some(rb=>rb.track===r.track&&rb.date===r.date&&rb.race_name===r.race_name));
@@ -1370,23 +1370,23 @@ function loadH2H() {
   const scoreA=getH2HScore(rowsA,'',''), scoreB=getH2HScore(rowsB,'','');
   const ranked=[{horse:dispA,aiScore:scoreA,winPct:statsA.winPct},{horse:dispB,aiScore:scoreB,winPct:statsB.winPct}].sort((a,b)=>b.aiScore-a.aiScore);
 
-  document.getElementById('h2h-content').innerHTML=`
-    ${aiVerdictHTML(ranked,'head to head')}
+  document.getElementById('h2h-content').innerHTML='
+    '+((aiVerdictHTML(ranked,'head to head'))===undefined||(aiVerdictHTML(ranked,'head to head'))===null?'':(aiVerdictHTML(ranked,'head to head')))+'
     <div class="table-wrap" style="margin-bottom:1.25rem">
       <div class="vs-banner">
-        <div class="vs-text">${dispA.split(' ')[0]} vs ${dispB.split(' ')[0]}</div>
-        <div class="vs-record">Direct matchups: <span>${aWins}</span> — ${sharedA.length-aWins-bWins} — <span>${bWins}</span> (${sharedA.length} shared races)</div>
+        <div class="vs-text">'+((dispA.split(' ')[0])===undefined||(dispA.split(' ')[0])===null?'':(dispA.split(' ')[0]))+' vs '+((dispB.split(' ')[0])===undefined||(dispB.split(' ')[0])===null?'':(dispB.split(' ')[0]))+'</div>
+        <div class="vs-record">Direct matchups: <span>'+((aWins)===undefined||(aWins)===null?'':(aWins))+'</span> — '+((sharedA.length-aWins-bWins)===undefined||(sharedA.length-aWins-bWins)===null?'':(sharedA.length-aWins-bWins))+' — <span>'+((bWins)===undefined||(bWins)===null?'':(bWins))+'</span> ('+((sharedA.length)===undefined||(sharedA.length)===null?'':(sharedA.length))+' shared races)</div>
       </div>
       <div class="h2h-grid" style="padding:1.25rem">
         <div class="h2h-horse-card">
-          <div class="h2h-name" style="color:var(--green)">${dispA}</div>${renderH2HStats(statsA)}
+          <div class="h2h-name" style="color:var(--green)">'+((dispA)===undefined||(dispA)===null?'':(dispA))+'</div>'+((renderH2HStats(statsA))===undefined||(renderH2HStats(statsA))===null?'':(renderH2HStats(statsA)))+'
         </div>
         <div class="h2h-horse-card">
-          <div class="h2h-name" style="color:var(--amber)">${dispB}</div>${renderH2HStats(statsB)}
+          <div class="h2h-name" style="color:var(--amber)">'+((dispB)===undefined||(dispB)===null?'':(dispB))+'</div>'+((renderH2HStats(statsB))===undefined||(renderH2HStats(statsB))===null?'':(renderH2HStats(statsB)))+'
         </div>
       </div>
     </div>
-    ${sharedA.length?`
+    ${sharedA.length?'
     <div class="h2h-shared">
       <div class="table-header"><span class="table-title">Shared races</span><span class="table-count">${sharedA.length} races</span></div>
       <div class="tbl-scroll"><table><thead><tr>
