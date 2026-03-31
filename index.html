@@ -5,64 +5,68 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>SuggysWinners</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="data.js" onerror="console.log('no data.js')"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root {
-  --bg:#0b0c0b; --bg2:#141513; --bg3:#1c1d1a; --bg4:#242521;
-  --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.11);
-  --text:#e6e4dc; --text2:#948f83; --text3:#524f48;
-  --green:#7ec94a; --green2:#3d7018; --green-dim:rgba(126,201,74,0.1);
-  --amber:#e8a830; --red:#d95f4b; --blue:#4a9ed4;
-  --fd:'Bebas Neue',sans-serif; --fb:'DM Sans',sans-serif; --fm:'DM Mono',monospace;
-  --r:8px; --r2:12px;
+:root{
+  --bg:#0b0c0b;--bg2:#141513;--bg3:#1c1d1a;--bg4:#242521;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e6e4dc;--text2:#948f83;--text3:#524f48;
+  --green:#7ec94a;--green2:#3d7018;--green-dim:rgba(126,201,74,0.1);
+  --amber:#e8a830;--red:#d95f4b;--blue:#4a9ed4;
+  --fd:'Bebas Neue',sans-serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace;
+  --r:8px;--r2:12px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:14px;line-height:1.5;min-height:100vh;padding-bottom:60px}
-
-/* HEADER */
+#loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s ease}
+#loading-overlay.fade-out{opacity:0;pointer-events:none}
+.loading-logo{font-family:var(--fd);font-size:36px;letter-spacing:3px;margin-bottom:1.5rem}
+.loading-logo span{color:var(--green)}
+.loading-bar-wrap{width:200px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.loading-bar{height:100%;background:var(--green);border-radius:2px;animation:loadBar 1.5s ease-in-out infinite}
+@keyframes loadBar{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
+.loading-text{margin-top:1rem;font-size:12px;color:var(--text3);font-family:var(--fm)}
 header{display:flex;align-items:center;gap:12px;padding:0 1.25rem;height:54px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:200}
 .logo{font-family:var(--fd);font-size:22px;letter-spacing:2px;white-space:nowrap;flex-shrink:0}
 .logo span{color:var(--green)}
-.global-search-wrap{flex:1;max-width:380px;position:relative}
-.global-search-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:7px 12px 7px 34px;border-radius:20px;font-family:var(--fb);font-size:13px;outline:none;transition:border-color .15s}
-.global-search-wrap input:focus{border-color:var(--green2)}
-.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none}
-.search-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);overflow:hidden;z-index:300;display:none;max-height:320px;overflow-y:auto}
-.search-result-item{padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);transition:background .1s}
-.search-result-item:hover{background:var(--bg3)}
-.search-result-item:last-child{border-bottom:none}
+.gsearch-wrap{flex:1;max-width:380px;position:relative}
+.gsearch-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:7px 12px 7px 34px;border-radius:20px;font-family:var(--fb);font-size:13px;outline:none;transition:border-color .15s}
+.gsearch-wrap input:focus{border-color:var(--green2)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.gsearch-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);overflow:hidden;z-index:300;display:none;max-height:320px;overflow-y:auto}
+.gsearch-results.open{display:block}
+.sri{padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);transition:background .1s}
+.sri:hover{background:var(--bg3)}
+.sri:last-child{border-bottom:none}
 .sri-name{font-weight:500;font-size:13px}
 .sri-meta{font-size:11px;color:var(--text3);font-family:var(--fm)}
 .sri-type{font-size:10px;padding:2px 7px;border-radius:10px;font-family:var(--fm);background:var(--bg4);color:var(--text3)}
 .status-pill{font-size:11px;color:var(--text3);font-family:var(--fm);display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
 .status-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* BOTTOM NAV (mobile) */
+.desktop-nav{display:flex;gap:2px;margin-left:auto;flex-shrink:0}
+.nav-tab{padding:6px 14px;border-radius:5px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);border:none;background:transparent;transition:all .15s;font-family:var(--fb)}
+.nav-tab:hover{color:var(--text);background:var(--bg3)}
+.nav-tab.active{color:var(--green);background:var(--green-dim)}
 .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:200;height:56px}
 .bottom-nav-inner{display:flex;height:100%}
 .bnav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-size:10px;color:var(--text3);border:none;background:transparent;transition:color .15s;font-family:var(--fb);padding:0}
 .bnav-tab.active{color:var(--green)}
 .bnav-icon{font-size:18px;line-height:1}
-
-/* DESKTOP NAV */
-.desktop-nav{display:flex;gap:2px;margin-left:auto;flex-shrink:0}
-.nav-tab{padding:6px 14px;border-radius:5px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);border:none;background:transparent;transition:all .15s;font-family:var(--fb)}
-.nav-tab:hover{color:var(--text);background:var(--bg3)}
-.nav-tab.active{color:var(--green);background:var(--green-dim)}
-
-/* PAGES */
 .page{display:none;padding:1.25rem;max-width:1440px;margin:0 auto;animation:fadeIn .2s ease}
 .page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-
-/* FILTER BAR */
 .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;padding:.875rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2)}
-.filter-group{display:flex;flex-direction:column;gap:3px;flex:1;min-width:130px}
-.filter-label{font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.8px;text-transform:uppercase}
+.fg{display:flex;flex-direction:column;gap:3px;flex:1;min-width:130px}
+.fl{font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.8px;text-transform:uppercase}
+.ac-wrap{position:relative}
+.ac-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);z-index:500;max-height:220px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.ac-drop.open{display:block}
+.ac-item{padding:8px 12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);font-size:13px;transition:background .1s}
+.ac-item:hover,.ac-item.sel{background:var(--bg3)}
+.ac-item:last-child{border-bottom:none}
 select,input[type=text],input[type=date]{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:7px 10px;border-radius:6px;font-family:var(--fb);font-size:13px;outline:none;transition:border-color .15s;width:100%;min-height:36px}
 select:focus,input:focus{border-color:var(--green2)}
 select option{background:var(--bg3)}
@@ -71,26 +75,18 @@ select option{background:var(--bg3)}
 .btn-primary:hover{background:#92dd5a}
 .btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}
 .btn-ghost:hover{color:var(--text);background:var(--bg4)}
-
-/* STATS ROW */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:.875rem 1rem;transition:border-color .2s}
-.stat-card:hover{border-color:var(--border2)}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:.875rem 1rem}
 .stat-label{font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px}
 .stat-value{font-family:var(--fm);font-size:22px;font-weight:500;color:var(--text)}
 .stat-value.green{color:var(--green)}
 .stat-value.amber{color:var(--amber)}
 .stat-sub{font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-/* FORM LINE */
-.form-line{display:flex;gap:3px;align-items:center}
-.form-dot{width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11px;font-weight:500}
+.form-dot{width:22px;height:22px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11px;font-weight:500}
 .fd-1{background:rgba(232,168,48,.2);color:var(--amber)}
 .fd-2{background:rgba(126,201,74,.12);color:var(--green)}
 .fd-3{background:rgba(74,158,212,.12);color:var(--blue)}
 .fd-o{background:var(--bg4);color:var(--text3)}
-
-/* TABLE */
 .table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:1.25rem}
 .table-header{display:flex;align-items:center;justify-content:space-between;padding:.875rem 1.25rem;border-bottom:1px solid var(--border)}
 .table-title{font-family:var(--fm);font-size:11px;letter-spacing:.8px;color:var(--text2);text-transform:uppercase}
@@ -99,7 +95,6 @@ select option{background:var(--bg3)}
 table{width:100%;border-collapse:collapse}
 th{text-align:left;padding:9px 14px;font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg);cursor:pointer;white-space:nowrap;user-select:none}
 th:hover{color:var(--text2)}
-th.sorted{color:var(--green)}
 td{padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px;white-space:nowrap}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--bg3)}
@@ -108,79 +103,92 @@ tr:hover td{background:var(--bg3)}
 .pos-2{background:rgba(255,255,255,.07);color:var(--text2)}
 .pos-3{background:rgba(126,201,74,.12);color:var(--green)}
 .pos-other{background:var(--bg3);color:var(--text3)}
+.class-badge{display:inline-block;font-size:10px;font-family:var(--fm);padding:2px 6px;border-radius:4px;font-weight:500;white-space:nowrap}
+.cb-g1{background:rgba(232,168,48,.25);color:var(--amber);border:1px solid rgba(232,168,48,.4)}
+.cb-g2{background:rgba(232,168,48,.15);color:#d4922a;border:1px solid rgba(232,168,48,.3)}
+.cb-g3{background:rgba(232,168,48,.08);color:#c07820;border:1px solid rgba(232,168,48,.2)}
+.cb-lr{background:rgba(74,158,212,.15);color:var(--blue);border:1px solid rgba(74,158,212,.3)}
+.cb-open{background:rgba(126,201,74,.12);color:var(--green);border:1px solid rgba(126,201,74,.25)}
+.cb-bm{background:rgba(255,255,255,.07);color:var(--text2);border:1px solid rgba(255,255,255,.12)}
+.cb-mdn{background:rgba(255,255,255,.04);color:var(--text3);border:1px solid rgba(255,255,255,.08)}
 .odds{font-family:var(--fm);font-size:12px;color:var(--text2)}
-.time-val{font-family:var(--fm);font-size:12px;color:var(--text2)}
+.tv{font-family:var(--fm);font-size:12px;color:var(--text2)}
 .horse-link{color:var(--text);cursor:pointer;font-weight:500}
 .horse-link:hover{color:var(--green);text-decoration:underline}
-
-/* PAGINATION */
 .pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:.875rem}
 .page-btn{padding:5px 11px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:var(--fm);font-size:12px;transition:all .15s;min-width:32px}
 .page-btn:hover{color:var(--text);border-color:var(--border2)}
 .page-btn.active{background:var(--green-dim);color:var(--green);border-color:var(--green2)}
-.page-btn:disabled{opacity:.3;cursor:default}
-.page-info{font-family:var(--fm);font-size:12px;color:var(--text3)}
-
-/* CHARTS */
 .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
 .chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem}
 .chart-title{font-family:var(--fm);font-size:10px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:1rem}
-
-/* H2H */
 .h2h-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
-.h2h-horse-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem}
+.h2h-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem}
 .h2h-name{font-family:var(--fd);font-size:26px;letter-spacing:1px;margin-bottom:.875rem}
-.h2h-stat-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
-.h2h-stat-row:last-child{border-bottom:none}
-.h2h-stat-label{color:var(--text2)}
-.h2h-stat-val{font-family:var(--fm);font-weight:500}
-.h2h-win{color:var(--green)}
-.vs-banner{text-align:center;padding:1.5rem;background:var(--bg3);border-bottom:1px solid var(--border);border-radius:var(--r2) var(--r2) 0 0}
+.hsr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.hsr:last-child{border-bottom:none}
+.hsl{color:var(--text2)}
+.hsv{font-family:var(--fm);font-weight:500}
+.hsv.win{color:var(--green)}
+.vs-banner{text-align:center;padding:1.5rem;background:var(--bg3);border-bottom:1px solid var(--border)}
 .vs-text{font-family:var(--fd);font-size:38px;letter-spacing:3px;color:var(--text3)}
 .vs-record{font-family:var(--fm);font-size:12px;color:var(--text2);margin-top:4px}
 .vs-record span{color:var(--green);font-weight:500}
-.h2h-shared{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:1.25rem}
 .empty-state{text-align:center;padding:3.5rem 2rem;color:var(--text3)}
 .empty-icon{font-size:40px;margin-bottom:.75rem;opacity:.4}
-.empty-text{font-size:14px}
-
-/* PROFILE PAGE */
 .profile-wrap{display:grid;grid-template-columns:300px 1fr;gap:1.25rem;align-items:start}
 .profile-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;position:sticky;top:70px}
 .profile-name{font-family:var(--fd);font-size:32px;letter-spacing:1px;margin-bottom:.25rem}
 .profile-badge{display:inline-block;font-size:10px;font-family:var(--fm);padding:3px 8px;border-radius:10px;background:var(--green-dim);color:var(--green);border:1px solid var(--green2);margin-bottom:1rem}
-.profile-stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
-.profile-stat-row:last-child{border-bottom:none}
-.profile-stat-label{color:var(--text2)}
-.profile-stat-val{font-family:var(--fm);font-weight:500}
+.psr{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.psr:last-child{border-bottom:none}
+.psl{color:var(--text2)}
+.psv{font-family:var(--fm);font-weight:500}
 .profile-right{display:flex;flex-direction:column;gap:1.25rem}
-.going-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}
 .going-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:.75rem;text-align:center}
-.going-label{font-size:10px;font-family:var(--fm);color:var(--text3);text-transform:uppercase;margin-bottom:4px}
-.going-val{font-family:var(--fm);font-size:18px;font-weight:500}
-.going-sub{font-size:10px;color:var(--text3);margin-top:2px}
-.recent-run{display:flex;align-items:center;gap:12px;padding:10px 1.25rem;border-bottom:1px solid var(--border);transition:background .1s}
-.recent-run:hover{background:var(--bg3)}
-.recent-run:last-child{border-bottom:none}
-.rr-pos{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:14px;font-weight:500;flex-shrink:0}
+.going-badge{font-size:11px;font-family:var(--fm);padding:2px 8px;border-radius:10px;display:inline-block}
+.going-heavy{background:rgba(217,95,75,.15);color:var(--red)}
+.going-soft{background:rgba(74,158,212,.15);color:var(--blue)}
+.going-good{background:rgba(126,201,74,.12);color:var(--green)}
+.rr{display:flex;align-items:center;gap:12px;padding:10px 1.25rem;border-bottom:1px solid var(--border);transition:background .1s}
+.rr:hover{background:var(--bg3)}
+.rr:last-child{border-bottom:none}
+.rr-pos{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .rr-main{flex:1}
 .rr-race{font-weight:500;font-size:13px}
 .rr-meta{font-size:11px;color:var(--text3);margin-top:1px}
 .rr-right{text-align:right;flex-shrink:0}
 .rr-odds{font-family:var(--fm);font-size:12px;color:var(--text2)}
 .rr-margin{font-size:11px;color:var(--text3);margin-top:1px}
-
-/* FIELD BUILDER */
+.news-link{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);text-decoration:none;font-size:13px;transition:border-color .15s;margin:0 1.25rem .75rem}
+.news-link:hover{border-color:var(--green2)}
+.news-link-icon{font-size:18px;flex-shrink:0}
+.news-link-arrow{margin-left:auto;color:var(--green);font-size:16px}
+.ai-verdict{background:var(--bg2);border:1px solid rgba(126,201,74,.2);border-radius:var(--r2);overflow:hidden;margin-bottom:1.25rem}
+.ai-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border);background:rgba(126,201,74,.05)}
+.ai-label{font-family:var(--fm);font-size:10px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px}
+.ai-pick{font-family:var(--fd);font-size:22px;color:var(--green)}
+.ai-ctx{font-size:12px;color:var(--text3);text-align:right}
+.ai-row{display:flex;align-items:center;gap:12px;padding:9px 1.25rem;border-bottom:1px solid var(--border)}
+.ai-row:last-child{border-bottom:none}
+.ai-rank{font-family:var(--fd);font-size:20px;width:40px;flex-shrink:0}
+.ai-horse{flex:1}
+.ai-horse-name{font-weight:500;font-size:13px}
+.ai-horse-meta{font-size:11px;color:var(--text3);font-family:var(--fm);margin-top:1px}
+.ai-bar{width:80px;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.ai-bar-fill{height:100%;border-radius:3px;background:var(--green)}
+.ai-top{font-size:10px;background:var(--green-dim);color:var(--green);padding:2px 8px;border-radius:10px;border:1px solid var(--green2);font-family:var(--fm);white-space:nowrap}
+.ai-footer{padding:8px 1.25rem;font-size:11px;color:var(--text3);border-top:1px solid var(--border);background:var(--bg)}
 .field-layout{display:grid;grid-template-columns:300px 1fr;gap:1.25rem;align-items:start}
 .field-sidebar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;position:sticky;top:70px}
 .field-sidebar-header{padding:.875rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .horse-search-wrap{padding:.75rem}
 .horse-suggestions{max-height:320px;overflow-y:auto}
-.horse-suggestion-item{padding:9px 1.25rem;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;transition:background .1s}
-.horse-suggestion-item:hover{background:var(--bg3)}
-.horse-suggestion-item:last-child{border-bottom:none}
-.suggestion-name{font-weight:500;font-size:13px}
-.suggestion-meta{font-size:11px;color:var(--text3);font-family:var(--fm)}
+.hsi{padding:9px 1.25rem;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;transition:background .1s}
+.hsi:hover{background:var(--bg3)}
+.hsi:last-child{border-bottom:none}
+.hsi-name{font-weight:500;font-size:13px}
+.hsi-meta{font-size:11px;color:var(--text3);font-family:var(--fm)}
 .add-btn{width:24px;height:24px;border-radius:50%;background:var(--green-dim);color:var(--green);border:1px solid var(--green2);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;line-height:1;flex-shrink:0;transition:all .15s}
 .add-btn:hover{background:var(--green);color:#0b0c0b}
 .add-btn.added{background:var(--bg3);color:var(--text3);border-color:var(--border);cursor:default}
@@ -188,13 +196,12 @@ tr:hover td{background:var(--bg3)}
 .field-header-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:.875rem 1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2)}
 .field-title{font-family:var(--fd);font-size:20px;letter-spacing:1px}
 .field-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.field-count{font-family:var(--fm);font-size:12px;color:var(--text3)}
 .field-runners{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
-.runner-row{display:grid;grid-template-columns:32px 28px 1fr 90px 70px 70px 70px 70px 34px;align-items:center;gap:8px;padding:9px 1.25rem;border-bottom:1px solid var(--border);transition:background .1s}
+.runner-row{display:grid;grid-template-columns:32px 28px 1fr 90px 70px 70px 70px 34px;align-items:center;gap:8px;padding:9px 1.25rem;border-bottom:1px solid var(--border);transition:background .1s}
 .runner-row:hover{background:var(--bg3)}
 .runner-row:last-child{border-bottom:none}
-.runner-row.header{background:var(--bg);padding:7px 1.25rem;border-bottom:1px solid var(--border)}
-.runner-row.header span{font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.8px;text-transform:uppercase}
+.runner-row.hdr{background:var(--bg);padding:7px 1.25rem}
+.runner-row.hdr span{font-size:10px;font-family:var(--fm);color:var(--text3);letter-spacing:.8px;text-transform:uppercase}
 .runner-num{font-family:var(--fm);font-size:17px;font-weight:500;color:var(--text3)}
 .barrier-pill{width:26px;height:26px;border-radius:4px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:12px;color:var(--text2)}
 .runner-name{font-weight:500;font-size:13px}
@@ -210,31 +217,7 @@ tr:hover td{background:var(--bg3)}
 .rating-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px;font-family:var(--fm);font-size:10px;font-weight:500;transition:width .4s ease}
 .rating-val{width:55px;text-align:right;font-family:var(--fm);font-size:11px;color:var(--text2)}
 .field-empty{padding:2.5rem;text-align:center;color:var(--text3);font-size:13px}
-
-/* AI VERDICT */
-.ai-verdict{background:var(--bg2);border:1px solid rgba(126,201,74,.2);border-radius:var(--r2);overflow:hidden;margin-bottom:1.25rem}
-.ai-verdict-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border);background:rgba(126,201,74,.05)}
-.ai-verdict-label{font-family:var(--fm);font-size:10px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px}
-.ai-verdict-pick{font-family:var(--fd);font-size:22px;color:var(--green)}
-.ai-verdict-context{font-size:12px;color:var(--text3);text-align:right}
-.ai-row{display:flex;align-items:center;gap:12px;padding:9px 1.25rem;border-bottom:1px solid var(--border)}
-.ai-row:last-child{border-bottom:none}
-.ai-rank{font-family:var(--fd);font-size:20px;width:40px;flex-shrink:0}
-.ai-horse{flex:1}
-.ai-horse-name{font-weight:500;font-size:13px}
-.ai-horse-meta{font-size:11px;color:var(--text3);font-family:var(--fm);margin-top:1px}
-.ai-score-bar{width:80px;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
-.ai-score-fill{height:100%;border-radius:3px;background:var(--green);transition:width .4s}
-.ai-top-badge{font-size:10px;background:var(--green-dim);color:var(--green);padding:2px 8px;border-radius:10px;border:1px solid var(--green2);font-family:var(--fm);white-space:nowrap}
-.ai-footer{padding:8px 1.25rem;font-size:11px;color:var(--text3);border-top:1px solid var(--border);background:var(--bg)}
-
-/* GOING BADGE */
-.going-badge{font-size:11px;font-family:var(--fm);padding:2px 8px;border-radius:10px;display:inline-block}
-.going-heavy{background:rgba(217,95,75,.15);color:var(--red)}
-.going-soft{background:rgba(74,158,212,.15);color:var(--blue)}
-.going-good{background:rgba(126,201,74,.12);color:var(--green)}
-
-/* MOBILE RESPONSIVE */
+.no-pad{padding:1rem 1.25rem;color:var(--text3);font-size:13px}
 @media(max-width:768px){
   header{padding:0 .875rem;gap:8px}
   .logo{font-size:18px}
@@ -244,179 +227,92 @@ tr:hover td{background:var(--bg3)}
   body{padding-bottom:56px}
   .page{padding:.875rem}
   .filter-bar{gap:6px;padding:.75rem}
-  .filter-group{min-width:calc(50% - 3px)}
+  .fg{min-width:calc(50% - 3px)}
   .charts-grid{grid-template-columns:1fr}
   .h2h-grid{grid-template-columns:1fr}
   .field-layout{grid-template-columns:1fr}
   .field-sidebar{position:static}
   .profile-wrap{grid-template-columns:1fr}
   .profile-card{position:static}
-  .runner-row{grid-template-columns:28px 24px 1fr 60px 34px}
-  .runner-row .r-hide{display:none}
+  .runner-row{grid-template-columns:28px 24px 1fr 34px}
+  .runner-row .rh{display:none}
   .stats-row{grid-template-columns:repeat(2,1fr)}
-  .global-search-wrap{max-width:none}
+  .gsearch-wrap{max-width:none}
   .vs-text{font-size:28px}
+  .r-hide{display:none}
 }
-@media(max-width:480px){
-  .filter-group{min-width:100%}
-  .stats-row{grid-template-columns:repeat(2,1fr)}
-}
-
-/* ===================== AUTOCOMPLETE ===================== */
-.ac-wrap { position: relative; }
-.ac-dropdown {
-  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-  background: var(--bg2); border: 1px solid var(--border2);
-  border-radius: var(--r); z-index: 500; max-height: 220px;
-  overflow-y: auto; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-}
-.ac-dropdown.open { display: block; }
-.ac-item {
-  padding: 8px 12px; cursor: pointer; display: flex;
-  align-items: center; justify-content: space-between;
-  border-bottom: 1px solid var(--border); font-size: 13px;
-  transition: background .1s;
-}
-.ac-item:last-child { border-bottom: none; }
-.ac-item:hover, .ac-item.selected { background: var(--bg3); }
-.ac-item-name { font-weight: 500; }
-.ac-item-meta { font-size: 11px; color: var(--text3); font-family: var(--fm); }
-
-
-/* ===================== RACE CLASS BADGES ===================== */
-.class-badge {
-  display: inline-block; font-size: 10px; font-family: var(--fm);
-  padding: 2px 6px; border-radius: 4px; font-weight: 500;
-  white-space: nowrap; letter-spacing: 0.3px;
-}
-.cb-g1  { background: rgba(232,168,48,0.25); color: #e8a830; border: 1px solid rgba(232,168,48,0.4); }
-.cb-g2  { background: rgba(232,168,48,0.15); color: #d4922a; border: 1px solid rgba(232,168,48,0.3); }
-.cb-g3  { background: rgba(232,168,48,0.08); color: #c07820; border: 1px solid rgba(232,168,48,0.2); }
-.cb-lr  { background: rgba(74,158,212,0.15); color: #4a9ed4; border: 1px solid rgba(74,158,212,0.3); }
-.cb-open{ background: rgba(126,201,74,0.12); color: #7ec94a; border: 1px solid rgba(126,201,74,0.25); }
-.cb-bm  { background: rgba(255,255,255,0.07); color: #948f83; border: 1px solid rgba(255,255,255,0.12); }
-.cb-mdn { background: rgba(255,255,255,0.04); color: #524f48; border: 1px solid rgba(255,255,255,0.08); }
-.cb-trial{ background: rgba(217,95,75,0.1); color: #d95f4b; border: 1px solid rgba(217,95,75,0.2); }
-
-
-/* ===================== NEWS ===================== */
-.news-section { margin-top: 0; }
-.news-search-bar {
-  display: flex; gap: 8px; padding: .875rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-}
-.news-search-bar input { flex: 1; }
-.news-results { }
-.news-item {
-  display: flex; flex-direction: column; gap: 4px;
-  padding: 12px 1.25rem; border-bottom: 1px solid var(--border);
-  transition: background .1s;
-}
-.news-item:hover { background: var(--bg3); }
-.news-item:last-child { border-bottom: none; }
-.news-item-title {
-  font-size: 13px; font-weight: 500; color: var(--text);
-  text-decoration: none; display: block;
-}
-.news-item-title:hover { color: var(--green); }
-.news-item-summary { font-size: 12px; color: var(--text2); line-height: 1.5; }
-.news-item-meta {
-  font-size: 11px; color: var(--text3); font-family: var(--fm);
-  display: flex; gap: 10px;
-}
-.news-loading {
-  padding: 1.5rem 1.25rem; text-align: center;
-  color: var(--text3); font-size: 13px;
-}
-.news-loading-dot {
-  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
-  background: var(--green); margin: 0 2px;
-  animation: newsBounce .8s infinite alternate;
-}
-.news-loading-dot:nth-child(2) { animation-delay: .2s; }
-.news-loading-dot:nth-child(3) { animation-delay: .4s; }
-@keyframes newsBounce { from { opacity: .2; transform: translateY(0); } to { opacity: 1; transform: translateY(-4px); } }
-
+@media(max-width:480px){.fg{min-width:100%}}
 </style>
 </head>
 <body>
+<div id="loading-overlay">
+  <div class="loading-logo">SUGGYS<span>WINNERS</span></div>
+  <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
+  <div class="loading-text" id="loading-text">Loading race data...</div>
+</div>
 
 <header>
   <div class="logo">SUGGYS<span>WINNERS</span></div>
-
-  <div class="global-search-wrap">
-    <span class="search-icon">⌕</span>
-    <input type="text" id="global-search" placeholder="Search horse, jockey or trainer..." autocomplete="off"
-      oninput="globalSearch(this.value)" onfocus="showSearchResults()" onblur="setTimeout(hideSearchResults,200)">
-    <div class="search-results" id="search-results"></div>
+  <div class="gsearch-wrap">
+    <span class="search-icon">&#x2315;</span>
+    <input type="text" id="global-search" placeholder="Search horse, jockey or trainer..." autocomplete="off">
+    <div class="gsearch-results" id="gsearch-results"></div>
   </div>
-
   <nav class="desktop-nav">
     <button class="nav-tab active" onclick="showPage('results')">Results</button>
     <button class="nav-tab" onclick="showPage('trends')">Trends</button>
     <button class="nav-tab" onclick="showPage('h2h')">Head to Head</button>
     <button class="nav-tab" onclick="showPage('field')">Field Builder</button>
+    <button class="nav-tab" onclick="showPage('profile')">Profile</button>
   </nav>
-
-  <div class="status-pill">
-    <div class="status-dot"></div>
-    <span id="db-status">loading...</span>
-  </div>
+  <div class="status-pill"><div class="status-dot"></div><span id="db-status">loading...</span></div>
 </header>
 
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
-    <button class="bnav-tab active" onclick="showPage('results')"><span class="bnav-icon">📋</span>Results</button>
-    <button class="bnav-tab" onclick="showPage('trends')"><span class="bnav-icon">📈</span>Trends</button>
-    <button class="bnav-tab" onclick="showPage('h2h')"><span class="bnav-icon">⚡</span>H2H</button>
-    <button class="bnav-tab" onclick="showPage('field')"><span class="bnav-icon">🏇</span>Field</button>
-    <button class="bnav-tab" onclick="showPage('profile')"><span class="bnav-icon">👤</span>Profile</button>
+    <button class="bnav-tab active" onclick="showPage('results')"><span class="bnav-icon">&#x1F4CB;</span>Results</button>
+    <button class="bnav-tab" onclick="showPage('trends')"><span class="bnav-icon">&#x1F4C8;</span>Trends</button>
+    <button class="bnav-tab" onclick="showPage('h2h')"><span class="bnav-icon">&#x26A1;</span>H2H</button>
+    <button class="bnav-tab" onclick="showPage('field')"><span class="bnav-icon">&#x1F3C7;</span>Field</button>
+    <button class="bnav-tab" onclick="showPage('profile')"><span class="bnav-icon">&#x1F464;</span>Profile</button>
   </div>
 </nav>
 
-<!-- ===== RESULTS ===== -->
+<!-- RESULTS -->
 <div id="page-results" class="page active">
   <div class="filter-bar">
-    <div class="filter-group"><span class="filter-label">Horse</span>
-      <div class="ac-wrap"><input type="text" id="f-horse" placeholder="Horse name…" oninput="acUpdate(this,'horse');applyFilters()" onkeydown="acKey(event,'f-horse-ac')" autocomplete="off"><div class="ac-dropdown" id="f-horse-ac"></div></div></div>
-    <div class="filter-group"><span class="filter-label">Jockey</span>
-      <div class="ac-wrap"><input type="text" id="f-jockey" placeholder="Jockey name…" oninput="acUpdate(this,'jockey');applyFilters()" onkeydown="acKey(event,'f-jockey-ac')" autocomplete="off"><div class="ac-dropdown" id="f-jockey-ac"></div></div></div>
-    <div class="filter-group"><span class="filter-label">Trainer</span>
-      <div class="ac-wrap"><input type="text" id="f-trainer" placeholder="Trainer name…" oninput="acUpdate(this,'trainer');applyFilters()" onkeydown="acKey(event,'f-trainer-ac')" autocomplete="off"><div class="ac-dropdown" id="f-trainer-ac"></div></div></div>
-    <div class="filter-group"><span class="filter-label">Track</span>
-      <select id="f-track" onchange="applyFilters()"><option value="">All tracks</option></select></div>
-    <div class="filter-group"><span class="filter-label">Going</span>
-      <select id="f-going" onchange="applyFilters()"><option value="">Any going</option></select></div>
-    <div class="filter-group"><span class="filter-label">Race class</span>
-      <select id="f-class" onchange="applyFilters()">
+    <div class="fg"><span class="fl">Horse</span><div class="ac-wrap"><input type="text" id="f-horse" placeholder="Horse name..." autocomplete="off"><div class="ac-drop" id="ac-horse"></div></div></div>
+    <div class="fg"><span class="fl">Jockey</span><div class="ac-wrap"><input type="text" id="f-jockey" placeholder="Jockey name..." autocomplete="off"><div class="ac-drop" id="ac-jockey"></div></div></div>
+    <div class="fg"><span class="fl">Trainer</span><div class="ac-wrap"><input type="text" id="f-trainer" placeholder="Trainer name..." autocomplete="off"><div class="ac-drop" id="ac-trainer"></div></div></div>
+    <div class="fg"><span class="fl">Track</span><select id="f-track"><option value="">All tracks</option></select></div>
+    <div class="fg"><span class="fl">Going</span><select id="f-going"><option value="">Any going</option></select></div>
+    <div class="fg"><span class="fl">Race class</span>
+      <select id="f-class">
         <option value="">All classes</option>
-        <option value="1">G1 — Group 1</option>
-        <option value="2">G2 — Group 2</option>
-        <option value="3">G3 — Group 3</option>
-        <option value="4">LR — Listed</option>
+        <option value="1">G1 - Group 1</option>
+        <option value="2">G2 - Group 2</option>
+        <option value="3">G3 - Group 3</option>
+        <option value="4">LR - Listed</option>
         <option value="5">Open</option>
-        <option value="6">BM — Benchmark</option>
-        <option value="7">Mdn — Maiden</option>
-      </select></div>
-    <div class="filter-group"><span class="filter-label">Position</span>
-      <select id="f-position" onchange="applyFilters()">
+        <option value="6">BM - Benchmark</option>
+        <option value="7">Mdn - Maiden</option>
+      </select>
+    </div>
+    <div class="fg"><span class="fl">Position</span>
+      <select id="f-position">
         <option value="">Any</option><option value="1">1st only</option>
-        <option value="1-3">Top 3</option><option value="1-5">Top 5</option></select></div>
-    <div class="filter-group"><span class="filter-label">Date from</span>
-      <input type="date" id="f-date-from" onchange="applyFilters()"></div>
-    <div class="filter-group"><span class="filter-label">Date to</span>
-      <input type="date" id="f-date-to" onchange="applyFilters()"></div>
-    <div class="filter-group" style="min-width:70px"><span class="filter-label">&nbsp;</span>
-      <button class="btn btn-ghost" onclick="clearFilters()">Clear</button></div>
+        <option value="1-3">Top 3</option><option value="1-5">Top 5</option>
+      </select>
+    </div>
+    <div class="fg"><span class="fl">Date from</span><input type="date" id="f-date-from"></div>
+    <div class="fg"><span class="fl">Date to</span><input type="date" id="f-date-to"></div>
+    <div class="fg" style="min-width:70px"><span class="fl">&nbsp;</span><button class="btn btn-ghost" id="btn-clear">Clear</button></div>
   </div>
   <div class="stats-row" id="results-stats"></div>
   <div class="table-wrap">
-    <div class="table-header">
-      <span class="table-title">Race Results</span>
-      <span class="table-count" id="results-count">— results</span>
-    </div>
+    <div class="table-header"><span class="table-title">Race Results</span><span class="table-count" id="results-count">-- results</span></div>
     <div class="tbl-scroll">
-      <table id="results-table">
+      <table>
         <thead><tr>
           <th onclick="sortTable('finish_position')">Pos</th>
           <th onclick="sortTable('horse')">Horse</th>
@@ -439,119 +335,75 @@ tr:hover td{background:var(--bg3)}
   </div>
 </div>
 
-<!-- ===== TRENDS ===== -->
+<!-- TRENDS -->
 <div id="page-trends" class="page">
   <div class="filter-bar">
-    <div class="filter-group"><span class="filter-label">Search</span>
-      <div class="ac-wrap"><input type="text" id="t-search" placeholder="Filter by name…" oninput="acUpdateMulti(this);loadTrends()" onkeydown="acKey(event,'t-search-ac')" autocomplete="off"><div class="ac-dropdown" id="t-search-ac"></div></div></div>
-    <div class="filter-group"><span class="filter-label">Group by</span>
-      <select id="t-type" onchange="loadTrends()">
-        <option value="horse">Horse</option><option value="jockey">Jockey</option>
-        <option value="trainer">Trainer</option></select></div>
-    <div class="filter-group"><span class="filter-label">Metric</span>
-      <select id="t-metric" onchange="loadTrends()">
-        <option value="wins">Wins</option><option value="win_pct">Win %</option>
-        <option value="place_pct">Place %</option><option value="avg_position">Avg position</option></select></div>
-    <div class="filter-group"><span class="filter-label">Track</span>
-      <select id="t-track" onchange="loadTrends()"><option value="">All tracks</option></select></div>
-    <div class="filter-group"><span class="filter-label">Min starts</span>
-      <select id="t-min-starts" onchange="loadTrends()">
-        <option value="2">2+</option><option value="5">5+</option>
-        <option value="10">10+</option><option value="20">20+</option></select></div>
+    <div class="fg"><span class="fl">Search</span><div class="ac-wrap"><input type="text" id="t-search" placeholder="Filter by name..." autocomplete="off"><div class="ac-drop" id="ac-trends"></div></div></div>
+    <div class="fg"><span class="fl">Group by</span><select id="t-type"><option value="horse">Horse</option><option value="jockey">Jockey</option><option value="trainer">Trainer</option></select></div>
+    <div class="fg"><span class="fl">Metric</span><select id="t-metric"><option value="wins">Wins</option><option value="win_pct">Win %</option><option value="place_pct">Place %</option><option value="avg_position">Avg position</option></select></div>
+    <div class="fg"><span class="fl">Track</span><select id="t-track"><option value="">All tracks</option></select></div>
+    <div class="fg"><span class="fl">Min starts</span><select id="t-min-starts"><option value="2">2+</option><option value="5">5+</option><option value="10">10+</option><option value="20">20+</option></select></div>
   </div>
   <div class="stats-row" id="trends-stats"></div>
   <div class="charts-grid">
-    <div class="chart-card"><div class="chart-title">Performance over time</div>
-      <canvas id="chart-timeline" height="220"></canvas></div>
-    <div class="chart-card"><div class="chart-title">Wins by track</div>
-      <canvas id="chart-track" height="220"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Performance over time</div><canvas id="chart-timeline" height="220"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Wins by track</div><canvas id="chart-track" height="220"></canvas></div>
   </div>
   <div class="charts-grid">
-    <div class="chart-card"><div class="chart-title">Finish position distribution</div>
-      <canvas id="chart-positions" height="220"></canvas></div>
-    <div class="chart-card"><div class="chart-title">Win rate by distance</div>
-      <canvas id="chart-distance" height="220"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Finish position distribution</div><canvas id="chart-positions" height="220"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Win rate by distance</div><canvas id="chart-distance" height="220"></canvas></div>
   </div>
   <div class="table-wrap">
-    <div class="table-header">
-      <span class="table-title">Leaderboard</span>
-      <span class="table-count" id="trends-count">—</span>
-    </div>
+    <div class="table-header"><span class="table-title">Leaderboard</span><span class="table-count" id="trends-count">--</span></div>
     <div class="tbl-scroll">
       <table><thead><tr>
         <th>#</th><th>Name</th><th>Starts</th><th>Wins</th>
-        <th class="r-hide">Places</th><th>Win %</th><th class="r-hide">Place %</th>
-        <th class="r-hide">Avg Pos</th><th class="r-hide">Best Track</th><th>View</th>
-      </tr></thead>
-      <tbody id="trends-body"></tbody></table>
+        <th class="r-hide">Places</th><th>Win%</th><th class="r-hide">Place%</th>
+        <th class="r-hide">AvgPos</th><th class="r-hide">Best Track</th><th>View</th>
+      </tr></thead><tbody id="trends-body"></tbody></table>
     </div>
   </div>
-
   <div class="table-wrap">
-    <div class="table-header">
-      <span class="table-title">Class leaderboard</span>
-      <span class="table-count" id="class-lb-meta">top performers by race quality</span>
-    </div>
+    <div class="table-header"><span class="table-title">Class leaderboard</span><span class="table-count" id="class-lb-meta">top performers by race quality</span></div>
     <div style="display:flex;gap:8px;padding:.875rem 1.25rem;border-bottom:1px solid var(--border);flex-wrap:wrap">
       <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(1)">G1</button>
       <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(2)">G2</button>
       <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(3)">G3</button>
       <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(4)">Listed</button>
       <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(5)">Open</button>
-      <button class="btn btn-ghost active" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(6)">Benchmark</button>
+      <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(6)">Benchmark</button>
       <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;min-height:30px" onclick="renderClassLB(7)">Maiden</button>
     </div>
     <div class="tbl-scroll">
-      <table><thead><tr>
-        <th>#</th><th>Horse</th><th>Wins</th><th>Starts</th><th>Win %</th><th>Best race</th><th>View</th>
-      </tr></thead>
+      <table><thead><tr><th>#</th><th>Horse</th><th>Wins</th><th>Starts</th><th>Win%</th><th class="r-hide">Best race</th><th>View</th></tr></thead>
       <tbody id="class-lb-body"></tbody></table>
     </div>
   </div>
 </div>
 
-<!-- ===== H2H ===== -->
+<!-- H2H -->
 <div id="page-h2h" class="page">
   <div class="filter-bar">
-    <div class="filter-group"><span class="filter-label">Name A</span>
-      <div class="ac-wrap"><input type="text" id="h-a" placeholder="Horse / jockey / trainer…" oninput="acUpdateMulti(this)" onkeydown="acKey(event,'h-a-ac')" autocomplete="off"><div class="ac-dropdown" id="h-a-ac"></div></div></div>
-    <div class="filter-group"><span class="filter-label">Name B</span>
-      <div class="ac-wrap"><input type="text" id="h-b" placeholder="Horse / jockey / trainer…" oninput="acUpdateMulti(this)" onkeydown="acKey(event,'h-b-ac')" autocomplete="off"><div class="ac-dropdown" id="h-b-ac"></div></div></div>
-    <div class="filter-group"><span class="filter-label">Compare by</span>
-      <select id="h-type">
-        <option value="horse">Horse</option><option value="jockey">Jockey</option>
-        <option value="trainer">Trainer</option></select></div>
-    <div class="filter-group" style="min-width:80px"><span class="filter-label">&nbsp;</span>
-      <button class="btn btn-primary" onclick="loadH2H()">Compare</button></div>
+    <div class="fg"><span class="fl">Name A</span><div class="ac-wrap"><input type="text" id="h-a" placeholder="Horse / jockey / trainer..." autocomplete="off"><div class="ac-drop" id="ac-ha"></div></div></div>
+    <div class="fg"><span class="fl">Name B</span><div class="ac-wrap"><input type="text" id="h-b" placeholder="Horse / jockey / trainer..." autocomplete="off"><div class="ac-drop" id="ac-hb"></div></div></div>
+    <div class="fg"><span class="fl">Compare by</span><select id="h-type"><option value="horse">Horse</option><option value="jockey">Jockey</option><option value="trainer">Trainer</option></select></div>
+    <div class="fg" style="min-width:80px"><span class="fl">&nbsp;</span><button class="btn btn-primary" id="btn-compare">Compare</button></div>
   </div>
-  <div id="h2h-content">
-    <div class="empty-state"><div class="empty-icon">⚡</div>
-      <div class="empty-text">Enter two names above and click Compare</div></div>
-  </div>
+  <div id="h2h-content"><div class="empty-state"><div class="empty-icon">&#x26A1;</div><div>Enter two names above and click Compare</div></div></div>
 </div>
 
-<!-- ===== PROFILE ===== -->
+<!-- PROFILE -->
 <div id="page-profile" class="page">
-  <div id="profile-content">
-    <div class="empty-state"><div class="empty-icon">👤</div>
-      <div class="empty-text">Search for a horse, jockey or trainer to view their profile</div></div>
-  </div>
+  <div id="profile-content"><div class="empty-state"><div class="empty-icon">&#x1F464;</div><div>Search for a horse, jockey or trainer to view their profile</div></div></div>
 </div>
 
-<!-- ===== FIELD BUILDER ===== -->
+<!-- FIELD BUILDER -->
 <div id="page-field" class="page">
   <div class="field-layout">
     <div class="field-sidebar">
-      <div class="field-sidebar-header">
-        <span class="table-title">Add runners</span>
-        <span class="field-count" id="field-sidebar-count">0 / 16</span>
-      </div>
-      <div class="horse-search-wrap">
-        <input type="text" id="field-search" placeholder="Search horse name…" oninput="searchHorsesForField()" style="width:100%">
-      </div>
-      <div class="horse-suggestions" id="field-suggestions">
-        <div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:13px">Type to search horses</div>
-      </div>
+      <div class="field-sidebar-header"><span class="table-title">Add runners</span><span class="table-count" id="field-count">0 / 16</span></div>
+      <div class="horse-search-wrap"><input type="text" id="field-search" placeholder="Search horse name..." style="width:100%"></div>
+      <div class="horse-suggestions" id="field-suggestions"><div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:13px">Type to search horses</div></div>
     </div>
     <div class="field-main">
       <div class="field-header-bar">
@@ -560,854 +412,49 @@ tr:hover td{background:var(--bg3)}
           <div style="font-size:12px;color:var(--text3);margin-top:2px">Build your field by adding horses</div>
         </div>
         <div class="field-meta">
-          <div style="display:flex;flex-direction:column;gap:3px">
-            <span class="filter-label">Race name</span>
-            <input type="text" id="field-race-name" placeholder="e.g. Ellerslie Cup" oninput="updateFieldMeta()" style="width:160px">
-          </div>
-          <div style="display:flex;flex-direction:column;gap:3px">
-            <span class="filter-label">Distance</span>
-            <select id="field-distance" onchange="updateFieldMeta();renderFieldComparison()" style="width:100px">
-              <option value="">Any</option>
-              <option value="1000">1000m</option><option value="1150">1150m</option>
-              <option value="1200">1200m</option><option value="1400">1400m</option>
-              <option value="1600">1600m</option><option value="1800">1800m</option>
-              <option value="2000">2000m</option><option value="2400">2400m</option>
+          <div style="display:flex;flex-direction:column;gap:3px"><span class="fl">Race name</span><input type="text" id="field-race-name" placeholder="e.g. Ellerslie Cup" style="width:160px"></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><span class="fl">Distance</span>
+            <select id="field-distance" style="width:100px">
+              <option value="">Any</option><option value="1000">1000m</option><option value="1150">1150m</option>
+              <option value="1200">1200m</option><option value="1400">1400m</option><option value="1600">1600m</option>
+              <option value="1800">1800m</option><option value="2000">2000m</option><option value="2400">2400m</option>
             </select>
           </div>
-          <div style="display:flex;flex-direction:column;gap:3px">
-            <span class="filter-label">Track</span>
-            <select id="field-track" onchange="updateFieldMeta();renderFieldComparison()" style="width:130px">
-              <option value="">Any track</option>
-            </select>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:3px">
-            <span class="filter-label">Going</span>
-            <select id="field-going" onchange="renderFieldComparison()" style="width:110px">
-              <option value="">Any</option>
-            </select>
-          </div>
-          <button class="btn btn-ghost" onclick="clearField()">Clear</button>
+          <div style="display:flex;flex-direction:column;gap:3px"><span class="fl">Track</span><select id="field-track" style="width:130px"><option value="">Any track</option></select></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><span class="fl">Going</span><select id="field-going" style="width:110px"><option value="">Any</option></select></div>
+          <button class="btn btn-ghost" id="btn-clear-field">Clear</button>
         </div>
       </div>
-      <div class="field-runners" id="field-runners-wrap">
-        <div class="runner-row header">
+      <div class="field-runners">
+        <div class="runner-row hdr">
           <span>#</span><span>Bar</span><span>Horse</span>
-          <span class="r-hide" style="text-align:right">Starts</span>
-          <span class="r-hide" style="text-align:right">Wins</span>
-          <span class="r-hide" style="text-align:right">Win%</span>
-          <span class="r-hide" style="text-align:right">AvgPos</span>
-          <span class="r-hide" style="text-align:right">Form</span>
+          <span class="rh" style="text-align:right">Starts</span>
+          <span class="rh" style="text-align:right">Wins</span>
+          <span class="rh" style="text-align:right">Win%</span>
+          <span class="rh" style="text-align:right">Avg</span>
           <span></span>
         </div>
-        <div id="field-runners-body">
-          <div class="field-empty">No runners added — search horses on the left</div>
-        </div>
+        <div id="field-runners-body"><div class="field-empty">No runners added -- search horses on the left</div></div>
       </div>
       <div class="field-comparison" id="field-comparison-wrap" style="display:none">
         <div id="field-ai-verdict"></div>
-        <div class="table-header" style="border-top:1px solid var(--border)">
-          <span class="table-title">Win rate (all time)</span>
-          <span class="table-count" id="field-comp-meta"></span>
-        </div>
+        <div class="table-header" style="border-top:1px solid var(--border)"><span class="table-title">Win rate (all time)</span><span class="table-count" id="field-comp-meta"></span></div>
         <div id="field-winrate-bars"></div>
-        <div class="table-header" style="border-top:1px solid var(--border)">
-          <span class="table-title">Place rate (top 3)</span></div>
+        <div class="table-header" style="border-top:1px solid var(--border)"><span class="table-title">Place rate (top 3)</span></div>
         <div id="field-placerate-bars"></div>
-        <div class="table-header" style="border-top:1px solid var(--border)">
-          <span class="table-title">Average finish position</span>
-          <span class="table-count">lower = better</span></div>
+        <div class="table-header" style="border-top:1px solid var(--border)"><span class="table-title">Avg finish position</span><span class="table-count">lower = better</span></div>
         <div id="field-avgpos-bars"></div>
-        <div class="table-header" style="border-top:1px solid var(--border)">
-          <span class="table-title">At this distance</span>
-          <span class="table-count" id="field-dist-label"></span></div>
+        <div class="table-header" style="border-top:1px solid var(--border)"><span class="table-title">At this distance</span><span class="table-count" id="field-dist-label"></span></div>
         <div id="field-distance-bars"></div>
-        <div class="table-header" style="border-top:1px solid var(--border)">
-          <span class="table-title">At this track</span>
-          <span class="table-count" id="field-track-label"></span></div>
+        <div class="table-header" style="border-top:1px solid var(--border)"><span class="table-title">At this track</span><span class="table-count" id="field-track-label"></span></div>
         <div id="field-track-bars"></div>
-        <div class="table-header" style="border-top:1px solid var(--border)">
-          <span class="table-title">On this going</span>
-          <span class="table-count" id="field-going-label"></span></div>
+        <div class="table-header" style="border-top:1px solid var(--border)"><span class="table-title">On this going</span><span class="table-count" id="field-going-label"></span></div>
         <div id="field-going-bars"></div>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-
-// ===================== AUTOCOMPLETE ENGINE =====================
-let acIndex = -1;
-
-function acGetNames(field) {
-  return [...new Set(allResults.map(r => r[field]).filter(Boolean))].sort();
-}
-
-function acGetAllNames() {
-  const horses  = [...new Set(allResults.map(r=>r.horse).filter(Boolean))].map(n=>({name:n,type:'Horse'}));
-  const jockeys = [...new Set(allResults.map(r=>r.jockey).filter(Boolean))].map(n=>({name:n,type:'Jockey'}));
-  const trainers= [...new Set(allResults.map(r=>r.trainer).filter(Boolean))].map(n=>({name:n,type:'Trainer'}));
-  return [...horses,...jockeys,...trainers];
-}
-
-function acStats(name, field) {
-  const rows = allResults.filter(r => r[field] === name);
-  const wins = rows.filter(r => r.finish_position === 1).length;
-  return rows.length ? `${rows.length} starts · ${wins}W · ${rows.length?(wins/rows.length*100).toFixed(0):0}%` : '';
-}
-
-function acUpdate(input, field) {
-  const q = input.value.toLowerCase().trim();
-  const dropId = input.parentElement.querySelector('.ac-dropdown').id;
-  if (!q || q.length < 1) { acClose(dropId); return; }
-  const matches = acGetNames(field).filter(n => n.toLowerCase().includes(q)).slice(0, 10);
-  acRender(dropId, matches.map(n => ({ label: n, meta: acStats(n, field) })), input);
-}
-
-function acUpdateMulti(input) {
-  const q = input.value.toLowerCase().trim();
-  const dropId = input.parentElement.querySelector('.ac-dropdown').id;
-  if (!q || q.length < 1) { acClose(dropId); return; }
-  const matches = acGetAllNames().filter(x => x.name.toLowerCase().includes(q)).slice(0, 12);
-  acRender(dropId, matches.map(x => ({ label: x.name, meta: x.type + ' · ' + acStats(x.name, x.type.toLowerCase()) })), input);
-}
-
-function acRender(dropId, items, input) {
-  const drop = document.getElementById(dropId);
-  if (!items.length) { acClose(dropId); return; }
-  acIndex = -1;
-  drop.innerHTML = items.map(function(item, i) {
-    return '<div class="ac-item" onmousedown="acSelect(\''+dropId+'\',\''+item.label.replace(/\'/g,"\\'")+'\',event)">'
-      + '<span class="ac-item-name">'+item.label+'</span>'
-      + '<span class="ac-item-meta">'+item.meta+'</span>'
-      + '</div>';
-  }).join('');
-  drop.classList.add('open');
-}
-
-function acSelect(dropId, value, event) {
-  event.preventDefault();
-  const drop = document.getElementById(dropId);
-  const input = drop.previousElementSibling;
-  input.value = value;
-  acClose(dropId);
-  // Trigger the appropriate action
-  input.dispatchEvent(new Event('input', {bubbles: true}));
-}
-
-function acClose(dropId) {
-  const el = document.getElementById(dropId);
-  if (el) { el.classList.remove('open'); el.innerHTML = ''; }
-  acIndex = -1;
-}
-
-function acCloseAll() {
-  document.querySelectorAll('.ac-dropdown').forEach(d => { d.classList.remove('open'); d.innerHTML = ''; });
-  acIndex = -1;
-}
-
-function acKey(event, dropId) {
-  const drop = document.getElementById(dropId);
-  const items = drop.querySelectorAll('.ac-item');
-  if (!drop.classList.contains('open') || !items.length) return;
-  if (event.key === 'ArrowDown') {
-    event.preventDefault();
-    acIndex = Math.min(acIndex + 1, items.length - 1);
-    items.forEach((el,i) => el.classList.toggle('selected', i === acIndex));
-    items[acIndex]?.scrollIntoView({block:'nearest'});
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault();
-    acIndex = Math.max(acIndex - 1, -1);
-    items.forEach((el,i) => el.classList.toggle('selected', i === acIndex));
-    if (acIndex >= 0) items[acIndex]?.scrollIntoView({block:'nearest'});
-  } else if (event.key === 'Enter' && acIndex >= 0) {
-    event.preventDefault();
-    items[acIndex]?.dispatchEvent(new MouseEvent('mousedown', {bubbles:true}));
-  } else if (event.key === 'Escape') {
-    acClose(dropId);
-  }
-}
-
-// Close dropdowns when clicking outside
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.ac-wrap')) acCloseAll();
-});
-
-
-
-// ===================== RACE CLASSIFICATION ENGINE =====================
-// Tier 1=G1, 2=G2, 3=G3, 4=Listed, 5=Open, 6=Benchmark, 7=Maiden, 8=Trial
-const CLASS_TIERS = {
-  G1: 1, G2: 2, G3: 3, LR: 4, LISTED: 4,
-  OPEN: 5, OPEN_HCP: 5,
-  BM100: 6, BM90: 6, BM85: 6, BM78: 6, BM72: 6, BM65: 6, BM58: 6,
-  MDN: 7, MAIDEN: 7,
-  TRIAL: 8,
-};
-
-const CLASS_LABELS = {
-  1: 'G1', 2: 'G2', 3: 'G3', 4: 'LR', 5: 'Open', 6: 'BM', 7: 'Mdn', 8: 'Trial'
-};
-
-const CLASS_CSS = {
-  1: 'cb-g1', 2: 'cb-g2', 3: 'cb-g3', 4: 'cb-lr',
-  5: 'cb-open', 6: 'cb-bm', 7: 'cb-mdn', 8: 'cb-trial'
-};
-
-// AI scoring bonus by tier (added to base score)
-const CLASS_WIN_BONUS = {
-  1: 25, 2: 18, 3: 12, 4: 8, 5: 5, 6: 2, 7: 0, 8: 0
-};
-
-function classifyRace(raceName, raceClass, prizeMoney) {
-  const name = (raceName || '').toUpperCase();
-  const cls  = (raceClass || '').toUpperCase();
-  const prize = prizeMoney || 0;
-
-  // G1/G2/G3: require GROUP N to be followed by a letter/end — prevents "GROUP 1300" matching
-  const g1 = /\bGR\.?\s*1\s+[A-Z]/.test(name) || /\bGROUP\s+1\s+[A-Z]/.test(name) ||
-              /\bGROUP\s+1$/.test(name) || /\bGR1\b/.test(name) || /\bG1\b/.test(cls);
-  const g2 = /\bGR\.?\s*2\s+[A-Z]/.test(name) || /\bGROUP\s+2\s+[A-Z]/.test(name) ||
-              /\bGROUP\s+2$/.test(name) || /\bGR2\b/.test(name) || /\bG2\b/.test(cls);
-  const g3 = /\bGR\.?\s*3\s+[A-Z]/.test(name) || /\bGROUP\s+3\s+[A-Z]/.test(name) ||
-              /\bGROUP\s+3$/.test(name) || /\bGR3\b/.test(name) || /\bG3\b/.test(cls);
-  if (g1) return 1;
-  if (g2) return 2;
-  if (g3) return 3;
-  if (/\bLISTED\b/.test(name) || /\bLR\b/.test(cls)) return 4;
-
-  // Benchmark classes
-  if (/BM\s*100|BM100/.test(cls+name)) return 6;
-  if (/BM\s*90|BM90/.test(cls+name))  return 6;
-  if (/BM\s*85|BM85/.test(cls+name))  return 6;
-  if (/BM\s*78|BM78/.test(cls+name))  return 6;
-  if (/BM\s*72|BM72/.test(cls+name))  return 6;
-  if (/BM\s*65|BM65/.test(cls+name))  return 6;
-  if (/BM\s*58|BM58/.test(cls+name))  return 6;
-  if (/BM\s*\d+/.test(cls+name))      return 6;
-
-  // Maiden
-  if (/MDN|MAIDEN/.test(cls) || /MAIDEN/.test(name)) return 7;
-
-  // Trial
-  if (/TRIAL/.test(cls+name)) return 8;
-
-  // Open races — use prize money as tiebreaker
-  if (/OPEN/.test(cls+name)) return 5;
-
-  // Fallback: use prize money
-  if (prize >= 300000) return 1;
-  if (prize >= 120000) return 2;
-  if (prize >= 80000)  return 3;
-  if (prize >= 60000)  return 4;
-  if (prize >= 35000)  return 5;
-  if (prize >= 20000)  return 6;
-  if (prize >= 10000)  return 7;
-  return 6; // default benchmark
-}
-
-function getClassBadge(raceName, raceClass, prizeMoney) {
-  const tier = classifyRace(raceName, raceClass, prizeMoney);
-  return '<span class="class-badge '+((CLASS_CSS[tier])===undefined||(CLASS_CSS[tier])===null?'':(CLASS_CSS[tier]))+'">'+((CLASS_LABELS[tier])===undefined||(CLASS_LABELS[tier])===null?'':(CLASS_LABELS[tier]))+'</span>';
-}
-
-function getClassName(tier) {
-  return CLASS_LABELS[tier] || '—';
-}
-
-// Enrich all results with tier on load
-function enrichWithClass(results) {
-  return results.map(r => ({
-    ...r,
-    class_tier: classifyRace(r.race_name, r.race_class, r.prize_money)
-  }));
-}
-
-
-
-// ===================== STATE =====================
-let allResults = [], filteredResults = [], currentPage = 1;
-const PAGE_SIZE = 50;
-let sortKey = 'date', sortDir = -1;
-let charts = {};
-let fieldRunners = [];
-const MAX_RUNNERS = 16;
-const RUNNER_COLORS = ['#7ec94a','#e8a830','#d95f4b','#4a9ed4','#c47fd4','#4bc4c4','#e87c4a','#a8d45b','#d45b8a','#5bc4a8','#d4b45b','#5b7cd4','#d45b5b','#5bd48a','#c4a84b','#8a5bd4'];
-
-// ===================== INIT =====================
-function init() {
-  if (window.RACING_DATA?.rows?.length) {
-    // Compact format - decode lookup tables
-    var D = window.RACING_DATA;
-    var L = D.lookups;
-    allResults = enrichWithClass(D.rows.map(function(r) {
-      return {
-        finish_position: r[0], barrier: r[1], margin_trad: r[2],
-        finish_time: r[3], odds_sp: r[4], prize_money: r[5],
-        horse: L.horse[r[6]], jockey: L.jockey[r[7]], trainer: L.trainer[r[8]],
-        track: L.track[r[9]], date: r[10], going: L.going[r[11]],
-        race_name: L.race_name[r[12]], race_class: r[13], distance_m: r[14]
-      };
-    }));
-    var s = D.summary;
-    document.getElementById('db-status').textContent =
-      s.total_results.toLocaleString() + ' results · ' + s.exported_at;
-  } else if (window.RACING_DATA?.results?.length) {
-    // Flat format fallback
-    allResults = enrichWithClass(window.RACING_DATA.results);
-    var s = window.RACING_DATA.summary;
-    document.getElementById('db-status').textContent =
-      s.total_results.toLocaleString() + ' results · ' + s.exported_at;
-  } else {
-    allResults = enrichWithClass(generateMockData());
-    document.getElementById('db-status').textContent = 'demo mode';
-  }
-  populateDropdowns();
-  applyFilters();
-  loadTrends();
-}
-
-// ===================== DROPDOWNS =====================
-function populateDropdowns() {
-  const tracks = [...new Set(allResults.map(r=>r.track).filter(Boolean))].sort();
-  const goings = [...new Set(allResults.map(r=>normaliseGoing(r.going)).filter(Boolean))].sort();
-
-  ['f-track','t-track','field-track'].forEach(id => {
-    const sel = document.getElementById(id); if(!sel) return;
-    tracks.forEach(t => { const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
-  });
-  ['f-going','field-going'].forEach(id => {
-    const sel = document.getElementById(id); if(!sel) return;
-    goings.forEach(g => { const o=document.createElement('option'); o.value=g; o.textContent=g; sel.appendChild(o); });
-  });
-}
-
-function normaliseGoing(going) {
-  if (!going) return null;
-  const g = going.toLowerCase();
-  if (g.includes('heavy')) return 'Heavy';
-  if (g.includes('slow')) return 'Slow';
-  if (g.includes('soft')) return 'Soft';
-  if (g.includes('good')) return 'Good';
-  if (g.includes('firm')) return 'Firm';
-  if (g.includes('hard')) return 'Hard';
-  return going.split(/\s/)[0];
-}
-
-function goingClass(going) {
-  if (!going) return '';
-  const g = going.toLowerCase();
-  if (g.includes('heavy') || g.includes('slow')) return 'going-heavy';
-  if (g.includes('soft')) return 'going-soft';
-  return 'going-good';
-}
-
-// ===================== GLOBAL SEARCH =====================
-function globalSearch(q) {
-  const container = document.getElementById('search-results');
-  if (!q || q.length < 2) { container.style.display='none'; return; }
-  const lq = q.toLowerCase();
-  const horses = [...new Set(allResults.map(r=>r.horse).filter(Boolean))].filter(h=>h.toLowerCase().includes(lq)).slice(0,5);
-  const jockeys = [...new Set(allResults.map(r=>r.jockey).filter(Boolean))].filter(j=>j.toLowerCase().includes(lq)).slice(0,3);
-  const trainers = [...new Set(allResults.map(r=>r.trainer).filter(Boolean))].filter(t=>t.toLowerCase().includes(lq)).slice(0,3);
-  const results = [
-    ...horses.map(h=>({name:h,type:'horse',label:'Horse'})),
-    ...jockeys.map(j=>({name:j,type:'jockey',label:'Jockey'})),
-    ...trainers.map(t=>({name:t,type:'trainer',label:'Trainer'})),
-  ];
-  if (!results.length) { container.style.display='none'; return; }
-  container.innerHTML = results.map(function(r) {
-    var rows = allResults.filter(function(x){return (x[r.type]||'')===r.name;});
-    var wins = rows.filter(function(x){return x.finish_position===1;}).length;
-    return '<div class="search-result-item" onclick="openProfile(\''+r.name.replace(/\'/g,"\\'")+'\',\''+r.type+'\')">'  
-      +'<div><div class="sri-name">'+r.name+'</div>'
-      +'<div class="sri-meta">'+rows.length+' starts / '+wins+' wins</div></div>'
-      +'<span class="sri-type">'+r.label+'</span></div>';
-  }).join('');
-  container.style.display = 'block';
-}
-function showSearchResults() {
-  const q = document.getElementById('global-search').value;
-  if (q.length >= 2) globalSearch(q);
-}
-function hideSearchResults() { document.getElementById('search-results').style.display='none'; }
-
-// ===================== PROFILE =====================
-function openProfile(name, type) {
-  hideSearchResults();
-  document.getElementById('global-search').value = '';
-  showPage('profile');
-  const rows = allResults.filter(r=>(r[type]||'')=== name);
-  if (!rows.length) return;
-  rows.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const wins = rows.filter(r=>r.finish_position===1).length;
-  const places = rows.filter(r=>r.finish_position<=3).length;
-  const avgPos = (rows.reduce((s,r)=>s+r.finish_position,0)/rows.length).toFixed(1);
-  const winPct = (wins/rows.length*100).toFixed(1);
-  const placePct = (places/rows.length*100).toFixed(1);
-  const totalPrize = rows.reduce((s,r)=>s+(r.prize_money||0),0);
-
-  // Best track
-  const trackMap = {};
-  rows.filter(r=>r.finish_position===1).forEach(r=>{ trackMap[r.track]=(trackMap[r.track]||0)+1; });
-  const bestTrack = Object.entries(trackMap).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
-
-  // Best distance
-  const distMap = {};
-  rows.filter(r=>r.finish_position===1).forEach(r=>{ distMap[r.distance_m]=(distMap[r.distance_m]||0)+1; });
-  const bestDist = Object.entries(distMap).sort((a,b)=>b[1]-a[1])[0]?.[0];
-
-  // Best class won
-  const winRows = rows.filter(r=>r.finish_position===1);
-  const bestTier = winRows.length ? Math.min(...winRows.map(r=>r.class_tier||7)) : null;
-  const bestClassWonBadge = bestTier
-    ? '<span class="class-badge '+((CLASS_CSS[bestTier])===undefined||(CLASS_CSS[bestTier])===null?'':(CLASS_CSS[bestTier]))+'">'+((CLASS_LABELS[bestTier])===undefined||(CLASS_LABELS[bestTier])===null?'':(CLASS_LABELS[bestTier]))+'</span>'
-    : '—';
-
-  // Going record
-  const goingMap = {};
-  rows.forEach(r=>{
-    const g = normaliseGoing(r.going);
-    if (!g) return;
-    if (!goingMap[g]) goingMap[g]={starts:0,wins:0};
-    goingMap[g].starts++;
-    if (r.finish_position===1) goingMap[g].wins++;
-  });
-
-  // Form line (last 8)
-  const formLine = rows.slice(0,8).map(r=>{
-    const cls = r.finish_position===1?'fd-1':r.finish_position===2?'fd-2':r.finish_position===3?'fd-3':'fd-o';
-    return '<div class="form-dot '+((cls)===undefined||(cls)===null?'':(cls))+'">'+((r.finish_position)===undefined||(r.finish_position)===null?'':(r.finish_position))+'</div>';
-  }).join('');
-
-  // Days since last run
-  const lastDate = rows[0]?.date;
-  const daysSince = lastDate ? Math.floor((Date.now()-new Date(lastDate))/(1000*60*60*24)) : null;
-
-  document.getElementById('profile-content').innerHTML =
-    '<div class="profile-wrap">'
-    +'<div class="profile-card">'
-    +'<div class="profile-badge">'+type.toUpperCase()+'</div>'
-    +'<div class="profile-name">'+name+'</div>'
-    +'<div class="form-line" style="margin-bottom:1rem">'+formLine+'</div>'
-    +'<div class="profile-stat-row"><span class="profile-stat-label">Starts</span><span class="profile-stat-val">'+rows.length+'</span></div>'
-    +'<div class="profile-stat-row"><span class="profile-stat-label">Wins</span><span class="profile-stat-val" style="color:var(--amber)">'+wins+' ('+winPct+'%)</span></div>'
-    +'<div class="profile-stat-row"><span class="profile-stat-label">Places (top 3)</span><span class="profile-stat-val">'+places+' ('+placePct+'%)</span></div>'
-    +'<div class="profile-stat-row"><span class="profile-stat-label">Avg finish pos</span><span class="profile-stat-val">'+avgPos+'</span></div>'
-    +'<div class="profile-stat-row"><span class="profile-stat-label">Best track</span><span class="profile-stat-val">'+bestTrack+'</span></div>'
-    +'<div class="profile-stat-row"><span class="profile-stat-label">Best distance</span><span class="profile-stat-val">'+(bestDist?bestDist+'m':'--')+'</span></div>'
-    +'<div class="profile-stat-row"><span class="profile-stat-label">Best class won</span><span class="profile-stat-val">'+bestClassWonBadge+'</span></div>'
-    +'<div class="profile-stat-row"><span class="profile-stat-label">Career earnings</span><span class="profile-stat-val" style="color:var(--green)">$'+totalPrize.toLocaleString()+'</span></div>'
-    +(daysSince!==null?'<div class="profile-stat-row"><span class="profile-stat-label">Days since last run</span><span class="profile-stat-val">'+daysSince+'</span></div>':'')
-    +'</div>'
-    +'<div class="profile-right">'
-    +'<div class="table-wrap" style="margin-bottom:0">'
-    +'<div class="table-header"><span class="table-title">Going record</span></div>'
-    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:1rem">'
-    +Object.entries(goingMap).sort(function(a,b){return b[1].starts-a[1].starts;}).map(function(entry){
-      var g=entry[0], d=entry[1];
-      var pct=d.wins>0?(d.wins/d.starts*100).toFixed(0)+'%':'0%';
-      var col=d.wins>0?'var(--green)':'var(--text2)';
-      return '<div class="going-card">'
-        +'<div class="going-label"><span class="going-badge '+goingClass(g)+'">'+g+'</span></div>'
-        +'<div class="going-val" style="color:'+col+'">'+pct+'</div>'
-        +'<div class="going-sub">'+d.wins+'W from '+d.starts+'</div>'
-        +'</div>';
-    }).join('')
-    +'</div></div>'
-    +'<div class="table-wrap" style="margin-bottom:0">'
-    +'<div class="table-header"><span class="table-title">Recent runs</span><span class="table-count">'+rows.length+' total</span></div>'
-    +rows.slice(0,20).map(function(r){
-      var pos=r.finish_position;
-      var posClass=pos===1?'pos-1':pos===2?'pos-2':pos===3?'pos-3':'pos-other';
-      var bg=pos===1?'rgba(232,168,48,.2)':pos<=3?'rgba(126,201,74,.12)':'var(--bg4)';
-      var going=r.going?'<span class="going-badge '+goingClass(r.going)+'">'+normaliseGoing(r.going)+'</span>':'';
-      return '<div class="recent-run">'
-        +'<div class="rr-pos" style="background:'+bg+'">'
-        +'<span class="pos-badge '+posClass+'">'+pos+'</span></div>'
-        +'<div class="rr-main">'
-        +'<div class="rr-race">'+(r.race_name||'--')+' / '+(r.track||'--')+'</div>'
-        +'<div class="rr-meta">'+(r.date||'--')+' / '+(r.distance_m?r.distance_m+'m':'--')+' '+going+'</div>'
-        +'</div>'
-        +'<div class="rr-right">'
-        +'<div class="rr-odds">'+(r.odds_sp?'$'+r.odds_sp:'--')+'</div>'
-        +'<div class="rr-margin">'+(pos===1?'Winner':(r.margin_trad||'--'))+'</div>'
-        +'</div></div>';
-    }).join('')
-    +'</div>'
-    +'<div class="table-wrap news-section" style="margin-bottom:0">'
-    +'<div class="table-header"><span class="table-title">News & Articles</span></div>'
-    +'<div style="padding:1rem 1.25rem;display:flex;flex-direction:column;gap:10px">'
-    +'<a href="https://news.google.com/search?q='+encodeURIComponent(name+' NZ racing horse')+'" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);text-decoration:none;font-size:13px">'
-    +'<span style="font-size:18px">&#x1F4F0;</span>'
-    +'<div><div style="font-weight:500">Search Google News for &quot;'+name+'&quot;</div>'
-    +'<div style="font-size:11px;color:var(--text3);margin-top:2px">Opens latest news in a new tab</div></div>'
-    +'<span style="margin-left:auto;color:var(--green);font-size:16px">-&gt;</span></a>'
-    +'<a href="https://www.loveracing.nz/RaceInfoSearch.aspx?q='+encodeURIComponent(name)+'&s=Current&g=All&r=undefined&t=Name" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);text-decoration:none;font-size:13px">'
-    +'<span style="font-size:18px">&#x1F3C7;</span>'
-    +'<div><div style="font-weight:500">View &quot;'+name+'&quot; on LoveRacing.NZ</div>'
-    +'<div style="font-size:11px;color:var(--text3);margin-top:2px">Full form, videos and race history</div></div>'
-    +'<span style="margin-left:auto;color:var(--green);font-size:16px">-&gt;</span></a>'
-    +'</div></div>'
-    +'</div></div>';
-}
-// ===================== RESULTS =====================
-function applyFilters() {
-  const horse   = document.getElementById('f-horse').value.toLowerCase();
-  const jockey  = document.getElementById('f-jockey').value.toLowerCase();
-  const trainer = document.getElementById('f-trainer').value.toLowerCase();
-  const track   = document.getElementById('f-track').value;
-  const going   = document.getElementById('f-going').value;
-  const pos     = document.getElementById('f-position').value;
-  const df      = document.getElementById('f-date-from').value;
-  const dt      = document.getElementById('f-date-to').value;
-  const cls     = document.getElementById('f-class')?.value;
-
-  filteredResults = allResults.filter(r => {
-    if (cls && String(r.class_tier) !== cls) return false;
-    if (horse   && !(r.horse||'').toLowerCase().includes(horse))   return false;
-    if (jockey  && !(r.jockey||'').toLowerCase().includes(jockey)) return false;
-    if (trainer && !(r.trainer||'').toLowerCase().includes(trainer)) return false;
-    if (track   && r.track !== track) return false;
-    if (going   && normaliseGoing(r.going) !== going) return false;
-    if (pos==='1'   && r.finish_position!==1)  return false;
-    if (pos==='1-3' && r.finish_position>3)    return false;
-    if (pos==='1-5' && r.finish_position>5)    return false;
-    if (df && r.date < df) return false;
-    if (dt && r.date > dt) return false;
-    return true;
-  });
-  currentPage = 1;
-  renderStats();
-  renderResultsTable();
-}
-
-function clearFilters() {
-  ['f-horse','f-jockey','f-trainer','f-date-from','f-date-to'].forEach(id=>document.getElementById(id).value='');
-  ['f-track','f-going','f-position'].forEach(id=>document.getElementById(id).value='');
-  acCloseAll();
-  applyFilters();
-}
-
-function renderStats() {
-  const data = filteredResults.length ? filteredResults : allResults;
-  const wins   = data.filter(r=>r.finish_position===1).length;
-  const places = data.filter(r=>r.finish_position<=3).length;
-  const winPct = data.length ? (wins/data.length*100).toFixed(1) : 0;
-  const tracks = new Set(data.map(r=>r.track)).size;
-  const horses = new Set(data.map(r=>r.horse)).size;
-  const prize  = data.reduce((s,r)=>s+(r.prize_money||0),0);
-
-  document.getElementById('results-stats').innerHTML = [
-    ['Results', data.length.toLocaleString(), ''],
-    ['Wins', wins.toLocaleString(), 'amber'],
-    ['Win rate', winPct+'%', 'green'],
-    ['Top 3', places.toLocaleString(), ''],
-    ['Horses', horses.toLocaleString(), ''],
-    ['Tracks', String(tracks), ''],
-    ['Total prize', '$'+(prize/1000).toFixed(0)+'k', ''],
-  ].map(function(s){
-    return '<div class="stat-card"><div class="stat-label">'+s[0]+'</div>'
-      +'<div class="stat-value '+s[2]+'">'+s[1]+'</div></div>';
-  }).join('');
-}
-
-function sortTable(key) {
-  if (sortKey===key) sortDir*=-1; else { sortKey=key; sortDir=1; }
-  renderResultsTable();
-}
-
-function renderResultsTable() {
-  const isFiltered = filteredResults.length || ['f-horse','f-jockey','f-trainer'].some(id=>document.getElementById(id)?.value);
-  const data = isFiltered ? filteredResults : allResults;
-  const sorted = [...data].sort((a,b)=>{
-    let av=a[sortKey]??'', bv=b[sortKey]??'';
-    if (typeof av==='number') return sortDir*(av-bv);
-    return sortDir*String(av).localeCompare(String(bv));
-  });
-  const total = sorted.length;
-  const slice = sorted.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
-  document.getElementById('results-count').textContent = total.toLocaleString() + ' results';
-  document.getElementById('results-body').innerHTML = slice.map(r=>{
-    const p = r.finish_position;
-    const pc = p===1?'pos-1':p===2?'pos-2':p===3?'pos-3':'pos-other';
-    return '<tr>'
-      +'<td><span class="pos-badge '+pc+'">'+p+'</span></td>'
-  }).join('');
-  renderPagination(Math.ceil(total/PAGE_SIZE));
-}
-
-function renderPagination(pages) {
-  var c = document.getElementById('results-pagination');
-  if (pages<=1){c.innerHTML='';return;}
-  var h = '<button class="page-btn" onclick="goPage('+(currentPage-1)+')" '+(currentPage===1?'disabled':'')+'>&#8592;</button>';
-  var start=Math.max(1,currentPage-3), end=Math.min(pages,currentPage+3);
-  if(start>1) h+='<button class="page-btn" onclick="goPage(1)">1</button><span class="page-info">...</span>';
-  for(var i=start;i<=end;i++) h+='<button class="page-btn '+(i===currentPage?'active':'')+'" onclick="goPage('+i+')">'+i+'</button>';
-  if(end<pages) h+='<span class="page-info">...</span><button class="page-btn" onclick="goPage('+pages+')">'+pages+'</button>';
-  h+='<button class="page-btn" onclick="goPage('+(currentPage+1)+')" '+(currentPage===pages?'disabled':'')+'>&#8594;</button>';
-  c.innerHTML=h;
-}
-
-function goPage(p){
-  const data=filteredResults.length?filteredResults:allResults;
-  const pages=Math.ceil(data.length/PAGE_SIZE);
-  if(p<1||p>pages)return;
-  currentPage=p; renderResultsTable();
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function filterByHorse(name){showPage('results');document.getElementById('f-horse').value=name;applyFilters();}
-
-// ===================== TRENDS =====================
-function loadTrends() {
-  const search    = document.getElementById('t-search').value.toLowerCase();
-  const type      = document.getElementById('t-type').value;
-  const metric    = document.getElementById('t-metric').value;
-  const track     = document.getElementById('t-track').value;
-  const minStarts = parseInt(document.getElementById('t-min-starts').value)||2;
-
-  let data = allResults;
-  if (track) data = data.filter(r=>r.track===track);
-
-  const grouped = {};
-  data.forEach(r=>{
-    const key = r[type]||'Unknown';
-    if (search && !key.toLowerCase().includes(search)) return;
-    if (!grouped[key]) grouped[key]=[];
-    grouped[key].push(r);
-  });
-
-  const lb = Object.entries(grouped).map(([name,rows])=>{
-    const starts=rows.length, wins=rows.filter(r=>r.finish_position===1).length;
-    const places=rows.filter(r=>r.finish_position<=3).length;
-    const avgPos=(rows.reduce((s,r)=>s+r.finish_position,0)/starts).toFixed(1);
-    const winPct=(wins/starts*100).toFixed(1), placePct=(places/starts*100).toFixed(1);
-    const tw={};
-    rows.filter(r=>r.finish_position===1).forEach(r=>{ tw[r.track]=(tw[r.track]||0)+1; });
-    const bestTrack=Object.entries(tw).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
-    return {name,starts,wins,places,winPct,placePct,avgPos,bestTrack,rows};
-  }).filter(x=>x.starts>=minStarts);
-
-  const sorted = lb.sort((a,b)=>{
-    if(metric==='wins')      return b.wins-a.wins;
-    if(metric==='win_pct')   return parseFloat(b.winPct)-parseFloat(a.winPct);
-    if(metric==='place_pct') return parseFloat(b.placePct)-parseFloat(a.placePct);
-    return parseFloat(a.avgPos)-parseFloat(b.avgPos);
-  }).slice(0,50);
-
-  document.getElementById('trends-count').textContent=sorted.length+' '+type+'s';
-  document.getElementById('trends-stats').innerHTML=
-    '<div class="stat-card"><div class="stat-label">Total '+type+'s</div>'
-    +'<div class="stat-value">'+Object.keys(grouped).length+'</div></div>'
-    +'<div class="stat-card"><div class="stat-label">Best win rate</div>'
-    +'<div class="stat-value green">'+(sorted[0]?.winPct||0)+'%</div>'
-    +'<div class="stat-sub">'+(sorted[0]?.name||'--')+'</div></div>'
-    +'<div class="stat-card"><div class="stat-label">Most wins</div>'
-    +'<div class="stat-value amber">'+([...sorted].sort((a,b)=>b.wins-a.wins)[0]?.wins||0)+'</div>'
-    +'<div class="stat-sub">'+([...sorted].sort((a,b)=>b.wins-a.wins)[0]?.name||'--')+'</div></div>'
-    +'<div class="stat-card"><div class="stat-label">Total races</div>'
-    +'<div class="stat-value">'+data.length.toLocaleString()+'</div></div>';
-
-  document.getElementById('trends-body').innerHTML=sorted.map(function(s,i){
-    return '<tr>'
-      +'<td class="time-val" style="color:var(--text3)">'+( i+1)+'</td>'
-      +'<td><span class="horse-link" onclick="openProfile(\''+s.name.replace(/\'/g,"\\'")+'\'\',\''+type+'\')">'+ s.name+'</span></td>'
-      +'<td class="time-val">'+s.starts+'</td>'
-      +'<td class="time-val" style="color:var(--amber)">'+s.wins+'</td>'
-      +'<td class="time-val r-hide">'+s.places+'</td>'
-      +'<td class="time-val" style="color:var(--green)">'+s.winPct+'%</td>'
-      +'<td class="time-val r-hide">'+s.placePct+'%</td>'
-      +'<td class="time-val r-hide">'+s.avgPos+'</td>'
-      +'<td class="time-val r-hide" style="color:var(--text2)">'+s.bestTrack+'</td>'
-      +'<td><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;min-height:28px" onclick="openProfile(\''+s.name.replace(/\'/g,"\\'")+'\'\',\''+type+'\')">'+'Profile</button></td>'
-      +'</tr>';
-  }).join('');
-
-  if (sorted[0]) renderCharts(sorted[0], type, data, sorted);
-}
-
-function renderCharts(target, type, allData, leaderboard) {
-  const rows = target.rows;
-  const monthWins={};
-  rows.forEach(r=>{
-    const m=r.date?.slice(0,7); if(!m)return;
-    if(!monthWins[m]){monthWins[m]={wins:0,starts:0};}
-    monthWins[m].starts++; if(r.finish_position===1)monthWins[m].wins++;
-  });
-  const months=Object.keys(monthWins).sort();
-  makeChart('chart-timeline','bar',{
-    labels:months,
-    datasets:[
-      {label:'Wins',data:months.map(m=>monthWins[m].wins),backgroundColor:'#7ec94a'},
-      {label:'Starts',data:months.map(m=>monthWins[m].starts),backgroundColor:'rgba(255,255,255,0.08)'},
-    ]
-  });
-  const tw={};
-  rows.filter(r=>r.finish_position===1).forEach(r=>{ tw[r.track]=(tw[r.track]||0)+1; });
-  const twArr=Object.entries(tw).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  makeChart('chart-track','bar',{
-    labels:twArr.map(x=>x[0]),
-    datasets:[{label:'Wins',data:twArr.map(x=>x[1]),backgroundColor:'#e8a830'}]
-  },{indexAxis:'y'});
-  const pos=Array(10).fill(0);
-  rows.forEach(r=>{ pos[Math.min(r.finish_position,10)-1]++; });
-  makeChart('chart-positions','bar',{
-    labels:['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10+'],
-    datasets:[{label:'Count',data:pos,backgroundColor:['#e8a830','#7ec94a','#4a9ed4','rgba(255,255,255,0.1)','rgba(255,255,255,0.08)','rgba(255,255,255,0.07)','rgba(255,255,255,0.06)','rgba(255,255,255,0.05)','rgba(255,255,255,0.04)','rgba(255,255,255,0.03)']}]
-  });
-  const dw={};
-  rows.forEach(r=>{ if(!r.distance_m)return; if(!dw[r.distance_m]){dw[r.distance_m]={wins:0,starts:0};} dw[r.distance_m].starts++; if(r.finish_position===1)dw[r.distance_m].wins++; });
-  const dists=Object.keys(dw).map(Number).sort((a,b)=>a-b);
-  makeChart('chart-distance','line',{
-    labels:dists.map(d=>d+'m'),
-    datasets:[{label:'Win %',data:dists.map(d=>dw[d].starts>0?(dw[d].wins/dw[d].starts*100).toFixed(1):0),borderColor:'#7ec94a',backgroundColor:'rgba(126,201,74,0.08)',tension:0.3,fill:true,pointBackgroundColor:'#7ec94a'}]
-  });
-}
-
-function makeChart(id, type, data, extraOpts={}) {
-  if(charts[id]) charts[id].destroy();
-  const ctx=document.getElementById(id)?.getContext('2d'); if(!ctx)return;
-  charts[id]=new Chart(ctx,{type,data,options:{
-    responsive:true,
-    plugins:{legend:{display:data.datasets.length>1,labels:{color:'#948f83',font:{size:11}}}},
-    scales:{
-      x:{ticks:{color:'#524f48',font:{size:10}},grid:{color:'rgba(255,255,255,0.03)'}},
-      y:{ticks:{color:'#524f48',font:{size:10}},grid:{color:'rgba(255,255,255,0.03)'}},
-      ...(extraOpts.scales||{})
-    },...extraOpts
-  }});
-}
-
-// ===================== H2H =====================
-}
-function loadH2H() {
-  const nameA=document.getElementById('h-a').value.trim();
-  const nameB=document.getElementById('h-b').value.trim();
-  const type=document.getElementById('h-type').value;
-  if(!nameA||!nameB){
-    document.getElementById('h2h-content').innerHTML=
-    aiVerdictHTML(h2hRanked,'head to head')
-    +'<div class="table-wrap" style="margin-bottom:1.25rem">'
-    +'<div class="vs-banner">'
-    +'<div class="vs-text">'+dispA.split(' ')[0]+' vs '+dispB.split(' ')[0]+'</div>'
-    +'<div class="vs-record">Direct matchups: <span>'+aWins+'</span> -- '+(sharedA.length-aWins-bWins)+' -- <span>'+bWins+'</span> ('+sharedA.length+' shared races)</div>'
-    +'</div>'
-    +'<div class="h2h-grid" style="padding:1.25rem">'
-    +'<div class="h2h-horse-card"><div class="h2h-name" style="color:var(--green)">'+dispA+'</div>'+renderH2HStats(statsA)+'</div>'
-    +'<div class="h2h-horse-card"><div class="h2h-name" style="color:var(--amber)">'+dispB+'</div>'+renderH2HStats(statsB)+'</div>'
-    +'</div></div>'
-    +(sharedA.length
-      ? '<div class="h2h-shared"><div class="table-header"><span class="table-title">Shared races</span><span class="table-count">'+sharedA.length+' races</span></div>'
-        +'<div class="tbl-scroll"><table><thead><tr>'
-        +'<th>Date</th><th>Track</th><th class="r-hide">Race</th><th class="r-hide">Dist</th>'
-        +'<th style="color:var(--green)">'+dispA.split(' ')[0]+'</th>'
-        +'<th style="color:var(--amber)">'+dispB.split(' ')[0]+'</th><th>Winner</th>'
-        +'</tr></thead><tbody>'
-        +sharedA.map(function(ra){
-          var rb=sharedB.find(function(r){return r.track===ra.track&&r.date===ra.date&&r.race_name===ra.race_name;});
-          var winner=ra.finish_position<(rb?rb.finish_position:99)?dispA:dispB;
-          var wc=winner===dispA?'var(--green)':'var(--amber)';
-          return '<tr>'
-            +'<td class="time-val">'+ra.date+'</td>'
-            +'<td>'+ra.track+'</td>'
-            +'<td class="r-hide" style="font-size:12px;color:var(--text2)">'+ra.race_name+'</td>'
-            +'<td class="time-val r-hide">'+ra.distance_m+'m</td>'
-            +'<td class="time-val" style="color:var(--green)">'+ra.finish_position+ord(ra.finish_position)+'</td>'
-            +'<td class="time-val" style="color:var(--amber)">'+(rb?rb.finish_position+''+ord(rb.finish_position):'--')+'</td>'
-            +'<td style="color:'+wc+';font-weight:500">'+winner.split(' ')[0]+'</td>'
-            +'</tr>';
-        }).join('')
-        +'</tbody></table></div></div>'
-      : '<div class="empty-state" style="padding:2rem"><div class="empty-text">No shared races found</div></div>'
-    );
-    return;
-  }
-  const rowsA=allResults.filter(r=>(r[type]||'').toLowerCase().includes(nameA.toLowerCase()));
-  const rowsB=allResults.filter(r=>(r[type]||'').toLowerCase().includes(nameB.toLowerCase()));
-  if(!rowsA.length||!rowsB.length){
-    document.getElementById('h2h-content').innerHTML=
-    aiVerdictHTML(h2hRanked,'head to head')
-    +'<div class="table-wrap" style="margin-bottom:1.25rem">'
-    +'<div class="vs-banner">'
-    +'<div class="vs-text">'+dispA.split(' ')[0]+' vs '+dispB.split(' ')[0]+'</div>'
-    +'<div class="vs-record">Direct matchups: <span>'+aWins+'</span> -- '+(sharedA.length-aWins-bWins)+' -- <span>'+bWins+'</span> ('+sharedA.length+' shared races)</div>'
-    +'</div>'
-    +'<div class="h2h-grid" style="padding:1.25rem">'
-    +'<div class="h2h-horse-card"><div class="h2h-name" style="color:var(--green)">'+dispA+'</div>'+renderH2HStats(statsA)+'</div>'
-    +'<div class="h2h-horse-card"><div class="h2h-name" style="color:var(--amber)">'+dispB+'</div>'+renderH2HStats(statsB)+'</div>'
-    +'</div></div>'
-    +(sharedA.length
-      ? '<div class="h2h-shared"><div class="table-header"><span class="table-title">Shared races</span><span class="table-count">'+sharedA.length+' races</span></div>'
-        +'<div class="tbl-scroll"><table><thead><tr>'
-        +'<th>Date</th><th>Track</th><th class="r-hide">Race</th><th class="r-hide">Dist</th>'
-        +'<th style="color:var(--green)">'+dispA.split(' ')[0]+'</th>'
-        +'<th style="color:var(--amber)">'+dispB.split(' ')[0]+'</th><th>Winner</th>'
-        +'</tr></thead><tbody>'
-        +sharedA.map(function(ra){
-          var rb=sharedB.find(function(r){return r.track===ra.track&&r.date===ra.date&&r.race_name===ra.race_name;});
-          var winner=ra.finish_position<(rb?rb.finish_position:99)?dispA:dispB;
-          var wc=winner===dispA?'var(--green)':'var(--amber)';
-          return '<tr>'
-            +'<td class="time-val">'+ra.date+'</td>'
-            +'<td>'+ra.track+'</td>'
-            +'<td class="r-hide" style="font-size:12px;color:var(--text2)">'+ra.race_name+'</td>'
-            +'<td class="time-val r-hide">'+ra.distance_m+'m</td>'
-            +'<td class="time-val" style="color:var(--green)">'+ra.finish_position+ord(ra.finish_position)+'</td>'
-            +'<td class="time-val" style="color:var(--amber)">'+(rb?rb.finish_position+ord(rb.finish_position):'--')+'</td>'
-            +'<td style="color:'+wc+';font-weight:500">'+winner.split(' ')[0]+'</td>'
-            +'</tr>';
-        }).join('')
-        +'</tbody></table></div></div>'
-      : '<div class="empty-state" style="padding:2rem"><div class="empty-text">No shared races found</div></div>'
-    );
-
-}
-
-}
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab,.bnav-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  const pages=['results','trends','h2h','profile','field'];
-  const idx=pages.indexOf(name);
-  document.querySelectorAll('.nav-tab')[Math.min(idx,3)]?.classList.add('active');
-  document.querySelectorAll('.bnav-tab')[idx]?.classList.add('active');
-  if(name==='trends') { loadTrends(); renderClassLB(6); }
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function generateMockData(){
-  const horses=['Wine Rocs','Hell Island (AUS)','Dink','Armagh','Purosangue','Happy Traveller','Brutal Reality','Geneva Queen','Omega Boy','Silver Flash','Dark Matter','Coastal Dream','Thunder Ridge','Morning Star','Pacific Gem','Iron Will'];
-  const jockeys=['Jack Taplin','Corentin Berge','Sam McNab','Elen Nicholas','Hayley Hassman','Rihaan Goyaram','Joe Nishizuka','Courtney Barnes'];
-  const trainers=['Debbie Sweeney','Chris Wood','Ben & Ryan Foote','Danny Walker','Lance O\'Sullivan','Ralph Manning'];
-  const tracks=['Te Aroha','Ellerslie','Trentham','Riccarton','Hastings','Awapuni'];
-  const races=['Maiden 1150','BM65 1400','BM72 1600','Open 2000','Gr3 1400','Stakes 1200'];
-  const goings=['Good','Soft','Heavy','Slow'];
-  const data=[];const now=new Date();
-  for(let i=0;i<800;i++){
-    const daysAgo=Math.floor(Math.random()*90);
-    const d=new Date(now);d.setDate(d.getDate()-daysAgo);
-    const pos=Math.floor(Math.random()*12)+1;
-    data.push({id:i,finish_position:pos,
-      horse:horses[Math.floor(Math.random()*horses.length)],
-      jockey:jockeys[Math.floor(Math.random()*jockeys.length)],
-      trainer:trainers[Math.floor(Math.random()*trainers.length)],
-      track:tracks[Math.floor(Math.random()*tracks.length)],
-      date:d.toISOString().slice(0,10),
-      race_name:races[Math.floor(Math.random()*races.length)],
-      distance_m:[1150,1200,1400,1600,1800,2000][Math.floor(Math.random()*6)],
-      barrier:Math.floor(Math.random()*14)+1,
-      going:goings[Math.floor(Math.random()*goings.length)],
-      odds_sp:pos===1?(Math.random()*8+1.5).toFixed(2):(Math.random()*20+2).toFixed(2),
-      finish_time:pos<=10?`1.${String(Math.floor(Math.random()*20)+35).padStart(2,'0')}.${String(Math.floor(Math.random()*99)).padStart(2,'0')}`:'',
-      margin_trad:pos===1?'':['1/2 LEN','1 LEN','2 LEN','NOSE','NECK','HEAD'][Math.floor(Math.random()*6)],
-      prize_money:pos===1?14375:pos===2?4625:pos===3?2250:375});
-  }
-  return data;
-}
-
-init();
-</script>
+<script src="app.js"></script>
 </body>
 </html>
