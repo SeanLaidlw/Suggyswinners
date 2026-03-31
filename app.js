@@ -14,6 +14,22 @@ var ORD = ['th','st','nd','rd'];
 
 function ord(n) { var v=n%100; return ORD[(v-20)%10]||ORD[v]||ORD[0]; }
 
+// Convert "1.09.10" -> total seconds (69.10)
+function timeToSecs(t) {
+  if(!t) return null;
+  var parts=t.split('.');
+  if(parts.length===3) return parseInt(parts[0])*60+parseInt(parts[1])+parseInt(parts[2])/100;
+  if(parts.length===2) return parseInt(parts[0])*60+parseFloat(parts[1]);
+  return parseFloat(t)||null;
+}
+
+// Format seconds back to "1:09.10"
+function secsToDisplay(s) {
+  if(!s) return '--';
+  var m=Math.floor(s/60), sec=(s%60).toFixed(2);
+  return m+':'+(parseFloat(sec)<10?'0':'')+sec;
+}
+
 function classifyRace(name, cls, prize) {
   var n=(name||'').toUpperCase(), c=(cls||'').toUpperCase(), p=prize||0;
   var g1=/\bGR\.?\s*1\s+[A-Z]/.test(n)||/\bGROUP\s+1\s+[A-Z]/.test(n)||/\bGROUP\s+1$/.test(n)||/\bGR1\b/.test(n)||/\bG1\b/.test(c);
@@ -340,8 +356,7 @@ function renderResultsTable() {
       +'<td class="r-hide">'+getClassBadge(r.race_name,r.race_class,r.prize_money)+'</td>'
       +'<td class="tv r-hide">'+(r.distance_m?r.distance_m+'m':'--')+'</td>'
       +'<td class="tv r-hide">'+(r.barrier||'--')+'</td>'
-      +'<td class="odds">'+(r.odds_sp?'$'+r.odds_sp:'--')+'</td>'
-      +'<td class="tv r-hide">'+(r.finish_time||'--')+'</td>'
+      +'<td class="tv">'+(r.finish_time||'--')+'</td>'
       +'<td class="r-hide" style="color:var(--text3);font-size:12px">'+(p===1?'Winner':(r.margin_trad||'--'))+'</td>'
       +'</tr>';
   }).join('');
@@ -540,6 +555,18 @@ function openProfile(name, type) {
   var distMap={};
   rows.filter(function(r){return r.finish_position===1;}).forEach(function(r){distMap[r.distance_m]=(distMap[r.distance_m]||0)+1;});
   var bestDist=Object.entries(distMap).sort(function(a,b){return b[1]-a[1];})[0];
+
+  // Best and average times by distance
+  var timeByDist={};
+  rows.forEach(function(r){
+    if(!r.finish_time||!r.distance_m) return;
+    var secs=timeToSecs(r.finish_time); if(!secs) return;
+    var k=String(r.distance_m);
+    if(!timeByDist[k]) timeByDist[k]={best:secs,bestRaw:r.finish_time,bestDate:r.date,bestTrack:r.track,total:0,count:0};
+    if(secs<timeByDist[k].best){timeByDist[k].best=secs;timeByDist[k].bestRaw=r.finish_time;timeByDist[k].bestDate=r.date;timeByDist[k].bestTrack=r.track;}
+    timeByDist[k].total+=secs;
+    timeByDist[k].count++;
+  });
   var winRows=rows.filter(function(r){return r.finish_position===1;});
   var bestTier=winRows.length?Math.min.apply(null,winRows.map(function(r){return r.class_tier||7;})):null;
   var bestClassBadge=bestTier?'<span class="class-badge '+CLASS_CSS[bestTier]+'">'+CLASS_LABELS[bestTier]+'</span>':'--';
@@ -581,7 +608,7 @@ function openProfile(name, type) {
       +'<div class="rr-meta">'+(r.date||'--')+' / '+(r.distance_m?r.distance_m+'m':'--')+' '+gBadge+'</div>'
       +'</div>'
       +'<div class="rr-right">'
-      +'<div class="rr-odds">'+(r.odds_sp?'$'+r.odds_sp:'--')+'</div>'
+      +'<div class="rr-odds" style="font-family:var(--fm);color:var(--green)">'+(r.finish_time||'--')+'</div>'
       +'<div class="rr-margin">'+(pos===1?'Winner':(r.margin_trad||'--'))+'</div>'
       +'</div></div>';
   }).join('');
@@ -607,7 +634,7 @@ function openProfile(name, type) {
     +'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">Going record</span></div>'
     +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:1rem">'+goingCards+'</div></div>'
     +'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">Recent runs</span><span class="table-count">'+rows.length+' total</span></div>'+recentRuns+'</div>'
-    +'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">News &amp; Articles</span></div>'
+    +'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">Speed record by distance</span></div>'+( Object.keys(timeByDist).length  ? '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;padding:1rem">'    +Object.entries(timeByDist).sort(function(a,b){return parseInt(a[0])-parseInt(b[0]);}).map(function(e){      var dist=e[0],d=e[1];      var avg=d.count>0?(d.total/d.count):null;      return '<div class="going-card">'        +'<div style="font-size:10px;font-family:var(--fm);color:var(--text3);text-transform:uppercase;margin-bottom:4px">'+dist+'m</div>'        +'<div style="font-family:var(--fm);font-size:16px;font-weight:500;color:var(--green)">'+d.bestRaw+'</div>'        +'<div style="font-size:10px;color:var(--text3);margin-top:2px">best</div>'        +(avg?'<div style="font-family:var(--fm);font-size:13px;color:var(--text2);margin-top:4px">avg: '+secsToDisplay(avg)+'</div>':'')        +'<div style="font-size:10px;color:var(--text3)">'+d.bestDate+' @ '+d.bestTrack+'</div>'        +'</div>';    }).join('')    +'</div>'  : '<div style="padding:1rem;color:var(--text3);font-size:13px">No timed runs recorded</div>')+'</div>'+' '+'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">News &amp; Articles</span></div>'
     +'<div style="padding:1rem">'
     +'<a class="news-link" href="https://news.google.com/search?q='+eName+'+NZ+racing+horse" target="_blank" rel="noopener">'
     +'<span class="news-link-icon">&#x1F4F0;</span>'
@@ -697,13 +724,20 @@ function calcStats(rows) {
   var tw={};
   rows.filter(function(r){return r.finish_position===1;}).forEach(function(r){tw[r.track]=(tw[r.track]||0)+1;});
   var bt=Object.entries(tw).sort(function(a,b){return b[1]-a[1];})[0];
+  // Best and avg time
+  var timedRows=rows.filter(function(r){return r.finish_time;});
+  var timeSecs=timedRows.map(function(r){return {secs:timeToSecs(r.finish_time),raw:r.finish_time,dist:r.distance_m};}).filter(function(x){return x.secs;});
+  var bestTime=timeSecs.length?timeSecs.reduce(function(b,x){return x.secs<b.secs?x:b;}):null;
+  var avgTimeSecs=timeSecs.length?timeSecs.reduce(function(s,x){return s+x.secs;},0)/timeSecs.length:null;
   return {starts:rows.length,wins:wins,places:places,avgPos:avgPos,
     winPct:(wins/rows.length*100).toFixed(1),placePct:(places/rows.length*100).toFixed(1),
-    bestOdds:bestOdds?'$'+bestOdds:'--',bestTrack:bt?bt[0]:'--'};
+    bestOdds:bestOdds?'$'+bestOdds:'--',bestTrack:bt?bt[0]:'--',
+    bestTime:bestTime?bestTime.raw+'  ('+bestTime.dist+'m)':'--',
+    avgTime:avgTimeSecs?secsToDisplay(avgTimeSecs):'--'};
 }
 
 function renderH2HStats(s) {
-  return ['Starts,'+s.starts,'Wins,'+s.wins+' ('+s.winPct+'%),win','Places (top 3),'+s.places+' ('+s.placePct+'%)','Avg finish pos,'+s.avgPos,'Best winning odds,'+s.bestOdds,'Best track,'+s.bestTrack].map(function(x){
+  return ['Starts,'+s.starts,'Wins,'+s.wins+' ('+s.winPct+'%),win','Places (top 3),'+s.places+' ('+s.placePct+'%)','Avg finish pos,'+s.avgPos,'Best time,'+s.bestTime,'Avg time,'+s.avgTime,'Best track,'+s.bestTrack].map(function(x){
     var p=x.split(','); var cls=p[2]?'hsv '+p[2]:'hsv';
     return '<div class="hsr"><span class="hsl">'+p[0]+'</span><span class="'+cls+'">'+p[1]+'</span></div>';
   }).join('');
@@ -802,9 +836,19 @@ function addToField(horseName) {
     var g=normaliseGoing(r.going);if(g){if(!gs[g]){gs[g]={starts:0,wins:0};}gs[g].starts++;if(r.finish_position===1)gs[g].wins++;}
   });
   var form=rows.slice(0,5).map(function(r){return r.finish_position;}).join('-');
+  // Time stats by distance
+  var timeStats={};
+  rows.forEach(function(r){
+    if(!r.finish_time||!r.distance_m) return;
+    var secs=timeToSecs(r.finish_time); if(!secs) return;
+    var k=String(r.distance_m);
+    if(!timeStats[k]) timeStats[k]={best:secs,total:0,count:0};
+    if(secs<timeStats[k].best) timeStats[k].best=secs;
+    timeStats[k].total+=secs; timeStats[k].count++;
+  });
   fieldRunners.push({horse:horseName,barrier:fieldRunners.length+1,trainer:rows[0]&&rows[0].trainer||'--',
     starts:rows.length,wins:wins,places:places,winPct:winPct,placePct:placePct,avgPos:parseFloat(avgPos)||0,
-    trackStats:ts,distStats:ds,goingStats:gs,form:form,color:RUNNER_COLORS[fieldRunners.length%RUNNER_COLORS.length]});
+    trackStats:ts,distStats:ds,goingStats:gs,timeStats:timeStats,form:form,color:RUNNER_COLORS[fieldRunners.length%RUNNER_COLORS.length]});
   renderFieldRunners();renderFieldComparison();searchHorsesForField();
 }
 
@@ -870,6 +914,47 @@ function renderFieldComparison() {
     var mx3=Math.max.apply(null,gd.map(function(r){return parseFloat(r.gw);}).concat([1]));
     document.getElementById('field-going-bars').innerHTML=gd.slice().sort(function(a,b){return b.gw-a.gw;}).map(function(r){return ratingBar(r.horse,parseFloat(r.gw),mx3,r.color,r.gs?r.gw+'% ('+r.gs+')':'no data');}).join('');
   } else document.getElementById('field-going-bars').innerHTML='<div class="no-pad">Select going above</div>';
+
+  // Speed bars - best and avg time at selected distance
+  if(distance){
+    var speedData=fieldRunners.map(function(r){
+      var ts=r.timeStats&&r.timeStats[distance];
+      return {horse:r.horse,color:r.color,
+        best:ts?ts.best:null,
+        avg:ts&&ts.count>0?ts.total/ts.count:null,
+        count:ts?ts.count:0};
+    });
+    var hasAny=speedData.some(function(x){return x.best;});
+    if(hasAny){
+      // Best time - lower is better, invert for bar
+      var maxBest=Math.max.apply(null,speedData.filter(function(x){return x.best;}).map(function(x){return x.best;}));
+      var minBest=Math.min.apply(null,speedData.filter(function(x){return x.best;}).map(function(x){return x.best;}));
+      if(!document.getElementById('field-speed-section')){
+        var speedDiv=document.createElement('div');
+        speedDiv.id='field-speed-section';
+        document.getElementById('field-comparison-wrap').appendChild(speedDiv);
+      }
+      var speedHtml=
+        '<div class="table-header" style="border-top:1px solid var(--border)"><span class="table-title">Best time at '+distance+'m</span><span class="table-count">lower is faster</span></div>'
+        +'<div id="field-best-time-bars">'
+        +speedData.slice().sort(function(a,b){return (a.best||999)-(b.best||999);}).map(function(r){
+          var pct=r.best?(maxBest-r.best+0.5)/(maxBest-minBest+0.5)*100:0;
+          return ratingBar(r.horse,pct,100,r.color,r.best?secsToDisplay(r.best):'no data');
+        }).join('')
+        +'</div>'
+        +'<div class="table-header" style="border-top:1px solid var(--border)"><span class="table-title">Avg time at '+distance+'m</span></div>'
+        +'<div id="field-avg-time-bars">'
+        +speedData.slice().sort(function(a,b){return (a.avg||999)-(b.avg||999);}).map(function(r){
+          var pct=r.avg?(maxBest-r.avg+0.5)/(maxBest-minBest+0.5)*100:0;
+          return ratingBar(r.horse,pct,100,r.color,r.avg?secsToDisplay(r.avg)+' ('+r.count+'r)':'no data');
+        }).join('')
+        +'</div>';
+      document.getElementById('field-speed-section').innerHTML=speedHtml;
+    }
+  } else {
+    var ss=document.getElementById('field-speed-section');
+    if(ss) ss.innerHTML='';
+  }
 }
 
 function ratingBar(name,val,max,color,label){
