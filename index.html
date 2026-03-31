@@ -676,12 +676,12 @@ function acRender(dropId, items, input) {
   const drop = document.getElementById(dropId);
   if (!items.length) { acClose(dropId); return; }
   acIndex = -1;
-  drop.innerHTML = items.map((item, i) =>
-    '<div class="ac-item" onmousedown="acSelect(''+((dropId)===undefined||(dropId)===null?'':(dropId))+'',''+((item.label.replace(/'/g,"\'"))===undefined||(item.label.replace(/'/g,"\'"))===null?'':(item.label.replace(/'/g,"\'")))+'',event)">'
-    + '<span class="ac-item-name">'+((item.label)===undefined||(item.label)===null?'':(item.label))+'</span>'
-    + '<span class="ac-item-meta">'+((item.meta)===undefined||(item.meta)===null?'':(item.meta))+'</span>'
-    + `</div>`
-  ).join('');
+  drop.innerHTML = items.map(function(item, i) {
+    return '<div class="ac-item" onmousedown="acSelect(\''+dropId+'\',\''+item.label.replace(/\'/g,"\\'")+'\',event)">'
+      + '<span class="ac-item-name">'+item.label+'</span>'
+      + '<span class="ac-item-meta">'+item.meta+'</span>'
+      + '</div>';
+  }).join('');
   drop.classList.add('open');
 }
 
