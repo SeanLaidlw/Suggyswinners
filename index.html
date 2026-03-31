@@ -1226,26 +1226,33 @@ function loadTrends() {
     return parseFloat(a.avgPos)-parseFloat(b.avgPos);
   }).slice(0,50);
 
-  document.getElementById('trends-count').textContent=`${sorted.length} ${type}s`;
-  document.getElementById('trends-stats').innerHTML=`
-    <div class="stat-card"><div class="stat-label">Total ${type}s</div><div class="stat-value">${Object.keys(grouped).length}</div></div>
-    <div class="stat-card"><div class="stat-label">Best win rate</div><div class="stat-value green">${sorted[0]?.winPct||0}%</div><div class="stat-sub">${sorted[0]?.name||'—'}</div></div>
-    <div class="stat-card"><div class="stat-label">Most wins</div><div class="stat-value amber">${[...sorted].sort((a,b)=>b.wins-a.wins)[0]?.wins||0}</div><div class="stat-sub">${[...sorted].sort((a,b)=>b.wins-a.wins)[0]?.name||'—'}</div></div>
-    <div class="stat-card"><div class="stat-label">Total races</div><div class="stat-value">${data.length.toLocaleString()}</div></div>`;
+  document.getElementById('trends-count').textContent=sorted.length+' '+type+'s';
+  document.getElementById('trends-stats').innerHTML=
+    '<div class="stat-card"><div class="stat-label">Total '+type+'s</div>'
+    +'<div class="stat-value">'+Object.keys(grouped).length+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Best win rate</div>'
+    +'<div class="stat-value green">'+(sorted[0]?.winPct||0)+'%</div>'
+    +'<div class="stat-sub">'+(sorted[0]?.name||'--')+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Most wins</div>'
+    +'<div class="stat-value amber">'+([...sorted].sort((a,b)=>b.wins-a.wins)[0]?.wins||0)+'</div>'
+    +'<div class="stat-sub">'+([...sorted].sort((a,b)=>b.wins-a.wins)[0]?.name||'--')+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Total races</div>'
+    +'<div class="stat-value">'+data.length.toLocaleString()+'</div></div>';
 
-  document.getElementById('trends-body').innerHTML=sorted.map((s,i)=>`
-    <tr>
-      <td class="time-val" style="color:var(--text3)">${i+1}</td>
-      <td><span class="horse-link" onclick="openProfile('${s.name.replace(/'/g,"\\'")}','${type}')">${s.name}</span></td>
-      <td class="time-val">${s.starts}</td>
-      <td class="time-val" style="color:var(--amber)">${s.wins}</td>
-      <td class="time-val r-hide">${s.places}</td>
-      <td class="time-val" style="color:var(--green)">${s.winPct}%</td>
-      <td class="time-val r-hide">${s.placePct}%</td>
-      <td class="time-val r-hide">${s.avgPos}</td>
-      <td class="time-val r-hide" style="color:var(--text2)">${s.bestTrack}</td>
-      <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;min-height:28px" onclick="openProfile('${s.name.replace(/'/g,"\\'")}','${type}')">Profile</button></td>
-    </tr>`).join('');
+  document.getElementById('trends-body').innerHTML=sorted.map(function(s,i){
+    return '<tr>'
+      +'<td class="time-val" style="color:var(--text3)">'+( i+1)+'</td>'
+      +'<td><span class="horse-link" onclick="openProfile(\''+s.name.replace(/\'/g,"\\'")+'\'\',\''+type+'\')">'+ s.name+'</span></td>'
+      +'<td class="time-val">'+s.starts+'</td>'
+      +'<td class="time-val" style="color:var(--amber)">'+s.wins+'</td>'
+      +'<td class="time-val r-hide">'+s.places+'</td>'
+      +'<td class="time-val" style="color:var(--green)">'+s.winPct+'%</td>'
+      +'<td class="time-val r-hide">'+s.placePct+'%</td>'
+      +'<td class="time-val r-hide">'+s.avgPos+'</td>'
+      +'<td class="time-val r-hide" style="color:var(--text2)">'+s.bestTrack+'</td>'
+      +'<td><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;min-height:28px" onclick="openProfile(\''+s.name.replace(/\'/g,"\\'")+'\'\',\''+type+'\')">'+'Profile</button></td>'
+      +'</tr>';
+  }).join('');
 
   if (sorted[0]) renderCharts(sorted[0], type, data, sorted);
 }
@@ -1308,7 +1315,41 @@ function loadH2H() {
   const nameB=document.getElementById('h-b').value.trim();
   const type=document.getElementById('h-type').value;
   if(!nameA||!nameB){
-    document.getElementById('h2h-content').innerHTML=`<div class="empty-state"><div class="empty-icon">⚡</div><div class="empty-text">Enter two names above</div></div>`;
+    document.getElementById('h2h-content').innerHTML=
+    aiVerdictHTML(h2hRanked,'head to head')
+    +'<div class="table-wrap" style="margin-bottom:1.25rem">'
+    +'<div class="vs-banner">'
+    +'<div class="vs-text">'+dispA.split(' ')[0]+' vs '+dispB.split(' ')[0]+'</div>'
+    +'<div class="vs-record">Direct matchups: <span>'+aWins+'</span> -- '+(sharedA.length-aWins-bWins)+' -- <span>'+bWins+'</span> ('+sharedA.length+' shared races)</div>'
+    +'</div>'
+    +'<div class="h2h-grid" style="padding:1.25rem">'
+    +'<div class="h2h-horse-card"><div class="h2h-name" style="color:var(--green)">'+dispA+'</div>'+renderH2HStats(statsA)+'</div>'
+    +'<div class="h2h-horse-card"><div class="h2h-name" style="color:var(--amber)">'+dispB+'</div>'+renderH2HStats(statsB)+'</div>'
+    +'</div></div>'
+    +(sharedA.length
+      ? '<div class="h2h-shared"><div class="table-header"><span class="table-title">Shared races</span><span class="table-count">'+sharedA.length+' races</span></div>'
+        +'<div class="tbl-scroll"><table><thead><tr>'
+        +'<th>Date</th><th>Track</th><th class="r-hide">Race</th><th class="r-hide">Dist</th>'
+        +'<th style="color:var(--green)">'+dispA.split(' ')[0]+'</th>'
+        +'<th style="color:var(--amber)">'+dispB.split(' ')[0]+'</th><th>Winner</th>'
+        +'</tr></thead><tbody>'
+        +sharedA.map(function(ra){
+          var rb=sharedB.find(function(r){return r.track===ra.track&&r.date===ra.date&&r.race_name===ra.race_name;});
+          var winner=ra.finish_position<(rb?rb.finish_position:99)?dispA:dispB;
+          var wc=winner===dispA?'var(--green)':'var(--amber)';
+          return '<tr>'
+            +'<td class="time-val">'+ra.date+'</td>'
+            +'<td>'+ra.track+'</td>'
+            +'<td class="r-hide" style="font-size:12px;color:var(--text2)">'+ra.race_name+'</td>'
+            +'<td class="time-val r-hide">'+ra.distance_m+'m</td>'
+            +'<td class="time-val" style="color:var(--green)">'+ra.finish_position+ord(ra.finish_position)+'</td>'
+            +'<td class="time-val" style="color:var(--amber)">'+(rb?rb.finish_position+''+ord(rb.finish_position):'--')+'</td>'
+            +'<td style="color:'+wc+';font-weight:500">'+winner.split(' ')[0]+'</td>'
+            +'</tr>';
+        }).join('')
+        +'</tbody></table></div></div>'
+      : '<div class="empty-state" style="padding:2rem"><div class="empty-text">No shared races found</div></div>'
+    );
     return;
   }
   const rowsA=allResults.filter(r=>(r[type]||'').toLowerCase().includes(nameA.toLowerCase()));
