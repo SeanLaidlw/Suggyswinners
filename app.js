@@ -54,9 +54,13 @@ function getClassBadge(name, cls, prize) {
 function enrichWithClass(results) {
   return results.map(function(r) {
     r.class_tier = classifyRace(r.race_name, r.race_class, r.prize_money);
+    // Flag unplaced runners (ran but no timing data recorded)
+    r.unplaced = (!r.finish_time && !r.odds_sp);
     return r;
   });
 }
+
+function isPlaced(r) { return !r.unplaced; }
 
 // ---- DATA DECODER ----
 function decodeRacingData(data) {
@@ -139,6 +143,8 @@ function wireEvents() {
     el.addEventListener('input',applyFilters);
   });
   document.getElementById('btn-clear').addEventListener('click',clearFilters);
+  var hu=document.getElementById('f-hide-unplaced');
+  if(hu) hu.addEventListener('change',applyFilters);
 
   // Autocomplete
   document.getElementById('f-horse').addEventListener('input',function(){ acUpdate(this,'horse','ac-horse'); });
@@ -301,6 +307,8 @@ function applyFilters() {
     if(pos==='1-5' && r.finish_position>5) return false;
     if(df && r.date<df) return false;
     if(dt && r.date>dt) return false;
+    var hideUnplaced=document.getElementById('f-hide-unplaced')&&document.getElementById('f-hide-unplaced').checked;
+    if(hideUnplaced && r.unplaced) return false;
     return true;
   });
   currentPage=1;
@@ -317,8 +325,9 @@ function clearFilters() {
 
 function renderStats() {
   var data=filteredResults.length?filteredResults:allResults;
-  var wins=data.filter(function(r){return r.finish_position===1;}).length;
-  var places=data.filter(function(r){return r.finish_position<=3;}).length;
+  var placed=data.filter(isPlaced);
+  var wins=placed.filter(function(r){return r.finish_position===1;}).length;
+  var places=placed.filter(function(r){return r.finish_position<=3;}).length;
   var winPct=data.length?(wins/data.length*100).toFixed(1):0;
   var tracks=new Set(data.map(function(r){return r.track;})).size;
   var horses=new Set(data.map(function(r){return r.horse;})).size;
@@ -356,7 +365,8 @@ function renderResultsTable() {
   document.getElementById('results-body').innerHTML=slice.map(function(r){
     var p=r.finish_position;
     var pc=p===1?'pos-1':p===2?'pos-2':p===3?'pos-3':'pos-other';
-    return '<tr>'
+    var rowClass=r.unplaced?' style="opacity:0.45"':'';
+    return '<tr'+rowClass+'>'
       +'<td><span class="pos-badge '+pc+'">'+p+'</span></td>'
       +'<td><span class="horse-link" data-name="'+(r.horse||'')+'" data-type="horse">'+( r.horse||'--')+'</span></td>'
       +'<td><span class="horse-link" data-name="'+(r.jockey||'')+'" data-type="jockey">'+( r.jockey||'--')+'</span></td>'
@@ -997,13 +1007,18 @@ function openRace(track, date, raceNum) {
   var rows=runners.map(function(r){
     var p=r.finish_position;
     var pc=p===1?'pos-1':p===2?'pos-2':p===3?'pos-3':'pos-other';
-    return '<tr>'
-      +'<td><span class="pos-badge '+pc+'">'+p+'</span></td>'
+    var unplaced = !r.finish_time && !r.odds_sp;
+    var rowStyle = unplaced ? ' style="opacity:0.5"' : '';
+    var posDisplay = unplaced
+      ? '<span style="font-size:10px;font-family:var(--fm);color:var(--text3);padding:2px 6px;background:var(--bg3);border-radius:4px">UNPLACED</span>'
+      : '<span class="pos-badge '+pc+'">'+p+'</span>';
+    return '<tr'+rowStyle+'>'
+      +'<td>'+posDisplay+'</td>'
       +'<td class="tv" style="color:var(--text3)">'+(r.barrier||'--')+'</td>'
       +'<td><span class="horse-link modal-horse" data-name="'+(r.horse||'')+'" data-type="horse">'+( r.horse||'--')+'</span></td>'
       +'<td><span class="horse-link modal-horse" data-name="'+(r.jockey||'')+'" data-type="jockey">'+( r.jockey||'--')+'</span></td>'
       +'<td class="tv" style="color:var(--green)">'+(r.finish_time||'--')+'</td>'
-      +'<td class="tv" style="color:var(--text3)">'+(p===1?'Winner':(r.margin_trad||'--'))+'</td>'
+      +'<td class="tv" style="color:var(--text3)">'+(unplaced?'--':p===1?'Winner':(r.margin_trad||'--'))+'</td>'
       +'<td class="tv odds">'+(r.odds_sp?'$'+r.odds_sp:'--')+'</td>'
       +'<td>'+(r.prize_money?'$'+r.prize_money.toLocaleString():'--')+'</td>'
       +'</tr>';
