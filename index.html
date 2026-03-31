@@ -916,13 +916,13 @@ function globalSearch(q) {
     ...trainers.map(t=>({name:t,type:'trainer',label:'Trainer'})),
   ];
   if (!results.length) { container.style.display='none'; return; }
-  container.innerHTML = results.map(r => {
-    const rows = allResults.filter(x=>(x[r.type]||'')===r.name);
-    const wins = rows.filter(x=>x.finish_position===1).length;
-    return '<div class="search-result-item" onclick="openProfile(''+((r.name.replace(/'/g,"\\'"))===undefined||(r.name.replace(/'/g,"\\'"))===null?'':(r.name.replace(/'/g,"\\'")))+'',''+((r.type)===undefined||(r.type)===null?'':(r.type))+'')">
-      <div><div class="sri-name">'+((r.name)===undefined||(r.name)===null?'':(r.name))+'</div>
-        <div class="sri-meta">'+((rows.length)===undefined||(rows.length)===null?'':(rows.length))+' starts · '+((wins)===undefined||(wins)===null?'':(wins))+' wins</div></div>
-      <span class="sri-type">'+((r.label)===undefined||(r.label)===null?'':(r.label))+'</span></div>';
+  container.innerHTML = results.map(function(r) {
+    var rows = allResults.filter(function(x){return (x[r.type]||'')===r.name;});
+    var wins = rows.filter(function(x){return x.finish_position===1;}).length;
+    return '<div class="search-result-item" onclick="openProfile(\''+r.name.replace(/\'/g,"\\'")+'\',\''+r.type+'\')">'  
+      +'<div><div class="sri-name">'+r.name+'</div>'
+      +'<div class="sri-meta">'+rows.length+' starts / '+wins+' wins</div></div>'
+      +'<span class="sri-type">'+r.label+'</span></div>';
   }).join('');
   container.style.display = 'block';
 }
