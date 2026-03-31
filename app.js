@@ -170,12 +170,17 @@ function wireEvents() {
   var gs=document.getElementById('global-search');
   gs.addEventListener('input',function(){ globalSearch(this.value); });
   gs.addEventListener('focus',function(){ if(this.value.length>=2) globalSearch(this.value); });
-  // Race field links via event delegation
+  // Delegated clicks for horse-link, race-link and modal-horse
   document.addEventListener('click',function(e){
+    // Modal horse/jockey profile links
     var mh=e.target.closest('.modal-horse');
     if(mh){closeModal();openProfile(mh.dataset.name,mh.dataset.type);return;}
+    // Race field modal links
     var rl=e.target.closest('.race-link');
     if(rl&&rl.dataset.track){openRace(rl.dataset.track,rl.dataset.date,parseInt(rl.dataset.racenum));return;}
+    // Horse/jockey/trainer profile links (results table, trends)
+    var hl=e.target.closest('.horse-link[data-name]');
+    if(hl&&hl.dataset.name&&!hl.classList.contains('race-link')){openProfile(hl.dataset.name,hl.dataset.type||'horse');return;}
   });
   document.addEventListener('click',function(e){
     if(!e.target.closest('.gsearch-wrap')&&!e.target.closest('.ac-wrap')) closeAllDropdowns();
@@ -351,15 +356,19 @@ function renderResultsTable() {
   document.getElementById('results-body').innerHTML=slice.map(function(r){
     var p=r.finish_position;
     var pc=p===1?'pos-1':p===2?'pos-2':p===3?'pos-3':'pos-other';
-        return '<tr>'
+    return '<tr>'
       +'<td><span class="pos-badge '+pc+'">'+p+'</span></td>'
-      +'<td class="tv" style="color:var(--text3)">'+(r.barrier||'--')+'</td>'
-      +'<td><span class="horse-link modal-horse" data-name="'+(r.horse||'')+'" data-type="horse">'+( r.horse||'--')+'</span></td>'
-      +'<td><span class="horse-link modal-horse" data-name="'+(r.jockey||'')+'" data-type="jockey">'+( r.jockey||'--')+'</span></td>'
-      +'<td class="tv" style="color:var(--green)">'+(r.finish_time||'--')+'</td>'
-      +'<td class="tv" style="color:var(--text3)">'+(p===1?'Winner':(r.margin_trad||'--'))+'</td>'
-      +'<td class="tv odds">'+(r.odds_sp?'$'+r.odds_sp:'--')+'</td>'
-      +'<td>'+(r.prize_money?'$'+r.prize_money.toLocaleString():'--')+'</td>'
+      +'<td><span class="horse-link" data-name="'+(r.horse||'')+'" data-type="horse">'+( r.horse||'--')+'</span></td>'
+      +'<td><span class="horse-link" data-name="'+(r.jockey||'')+'" data-type="jockey">'+( r.jockey||'--')+'</span></td>'
+      +'<td class="r-hide" style="color:var(--text2);font-size:12px">'+(r.trainer||'--')+'</td>'
+      +'<td style="color:var(--text2)">'+(r.track||'--')+'</td>'
+      +'<td class="tv">'+(r.date||'--')+'</td>'
+      +'<td class="r-hide" style="font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis"><span class="horse-link race-link" data-track="'+(r.track||'')+'" data-date="'+(r.date||'')+'" data-racenum="'+(r.race_number||'')+'">'+( r.race_name||'Race '+r.race_number)+'</span></td>'
+      +'<td class="r-hide">'+getClassBadge(r.race_name,r.race_class,r.prize_money)+'</td>'
+      +'<td class="tv r-hide">'+(r.distance_m?r.distance_m+'m':'--')+'</td>'
+      +'<td class="tv r-hide">'+(r.barrier||'--')+'</td>'
+      +'<td class="tv">'+(r.finish_time||'--')+'</td>'
+      +'<td class="r-hide" style="color:var(--text3);font-size:12px">'+(p===1?'Winner':(r.margin_trad||'--'))+'</td>'
       +'</tr>';
   }).join('');
   renderPagination(Math.ceil(total/PAGE_SIZE));
