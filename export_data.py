@@ -71,7 +71,6 @@ def export(db_path="racing.db", out_path="data.js"):
     total_jockeys  = conn.execute("SELECT COUNT(*) FROM jockeys").fetchone()[0]
     total_trainers = conn.execute("SELECT COUNT(*) FROM trainers").fetchone()[0]
     date_range     = conn.execute("SELECT MIN(date), MAX(date) FROM meetings").fetchone()
-    conn.close()
 
     summary = {
         "total_results": len(rows), "total_meetings": total_meetings,
@@ -81,11 +80,28 @@ def export(db_path="racing.db", out_path="data.js"):
         "exported_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
 
+    # Export trial data
+    trials_encoded = []
+    try:
+        trial_rows = conn.execute(
+            "SELECT h.name AS horse, j.name AS jockey, t.date, t.track, "
+            "t.distance_m, t.finish_position, t.finish_time, t.margin_trad, t.going "
+            "FROM trials t JOIN horses h ON h.id=t.horse_id "
+            "LEFT JOIN jockeys j ON j.id=t.jockey_id ORDER BY t.date DESC"
+        ).fetchall()
+        trials_encoded = [dict(r) for r in trial_rows]
+        print(f"  {len(trials_encoded)} trial rows")
+    except Exception as e:
+        print(f"  No trial data yet: {e}")
+
+    conn.close()
+
     payload = {
         "summary": summary,
         "lookups": {"horse": horses, "jockey": jockeys, "trainer": trainers,
                     "track": tracks, "going": goings, "race_name": races},
         "rows": encoded,
+        "trials": trials_encoded,
     }
 
     js = "window.RACING_DATA = " + json.dumps(payload, default=str, separators=(",", ":")) + ";"

@@ -81,6 +81,20 @@ def init_db(conn):
             start_time      TEXT,
             UNIQUE(meeting_fk, race_number)
         );
+        CREATE TABLE IF NOT EXISTS trials (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            meeting_id      TEXT NOT NULL,
+            track           TEXT,
+            date            TEXT,
+            distance_m      INTEGER,
+            finish_position INTEGER,
+            horse_id        INTEGER REFERENCES horses(id),
+            jockey_id       INTEGER REFERENCES jockeys(id),
+            finish_time     TEXT,
+            margin_trad     TEXT,
+            going           TEXT,
+            UNIQUE(meeting_id, distance_m, finish_position, horse_id)
+        );
         CREATE TABLE IF NOT EXISTS results (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
             race_fk         INTEGER REFERENCES races(id),
@@ -234,6 +248,18 @@ def scrape_meeting(page, meeting_info, conn):
 
     print(f"  Date: {meeting_date} | Going: {going} | Weather: {weather}")
 
+    # Detect trial days - title or body contains "TRIAL"
+    is_trial = 'TRIAL' in body_text.upper()[:500]
+    if is_trial:
+        print(f"  -> Trial day detected (ID:{mid})")
+        # Check if already scraped as trial
+        existing_trial = conn.execute(
+            "SELECT COUNT(*) FROM trials WHERE meeting_id=?", (mid,)
+        ).fetchone()[0]
+        if existing_trial > 0:
+            print(f"  Already have {existing_trial} trial results for {mid}, skipping.")
+            return
+
     # Find race links on the meeting page
     race_numbers = []
     race_links = page.query_selector_all("a[href*='Race-Detail.aspx']")
@@ -253,21 +279,112 @@ def scrape_meeting(page, meeting_info, conn):
 
     races_scraped = 0
     for rnum in sorted(race_numbers):
-        ok = scrape_race(page, mid, rnum, meeting_fk, conn)
+        if is_trial:
+            ok = scrape_trial_race(page, mid, rnum, meeting_date, track_name, going, conn)
+        else:
+            ok = scrape_race(page, mid, rnum, meeting_fk, conn)
         if ok:
             races_scraped += 1
         elif not race_links:
-            # In probe mode, stop when we hit a missing race
             break
         delay()
 
-    log_scrape(conn, url, "success", f"{races_scraped} races")
-    print(f"  Done — {races_scraped} races saved.")
+    kind = "trials" if is_trial else "races"
+    log_scrape(conn, url, "success", f"{races_scraped} {kind}")
+    print(f"  Done — {races_scraped} {kind} saved.")
 
 
 # ---------------------------------------------------------------------------
 # Step 3: Scrape individual race detail page
 # ---------------------------------------------------------------------------
+
+def scrape_trial_race(page, meeting_id, race_num, date, track, going, conn):
+    """Scrape a single trial race and store in trials table."""
+    url = f"{BASE_URL}/RaceInfo/{meeting_id}/{race_num}/Race-Detail.aspx"
+    try:
+        page.goto(url, wait_until="domcontentloaded", timeout=30000)
+    except PWTimeout:
+        return False
+
+    delay()
+    body = page.query_selector("body")
+    if not body:
+        return False
+
+    body_text = clean(body.inner_text())
+    lines = [l.strip() for l in body_text.split("\n") if l.strip()]
+
+    # Parse distance from race name line e.g. "TRIAL 1200M" or "1200"
+    distance_m = None
+    for line in lines[:20]:
+        m = re.search(r"(\d{3,4})\s*M", line.upper())
+        if m:
+            distance_m = int(m.group(1))
+            break
+
+    # Find placed runners section
+    # Trial results follow same format as race results
+    plc_idx = next((i for i, l in enumerate(lines)
+                    if re.match(r"^PL(ACED)?\b|^RESULT", l.upper())), None)
+
+    if plc_idx is None:
+        plc_idx = 0
+
+    overview_idx = len(lines)
+    for kw in ["OVERVIEW", "BACK TO MEETING", "RACE DETAIL"]:
+        ki = next((i for i, l in enumerate(lines) if kw in l.upper() and i > plc_idx + 5), None)
+        if ki:
+            overview_idx = min(overview_idx, ki)
+
+    # Parse runners in groups: pos, saddle, horse, jockey (trial has no prize)
+    stored = 0
+    i = plc_idx
+    position = 0
+    margin = None
+
+    while i < min(plc_idx + 100, overview_idx):
+        line = lines[i]
+        # Finish position - single or double digit
+        if re.match(r"^\d{1,2}$", line) and 1 <= int(line) <= 20:
+            position = int(line)
+            if i + 3 < overview_idx:
+                saddle_line = lines[i+1]
+                horse_name  = lines[i+2]
+                jockey_name = lines[i+3]
+                # Validate - horse name shouldn't be all digits
+                if re.match(r"^\d+$", horse_name):
+                    i += 1
+                    continue
+                horse_id  = upsert(conn, "horses",  horse_name)
+                jockey_id = upsert(conn, "jockeys", jockey_name) if jockey_name else None
+
+                # Try to get finish time from stats block (appears later)
+                finish_time = None
+                for j in range(i+4, min(i+15, overview_idx)):
+                    if re.match(r"^\d+\.\d+\.\d+$", lines[j]):
+                        finish_time = lines[j]
+                        break
+
+                try:
+                    conn.execute("""
+                        INSERT OR IGNORE INTO trials
+                        (meeting_id, track, date, distance_m, finish_position,
+                         horse_id, jockey_id, finish_time, margin_trad, going)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (str(meeting_id), track, date, distance_m, position,
+                          horse_id, jockey_id, finish_time, margin, going))
+                    stored += 1
+                except Exception:
+                    pass
+                i += 4
+                continue
+        i += 1
+
+    conn.commit()
+    if stored > 0:
+        print(f"    Trial race {race_num}: {stored} runners, {distance_m}m")
+    return stored > 0
+
 
 def scrape_race(page, meeting_id, race_num, meeting_fk, conn):
     url = f"{BASE_URL}/RaceInfo/{meeting_id}/{race_num}/Race-Detail.aspx"
@@ -613,12 +730,7 @@ def parse_results(lines, race_id, conn):
         jockey_id  = upsert(conn, "jockeys", jockey_name) if jockey_name else None
         trainer_id = upsert(conn, "trainers", trainer_name) if trainer_name else None
 
-        if runner["position"] is not None:
-            finish_pos = runner["position"]
-        else:
-            # Unplaced: assign positions after the last placed runner
-            last_placed = max((r["position"] for r in runners.values()), default=0)
-            finish_pos = last_placed + 1 + idx
+        finish_pos = runner["position"] if runner["position"] is not None else 99 + idx
 
         try:
             conn.execute(
