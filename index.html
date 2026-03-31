@@ -1326,64 +1326,42 @@ function loadH2H() {
   const rowsA=allResults.filter(r=>(r[type]||'').toLowerCase().includes(nameA.toLowerCase()));
   const rowsB=allResults.filter(r=>(r[type]||'').toLowerCase().includes(nameB.toLowerCase()));
   if(!rowsA.length||!rowsB.length){
-    document.getElementById('h2h-content').innerHTML='<div class="empty-state"><div class="empty-icon">⚡</div><div class="empty-text">Could not find one or both names</div></div>';
-    return;
-  }
-  const sharedA=rowsA.filter(r=>rowsB.some(rb=>rb.track===r.track&&rb.date===r.date&&rb.race_name===r.race_name));
-  const sharedB=rowsB.filter(r=>sharedA.some(ra=>ra.track===r.track&&ra.date===r.date&&ra.race_name===r.race_name));
-  const statsA=calcStats(rowsA), statsB=calcStats(rowsB);
-  let aWins=0,bWins=0;
-  sharedA.forEach(ra=>{
-    const rb=sharedB.find(r=>r.track===ra.track&&r.date===ra.date&&r.race_name===ra.race_name);
-    if(rb){ if(ra.finish_position<rb.finish_position)aWins++; else if(rb.finish_position<ra.finish_position)bWins++; }
-  });
-  const dispA=rowsA[0]?.[type]||nameA, dispB=rowsB[0]?.[type]||nameB;
-  const scoreA=getH2HScore(rowsA,'',''), scoreB=getH2HScore(rowsB,'','');
-  const ranked=[{horse:dispA,aiScore:scoreA,winPct:statsA.winPct},{horse:dispB,aiScore:scoreB,winPct:statsB.winPct}].sort((a,b)=>b.aiScore-a.aiScore);
+    document.getElementById('h2h-content').innerHTML=
+    aiVerdictHTML(h2hRanked,'head to head')
+    +'<div class="table-wrap" style="margin-bottom:1.25rem">'
+    +'<div class="vs-banner">'
+    +'<div class="vs-text">'+dispA.split(' ')[0]+' vs '+dispB.split(' ')[0]+'</div>'
+    +'<div class="vs-record">Direct matchups: <span>'+aWins+'</span> -- '+(sharedA.length-aWins-bWins)+' -- <span>'+bWins+'</span> ('+sharedA.length+' shared races)</div>'
+    +'</div>'
+    +'<div class="h2h-grid" style="padding:1.25rem">'
+    +'<div class="h2h-horse-card"><div class="h2h-name" style="color:var(--green)">'+dispA+'</div>'+renderH2HStats(statsA)+'</div>'
+    +'<div class="h2h-horse-card"><div class="h2h-name" style="color:var(--amber)">'+dispB+'</div>'+renderH2HStats(statsB)+'</div>'
+    +'</div></div>'
+    +(sharedA.length
+      ? '<div class="h2h-shared"><div class="table-header"><span class="table-title">Shared races</span><span class="table-count">'+sharedA.length+' races</span></div>'
+        +'<div class="tbl-scroll"><table><thead><tr>'
+        +'<th>Date</th><th>Track</th><th class="r-hide">Race</th><th class="r-hide">Dist</th>'
+        +'<th style="color:var(--green)">'+dispA.split(' ')[0]+'</th>'
+        +'<th style="color:var(--amber)">'+dispB.split(' ')[0]+'</th><th>Winner</th>'
+        +'</tr></thead><tbody>'
+        +sharedA.map(function(ra){
+          var rb=sharedB.find(function(r){return r.track===ra.track&&r.date===ra.date&&r.race_name===ra.race_name;});
+          var winner=ra.finish_position<(rb?rb.finish_position:99)?dispA:dispB;
+          var wc=winner===dispA?'var(--green)':'var(--amber)';
+          return '<tr>'
+            +'<td class="time-val">'+ra.date+'</td>'
+            +'<td>'+ra.track+'</td>'
+            +'<td class="r-hide" style="font-size:12px;color:var(--text2)">'+ra.race_name+'</td>'
+            +'<td class="time-val r-hide">'+ra.distance_m+'m</td>'
+            +'<td class="time-val" style="color:var(--green)">'+ra.finish_position+ord(ra.finish_position)+'</td>'
+            +'<td class="time-val" style="color:var(--amber)">'+(rb?rb.finish_position+ord(rb.finish_position):'--')+'</td>'
+            +'<td style="color:'+wc+';font-weight:500">'+winner.split(' ')[0]+'</td>'
+            +'</tr>';
+        }).join('')
+        +'</tbody></table></div></div>'
+      : '<div class="empty-state" style="padding:2rem"><div class="empty-text">No shared races found</div></div>'
+    );
 
-  document.getElementById('h2h-content').innerHTML='
-    '+((aiVerdictHTML(ranked,'head to head'))===undefined||(aiVerdictHTML(ranked,'head to head'))===null?'':(aiVerdictHTML(ranked,'head to head')))+'
-    <div class="table-wrap" style="margin-bottom:1.25rem">
-      <div class="vs-banner">
-        <div class="vs-text">'+((dispA.split(' ')[0])===undefined||(dispA.split(' ')[0])===null?'':(dispA.split(' ')[0]))+' vs '+((dispB.split(' ')[0])===undefined||(dispB.split(' ')[0])===null?'':(dispB.split(' ')[0]))+'</div>
-        <div class="vs-record">Direct matchups: <span>'+((aWins)===undefined||(aWins)===null?'':(aWins))+'</span> — '+((sharedA.length-aWins-bWins)===undefined||(sharedA.length-aWins-bWins)===null?'':(sharedA.length-aWins-bWins))+' — <span>'+((bWins)===undefined||(bWins)===null?'':(bWins))+'</span> ('+((sharedA.length)===undefined||(sharedA.length)===null?'':(sharedA.length))+' shared races)</div>
-      </div>
-      <div class="h2h-grid" style="padding:1.25rem">
-        <div class="h2h-horse-card">
-          <div class="h2h-name" style="color:var(--green)">'+((dispA)===undefined||(dispA)===null?'':(dispA))+'</div>'+((renderH2HStats(statsA))===undefined||(renderH2HStats(statsA))===null?'':(renderH2HStats(statsA)))+'
-        </div>
-        <div class="h2h-horse-card">
-          <div class="h2h-name" style="color:var(--amber)">'+((dispB)===undefined||(dispB)===null?'':(dispB))+'</div>'+((renderH2HStats(statsB))===undefined||(renderH2HStats(statsB))===null?'':(renderH2HStats(statsB)))+'
-        </div>
-      </div>
-    </div>
-    ${sharedA.length?'
-    <div class="h2h-shared">
-      <div class="table-header"><span class="table-title">Shared races</span><span class="table-count">${sharedA.length} races</span></div>
-      <div class="tbl-scroll"><table><thead><tr>
-        <th>Date</th><th>Track</th><th class="r-hide">Race</th><th class="r-hide">Dist</th>
-        <th style="color:var(--green)">${dispA.split(' ')[0]}</th>
-        <th style="color:var(--amber)">${dispB.split(' ')[0]}</th><th>Winner</th>
-      </tr></thead><tbody>${sharedA.map(ra=>{
-        const rb=sharedB.find(r=>r.track===ra.track&&r.date===ra.date&&r.race_name===ra.race_name);
-        const winner=ra.finish_position<(rb?.finish_position||99)?dispA:dispB;
-        const wc=winner===dispA?'var(--green)':'var(--amber)';
-        return '<tr>'
-      +'<td><span class="pos-badge '+pc+'">'+p+'</span></td>'
-      +'<td><span class="horse-link" onclick="openProfile(''+encodeURIComponent(r.horse||'')+'','horse')">'+( r.horse||'--')+'</span></td>'
-      +'<td><span class="horse-link" onclick="openProfile(''+encodeURIComponent(r.jockey||'')+'','jockey')">'+( r.jockey||'--')+'</span></td>'
-      +'<td class="r-hide" style="color:var(--text2);font-size:12px">'+(r.trainer||'--')+'</td>'
-      +'<td style="color:var(--text2)">'+(r.track||'--')+'</td>'
-      +'<td class="time-val">'+(r.date||'--')+'</td>'
-      +'<td class="r-hide" style="color:var(--text2);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis">'+(r.race_name||'--')+'</td>'
-      +'<td class="r-hide">'+getClassBadge(r.race_name,r.race_class,r.prize_money)+'</td>'
-      +'<td class="time-val r-hide">'+(r.distance_m?r.distance_m+'m':'--')+'</td>'
-      +'<td class="time-val r-hide">'+(r.barrier||'--')+'</td>'
-      +'<td class="odds">'+(r.odds_sp?'$'+r.odds_sp:'--')+'</td>'
-      +'<td class="time-val r-hide">'+(r.finish_time||'--')+'</td>'
-      +'<td class="r-hide" style="color:var(--text3);font-size:12px">'+(p===1?'Winner':(r.margin_trad||'--'))+'</td>'
-      +'</tr>';
-  }).join('');
 }
 
 function showPage(name) {
