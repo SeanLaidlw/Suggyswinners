@@ -1168,14 +1168,14 @@ function renderResultsTable() {
 }
 
 function renderPagination(pages) {
-  const c = document.getElementById('results-pagination');
+  var c = document.getElementById('results-pagination');
   if (pages<=1){c.innerHTML='';return;}
-  let h = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>&#8592;</button>`;
-  const start=Math.max(1,currentPage-3), end=Math.min(pages,currentPage+3);
-  if(start>1) h+=`<button class="page-btn" onclick="goPage(1)">1</button><span class="page-info">…</span>`;
-  for(let i=start;i<=end;i++) h+=`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
-  if(end<pages) h+=`<span class="page-info">…</span><button class="page-btn" onclick="goPage(${pages})">${pages}</button>`;
-  h+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>&#8594;</button>`;
+  var h = '<button class="page-btn" onclick="goPage('+(currentPage-1)+')" '+(currentPage===1?'disabled':'')+'>&#8592;</button>';
+  var start=Math.max(1,currentPage-3), end=Math.min(pages,currentPage+3);
+  if(start>1) h+='<button class="page-btn" onclick="goPage(1)">1</button><span class="page-info">...</span>';
+  for(var i=start;i<=end;i++) h+='<button class="page-btn '+(i===currentPage?'active':'')+'" onclick="goPage('+i+')">'+i+'</button>';
+  if(end<pages) h+='<span class="page-info">...</span><button class="page-btn" onclick="goPage('+pages+')">'+pages+'</button>';
+  h+='<button class="page-btn" onclick="goPage('+(currentPage+1)+')" '+(currentPage===pages?'disabled':'')+'>&#8594;</button>';
   c.innerHTML=h;
 }
 
