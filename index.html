@@ -1050,64 +1050,7 @@ function openProfile(name, type) {
     +'<span style="margin-left:auto;color:var(--green);font-size:16px">-&gt;</span></a>'
     +'</div></div>'
     +'</div></div>';
-            const bg = r.finish_position===1?'rgba(232,168,48,.2)':r.finish_position<=3?'rgba(126,201,74,.12)':'var(--bg4)';
-            return '<div class="recent-run" onclick="filterByHorse('${(r.horse||'').replace(/'/g,"\\'")}')">
-              <div class="rr-pos" style="background:${bg}">
-                <span class="pos-badge ${posClass}">${r.finish_position}</span>
-              </div>
-              <div class="rr-main">
-                <div class="rr-race">${r.race_name||'—'} · ${r.track||'—'}</div>
-                <div class="rr-meta">${r.date||'—'} · ${r.distance_m?r.distance_m+'m':'—'}
-                  ${r.going?'· <span class="going-badge '+((goingClass(r.going))===undefined||(goingClass(r.going))===null?'':(goingClass(r.going)))+'">'+((normaliseGoing(r.going))===undefined||(normaliseGoing(r.going))===null?'':(normaliseGoing(r.going)))+'</span>':''}
-                </div>
-              </div>
-              <div class="rr-right">
-                <div class="rr-odds">${r.odds_sp?'$'+r.odds_sp:'—'}</div>
-                <div class="rr-margin">${r.finish_position===1?'Winner':(r.margin_trad||'—')}</div>
-              </div>
-            </div>';
-          }).join('')}
-        </div>
-      </div>
-
-      <div class="table-wrap news-section" style="margin-bottom:0">
-        <div class="table-header">
-          <span class="table-title">News & Articles</span>
-        </div>
-        <div style="padding:1rem 1.25rem;display:flex;flex-direction:column;gap:10px">
-          <a href="https://news.google.com/search?q='+((encodeURIComponent(name+' NZ racing horse'))===undefined||(encodeURIComponent(name+' NZ racing horse'))===null?'':(encodeURIComponent(name+' NZ racing horse')))+'"
-            target="_blank" rel="noopener"
-            style="display:flex;align-items:center;gap:10px;padding:12px 16px;
-              background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);
-              color:var(--text);text-decoration:none;transition:border-color .15s;font-size:13px"
-            onmouseover="this.style.borderColor='var(--green2)'"
-            onmouseout="this.style.borderColor='var(--border2)'">
-            <span style="font-size:18px">📰</span>
-            <div>
-              <div style="font-weight:500">Search Google News for "'+((name)===undefined||(name)===null?'':(name))+'"</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:2px">Opens latest news articles in a new tab</div>
-            </div>
-            <span style="margin-left:auto;color:var(--green);font-size:16px">→</span>
-          </a>
-          <a href="https://www.loveracing.nz/RaceInfoSearch.aspx?q='+((encodeURIComponent(name))===undefined||(encodeURIComponent(name))===null?'':(encodeURIComponent(name)))+'&s=Current&g=All&r=undefined&t=Name"
-            target="_blank" rel="noopener"
-            style="display:flex;align-items:center;gap:10px;padding:12px 16px;
-              background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);
-              color:var(--text);text-decoration:none;transition:border-color .15s;font-size:13px"
-            onmouseover="this.style.borderColor='var(--green2)'"
-            onmouseout="this.style.borderColor='var(--border2)'">
-            <span style="font-size:18px">🏇</span>
-            <div>
-              <div style="font-weight:500">View "'+((name)===undefined||(name)===null?'':(name))+'" on LoveRacing.NZ</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:2px">Full form, videos and race history</div>
-            </div>
-            <span style="margin-left:auto;color:var(--green);font-size:16px">→</span>
-          </a>
-        </div>
-      </div>
-    </div>
-    </div>\';
-}
+            
 
 // ===================== RESULTS =====================
 function applyFilters() {
