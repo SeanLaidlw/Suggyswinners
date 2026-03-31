@@ -767,17 +767,61 @@ function renderH2HStats(s) {
 // ---- AI SCORING ----
 function scoreRunner(runner, track, distance, going) {
   var score=0;
-  score+=Math.min(runner.winPct/100*30,30);
-  var recent=allResults.filter(function(r){return r.horse===runner.horse;}).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');}).slice(0,5);
-  if(recent.length){var avg=recent.reduce(function(s,r){return s+r.finish_position;},0)/recent.length;score+=Math.max(0,20-((avg-1)/9)*20);}
+
+  // 1. Recent form last 5 starts (25pts) - trajectory matters
+  var recent=allResults.filter(function(r){return r.horse===runner.horse&&isPlaced(r);})
+    .sort(function(a,b){return (b.date||'').localeCompare(a.date||'');}).slice(0,5);
+  if(recent.length) {
+    var avg=recent.reduce(function(s,r){return s+r.finish_position;},0)/recent.length;
+    // Bonus for improving trend
+    var trend=0;
+    if(recent.length>=3){
+      var early=recent.slice(recent.length-2).reduce(function(s,r){return s+r.finish_position;},0)/2;
+      var late=recent.slice(0,2).reduce(function(s,r){return s+r.finish_position;},0)/recent.slice(0,2).length;
+      trend=early>late?3:0; // improving = bonus
+    }
+    score+=Math.max(0,25-((avg-1)/9)*25)+trend;
+  }
+
+  // 2. Win rate (20pts)
+  score+=Math.min((runner.winPct||0)/100*20,20);
+
+  // 3. Speed at distance (18pts) - best time relative to field
+  if(distance&&runner.timeStats&&runner.timeStats[distance]) {
+    var ts=runner.timeStats[distance];
+    // Store on runner for cross-runner comparison later
+    runner._bestTimeSecs=ts.best;
+    runner._avgTimeSecs=ts.count>0?ts.total/ts.count:null;
+    // Raw score placeholder - will be normalised across field in renderFieldComparison
+    score+=9; // half marks for having data - normalised bonus added separately
+  }
+
+  // 4. Race class quality (12pts)
   var cWins=allResults.filter(function(r){return r.horse===runner.horse&&r.finish_position===1;});
-  if(cWins.length){var bt=Math.min.apply(null,cWins.map(function(r){return r.class_tier||7;}));score+=(CLASS_WIN_BONUS[bt]||0);}
-  if(track){var ts=runner.trackStats&&runner.trackStats[track]||{starts:0,wins:0};score+=ts.starts>=2?(ts.wins/ts.starts)*15:ts.starts===1?ts.wins*7:0;}
-  if(distance){var ds=runner.distStats&&runner.distStats[distance]||{starts:0,wins:0};score+=ds.starts>=2?(ds.wins/ds.starts)*10:ds.starts===1?ds.wins*5:0;}
-  if(going){var gs=runner.goingStats&&runner.goingStats[going]||{starts:0,wins:0};score+=gs.starts>=2?(gs.wins/gs.starts)*10:gs.starts===1?gs.wins*5:0;}
-  var b=runner.barrier||8;score+=b<=3?5:b<=6?3.5:b<=10?2:0.5;
-  var lastRow=allResults.filter(function(r){return r.horse===runner.horse;}).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');})[0];
-  if(lastRow&&lastRow.date){var days=Math.floor((Date.now()-new Date(lastRow.date))/(1000*60*60*24));if(days>60)score-=Math.min(3,(days-60)/30);}
+  if(cWins.length){var bt=Math.min.apply(null,cWins.map(function(r){return r.class_tier||7;}));score+=Math.min((CLASS_WIN_BONUS[bt]||0)/25*12,12);}
+
+  // 5. Barrier draw (10pts) - manual entry, so use actual barrier
+  var b=runner.barrier||8;
+  score+=b===1?10:b<=3?8:b<=6?6:b<=10?4:b<=13?2:1;
+
+  // 6. Going suitability (8pts)
+  if(going){var gs=runner.goingStats&&runner.goingStats[going]||{starts:0,wins:0};
+    score+=gs.starts>=3?(gs.wins/gs.starts)*8:gs.starts>=1?(gs.wins/gs.starts)*4:0;}
+
+  // 7. Track suitability (5pts)
+  if(track){var trs=runner.trackStats&&runner.trackStats[track]||{starts:0,wins:0};
+    score+=trs.starts>=2?(trs.wins/trs.starts)*5:trs.starts===1?trs.wins*2.5:0;}
+
+  // 8. Distance suitability (1pt)
+  if(distance){var ds=runner.distStats&&runner.distStats[distance]||{starts:0,wins:0};
+    score+=ds.starts>=2?(ds.wins/ds.starts)*1:0;}
+
+  // 9. Days since last run (1pt penalty only if very long absence)
+  var lastRow=allResults.filter(function(r){return r.horse===runner.horse;})
+    .sort(function(a,b){return (b.date||'').localeCompare(a.date||'');})[0];
+  if(lastRow&&lastRow.date){var days=Math.floor((Date.now()-new Date(lastRow.date))/(1000*60*60*24));
+    if(days>90)score-=Math.min(2,(days-90)/30);}
+
   return Math.round(Math.max(0,score)*10)/10;
 }
 
@@ -814,7 +858,7 @@ function aiVerdictHTML(ranked, context) {
   return '<div class="ai-verdict">'
     +'<div class="ai-header"><div><div class="ai-label">AI likely winner</div><div class="ai-pick">'+(top.horse||top.name)+'</div></div><div class="ai-ctx">'+context+'</div></div>'
     +rows
-    +'<div class="ai-footer">Scoring: win rate (30%) / recent form (20%) / race class (10%) / track (15%) / distance (10%) / going (10%) / barrier (5%) / days since last run</div>'
+    +'<div class="ai-footer">Scoring: recent form (25%) / win rate (20%) / speed at distance (18%) / race class (12%) / barrier (10%) / going (8%) / track (5%) / distance (1%) / days since last run (1%)</div>'
     +'</div>';
 }
 
@@ -885,12 +929,25 @@ function renderFieldRunners() {
   document.getElementById('field-count').textContent=fieldRunners.length+' / '+MAX_RUNNERS;
   var body=document.getElementById('field-runners-body');
   if(!fieldRunners.length){body.innerHTML='<div class="field-empty">No runners added -- search horses on the left</div>';return;}
+  // Wire barrier inputs after DOM update
+  function wireBarrierInputs(){
+    document.querySelectorAll('.barrier-input').forEach(function(inp){
+      inp.addEventListener('change',function(){
+        var horse=this.dataset.horse;
+        var val=Math.max(1,Math.min(24,parseInt(this.value)||1));
+        this.value=val;
+        var runner=fieldRunners.find(function(r){return r.horse===horse;});
+        if(runner){runner.barrier=val;renderFieldComparison();}
+      });
+    });
+  }
+  setTimeout(wireBarrierInputs,50);
   body.innerHTML=fieldRunners.map(function(r,i){
     var formDots=r.form?r.form.split('-').map(function(p){var n=parseInt(p);var cls=n===1?'fd-1':n===2?'fd-2':n===3?'fd-3':'fd-o';return '<div class="form-dot '+cls+'" style="width:18px;height:18px;font-size:10px">'+p+'</div>';}).join(''):'';
     var hn=r.horse.replace(/'/g,"\\'");
     return '<div class="runner-row">'
       +'<div class="runner-num" style="color:'+r.color+'">'+String(i+1).padStart(2,'0')+'</div>'
-      +'<div class="barrier-pill">'+r.barrier+'</div>'
+      +'<input type="number" min="1" max="24" value="'+r.barrier+'" class="barrier-input" data-horse="'+r.horse+'" style="width:38px;padding:4px;text-align:center;font-family:var(--fm);font-size:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text)">'
       +'<div><div class="runner-name">'+r.horse+'</div><div class="runner-sub">'+r.trainer+'</div></div>'
       +'<div class="runner-stat rh">'+r.starts+'</div>'
       +'<div class="runner-stat rh" style="color:var(--amber)">'+r.wins+'</div>'
@@ -908,7 +965,26 @@ function renderFieldComparison() {
   var distance=document.getElementById('field-distance').value;
   var track=document.getElementById('field-track').value;
   var going=document.getElementById('field-going').value;
-  var ranked=fieldRunners.map(function(r){return Object.assign({},r,{aiScore:scoreRunner(r,track,distance,going)});}).sort(function(a,b){return b.aiScore-a.aiScore;});
+  var scored=fieldRunners.map(function(r){return Object.assign({},r,{aiScore:scoreRunner(r,track,distance,going)});});
+
+  // Normalise speed score across the field (18pts for fastest, 0 for no data)
+  if(distance) {
+    var timers=scored.filter(function(r){return r._bestTimeSecs;});
+    if(timers.length>=2) {
+      var fastest=Math.min.apply(null,timers.map(function(r){return r._bestTimeSecs;}));
+      var slowest=Math.max.apply(null,timers.map(function(r){return r._bestTimeSecs;}));
+      var range=slowest-fastest||1;
+      scored.forEach(function(r){
+        if(r._bestTimeSecs) {
+          // Replace placeholder 9pts with normalised 0-18pts (faster = more)
+          r.aiScore = r.aiScore - 9 + ((slowest-r._bestTimeSecs)/range)*18;
+          r.aiScore = Math.round(Math.max(0,r.aiScore)*10)/10;
+        }
+      });
+    }
+  }
+
+  var ranked=scored.sort(function(a,b){return b.aiScore-a.aiScore;});
   var ctx=[];if(track)ctx.push(track);if(distance)ctx.push(distance+'m');if(going)ctx.push(going);
   document.getElementById('field-ai-verdict').innerHTML=aiVerdictHTML(ranked,ctx.join(' / ')||'all conditions');
   var maxWin=Math.max.apply(null,fieldRunners.map(function(r){return r.winPct;}).concat([1]));
