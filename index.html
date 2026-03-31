@@ -1163,14 +1163,7 @@ function renderResultsTable() {
       <td style="color:var(--text2)">${r.track||'—'}</td>
       <td class="time-val">${r.date||'—'}</td>
       <td class="r-hide" style="color:var(--text2);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis">${r.race_name||'—'}</td>
-      <td class="r-hide">${getClassBadge(r.race_name,r.race_class,r.prize_money)}</td>
-      <td class="time-val r-hide">${r.distance_m?r.distance_m+'m':'—'}</td>
-      <td class="time-val r-hide">${r.barrier||'—'}</td>
-      <td class="odds">${r.odds_sp?'$'+r.odds_sp:'—'}</td>
-      <td class="time-val r-hide">${r.finish_time||'—'}</td>
-      <td class="r-hide" style="color:var(--text3);font-size:12px">${p===1?'Winner':(r.margin_trad||'—')}</td>
-    </tr>`;
-  }).join('');
+      }).join('');
   renderPagination(Math.ceil(total/PAGE_SIZE));
 }
 
