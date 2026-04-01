@@ -776,7 +776,12 @@ def parse_results(lines, race_id, conn):
         jockey_id  = upsert(conn, "jockeys", jockey_name) if jockey_name else None
         trainer_id = upsert(conn, "trainers", trainer_name) if trainer_name else None
 
-        finish_pos = runner["position"] if runner["position"] is not None else 99 + idx
+        if runner["position"] is not None:
+            finish_pos = runner["position"]
+        else:
+            # Unplaced: assign positions after the last placed runner
+            last_placed = max((r["position"] for r in runners.values() if r["position"]), default=0)
+            finish_pos = last_placed + 1 + idx
 
         try:
             conn.execute(
