@@ -188,8 +188,27 @@ def scrape_meeting(page, meeting_info, conn):
 
     existing = conn.execute("SELECT id FROM meetings WHERE meeting_id = ?", (mid,)).fetchone()
     if existing:
-        print(f"  Already scraped meeting {mid}, skipping.")
-        return
+        # Always re-scrape meetings from today or yesterday to catch late results
+        today     = datetime.now().strftime("%Y-%m-%d")
+        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        meeting_date_db = conn.execute(
+            "SELECT date FROM meetings WHERE meeting_id=?", (mid,)
+        ).fetchone()
+        mdate = meeting_date_db[0] if meeting_date_db else ""
+
+        if mdate in (today, yesterday):
+            # Delete and re-scrape to ensure complete results
+            print(f"  Re-scraping recent meeting {mid} ({mdate}) to ensure complete results...")
+            conn.execute("DELETE FROM results WHERE race_fk IN "
+                        "(SELECT id FROM races WHERE meeting_fk="
+                        "(SELECT id FROM meetings WHERE meeting_id=?))", (mid,))
+            conn.execute("DELETE FROM races WHERE meeting_fk="
+                        "(SELECT id FROM meetings WHERE meeting_id=?)", (mid,))
+            conn.execute("DELETE FROM meetings WHERE meeting_id=?", (mid,))
+            conn.commit()
+        else:
+            print(f"  Already scraped meeting {mid}, skipping.")
+            return
 
     print(f"\nMeeting {mid}: {meeting_info.get('track', '')} — {url}")
 
@@ -216,6 +235,11 @@ def scrape_meeting(page, meeting_info, conn):
             meeting_date = datetime.strptime(date_match.group(1), "%d %b %Y").strftime("%Y-%m-%d")
         except ValueError:
             pass
+
+    # Skip future meetings - no results yet
+    if meeting_date and meeting_date > datetime.now().strftime("%Y-%m-%d"):
+        print(f"  Skipping future meeting: {meeting_date}")
+        return
 
     # Going e.g. "Heavy10"
     going = None
@@ -257,8 +281,15 @@ def scrape_meeting(page, meeting_info, conn):
             "SELECT COUNT(*) FROM trials WHERE meeting_id=?", (mid,)
         ).fetchone()[0]
         if existing_trial > 0:
-            print(f"  Already have {existing_trial} trial results for {mid}, skipping.")
-            return
+            today     = datetime.now().strftime("%Y-%m-%d")
+            yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+            if mdate not in (today, yesterday):
+                print(f"  Already have {existing_trial} trial results for {mid}, skipping.")
+                return
+            else:
+                print(f"  Re-scraping recent trial meeting {mid} for completeness...")
+                conn.execute("DELETE FROM trials WHERE meeting_id=?", (mid,))
+                conn.commit()
 
     # Find race links on the meeting page
     race_numbers = []
@@ -982,9 +1013,34 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Scrape loveracing.nz results")
     parser.add_argument("--backfill", action="store_true", help="Backfill historical meetings")
     parser.add_argument("--months", type=int, default=3, help="How many months to backfill (default: 3)")
+    parser.add_argument("--rerun-days", type=int, default=0,
+                        help="Force re-scrape meetings from last N days (e.g. --rerun-days 3)")
     args = parser.parse_args()
 
-    if args.backfill:
+    if args.rerun_days > 0:
+        # Delete recent meetings so they get re-scraped fresh
+        cutoff = (datetime.now() - timedelta(days=args.rerun_days)).strftime("%Y-%m-%d")
+        conn = get_conn()
+        init_db(conn)
+        meetings = conn.execute(
+            "SELECT meeting_id, date FROM meetings WHERE date >= ?", (cutoff,)
+        ).fetchall()
+        print(f"Force re-scraping {len(meetings)} meetings from last {args.rerun_days} days (since {cutoff})...")
+        for m in meetings:
+            mid, mdate = m[0], m[1]
+            conn.execute("DELETE FROM results WHERE race_fk IN "
+                        "(SELECT id FROM races WHERE meeting_fk="
+                        "(SELECT id FROM meetings WHERE meeting_id=?))", (mid,))
+            conn.execute("DELETE FROM races WHERE meeting_fk="
+                        "(SELECT id FROM meetings WHERE meeting_id=?)", (mid,))
+            conn.execute("DELETE FROM meetings WHERE meeting_id=?", (mid,))
+            conn.execute("DELETE FROM trials WHERE meeting_id=?", (mid,))
+            print(f"  Cleared {mdate} meeting {mid}")
+        conn.commit()
+        conn.close()
+        print("Re-scraping now...")
+        run()
+    elif args.backfill:
         backfill(months=args.months)
     else:
         run()
