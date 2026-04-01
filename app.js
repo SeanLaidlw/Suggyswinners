@@ -105,11 +105,11 @@ function init() {
       if(lt) lt.textContent='Decoding '+window.RACING_DATA.rows.length.toLocaleString()+' results...';
       allResults = enrichWithClass(decodeRacingData(window.RACING_DATA));
       var s=window.RACING_DATA.summary;
-      document.getElementById('db-status').textContent=s.total_results.toLocaleString()+' results - '+s.exported_at;
+      document.getElementById('db-status').textContent=s.total_races.toLocaleString()+' races - '+s.exported_at;
     } else if(window.RACING_DATA&&window.RACING_DATA.results&&window.RACING_DATA.results.length) {
       allResults = enrichWithClass(window.RACING_DATA.results);
       var s=window.RACING_DATA.summary;
-      document.getElementById('db-status').textContent=s.total_results.toLocaleString()+' results - '+s.exported_at;
+      document.getElementById('db-status').textContent=s.total_races.toLocaleString()+' races - '+s.exported_at;
     } else {
       allResults = enrichWithClass(generateMockData());
       document.getElementById('db-status').textContent='demo mode';
@@ -124,6 +124,7 @@ function init() {
   loadTrends();
   renderClassLB(6);
   wireEvents();
+  showPage('home');
   var overlay=document.getElementById('loading-overlay');
   if(overlay){overlay.classList.add('fade-out');setTimeout(function(){if(overlay.parentNode)overlay.remove();},450);}
 }
@@ -1132,17 +1133,111 @@ function closeModal() {
   document.body.style.overflow='';
 }
 
+
+// ---- HOME PAGE ----
+function renderHome() {
+  // Stat pills
+  var s = window.RACING_DATA && window.RACING_DATA.summary || {};
+  document.getElementById('home-races').textContent = (s.total_races||allResults.length).toLocaleString();
+  document.getElementById('home-horses').textContent = (s.total_horses||0).toLocaleString();
+  document.getElementById('home-updated').textContent = s.exported_at||'--';
+
+  // Latest 3 races - find 3 most recent unique race groups
+  var seen = {};
+  var latestRaces = [];
+  var sorted = allResults.filter(isPlaced).slice(); // already sorted by date desc
+  for(var i=0; i<sorted.length && latestRaces.length<3; i++) {
+    var r = sorted[i];
+    var key = getRaceKey(r);
+    if(!seen[key] && r.finish_position===1) {
+      seen[key] = true;
+      var allRunners = allResults.filter(function(x){ return getRaceKey(x)===key; });
+      latestRaces.push({winner:r, runners:allRunners});
+    }
+  }
+
+  document.getElementById('home-latest-races').innerHTML = latestRaces.map(function(race) {
+    var w = race.winner;
+    var classBadge = getClassBadge(w.race_name, w.race_class, w.prize_money);
+    var going = w.going ? '<span class="going-badge '+goingClass(w.going)+'">'+normaliseGoing(w.going)+'</span>' : '';
+    var raceLabel = (w.race_name&&w.race_name.trim()) || ('Race '+w.race_number);
+    return '<div class="home-race-card" data-track="'+( w.track||'')+'" data-date="'+(w.date||'')+'" data-racenum="'+(w.race_number||'')+'">'
+      +'<div class="home-race-header">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<span class="home-race-title">'+( w.track||'--')+' &bull; R'+w.race_number+'</span>'
+      +classBadge
+      +'</div>'
+      +'<span class="home-race-meta">'+( w.date||'--')+' &bull; '+(w.distance_m?w.distance_m+'m':'')+' '+going+'</span>'
+      +'</div>'
+      +'<div class="home-winner">'
+      +'<div class="home-winner-pos">1</div>'
+      +'<div class="home-winner-info">'
+      +'<div class="home-winner-name">'+( w.horse||'--')+'</div>'
+      +'<div class="home-winner-detail">'+( w.jockey||'--')+'</div>'
+      +'</div>'
+      +'<div class="home-winner-time">'+( w.finish_time||'--')+'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+
+  // Wire race card clicks
+  document.querySelectorAll('.home-race-card').forEach(function(card){
+    card.addEventListener('click', function(){
+      openRace(this.dataset.track, this.dataset.date, parseInt(this.dataset.racenum));
+    });
+  });
+
+  // Top 5 leaderboards
+  function buildLeaderboard(field, limit) {
+    var grouped = {};
+    allResults.filter(isPlaced).forEach(function(r){
+      var key = r[field]; if(!key) return;
+      if(!grouped[key]) grouped[key]={name:key,wins:0,starts:0};
+      grouped[key].starts++;
+      if(r.finish_position===1) grouped[key].wins++;
+    });
+    return Object.values(grouped).sort(function(a,b){return b.wins-a.wins;}).slice(0,limit||5);
+  }
+
+  var horses  = buildLeaderboard('horse',5);
+  var jockeys = buildLeaderboard('jockey',5);
+  var trainers= buildLeaderboard('trainer',5);
+
+  function leaderboardRows(data, type) {
+    return data.map(function(d,i){
+      var n=d.name.replace(/'/g,"\'");
+      return '<div class="home-lb-row">'
+        +'<span class="home-lb-rank">'+(i+1)+'</span>'
+        +'<span class="home-lb-name" data-name="'+d.name+'" data-type="'+type+'">'+d.name+'</span>'
+        +'<span class="home-lb-wins">'+d.wins+'W</span>'
+        +'<span class="home-lb-starts">'+d.starts+' starts</span>'
+        +'</div>';
+    }).join('');
+  }
+
+  document.getElementById('home-top-horses').innerHTML  = leaderboardRows(horses,'horse');
+  document.getElementById('home-top-jockeys').innerHTML = leaderboardRows(jockeys,'jockey');
+  document.getElementById('home-top-trainers').innerHTML= leaderboardRows(trainers,'trainer');
+
+  // Wire leaderboard name clicks
+  document.querySelectorAll('.home-lb-name').forEach(function(el){
+    el.addEventListener('click', function(){
+      openProfile(this.dataset.name, this.dataset.type);
+    });
+  });
+}
+
 // ---- PAGES ----
 function showPage(name) {
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.nav-tab,.bnav-tab').forEach(function(t){t.classList.remove('active');});
-  document.getElementById('page-'+name).classList.add('active');
-  var pages=['results','trends','h2h','profile','field'];
+  var el = document.getElementById('page-'+name);
+  if(el) el.classList.add('active');
+  var pages=['home','results','trends','h2h','profile','field'];
   var idx=pages.indexOf(name);
-  var navTabs=document.querySelectorAll('.nav-tab');
-  if(navTabs[Math.min(idx,navTabs.length-1)]) navTabs[Math.min(idx,navTabs.length-1)].classList.add('active');
-  var bnavTabs=document.querySelectorAll('.bnav-tab');
-  if(bnavTabs[idx]) bnavTabs[idx].classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(function(t,i){if(i===idx) t.classList.add('active');});
+  document.querySelectorAll('.bnav-tab').forEach(function(t,i){if(i===idx-1) t.classList.add('active');});
+  if(name==='home') renderHome();
   if(name==='trends') loadTrends();
   window.scrollTo({top:0,behavior:'smooth'});
 }
