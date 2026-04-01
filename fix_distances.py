@@ -95,20 +95,20 @@ def fix_distances(db_path: str = "racing.db", dry_run: bool = False):
                     "UPDATE races SET distance_m = ? WHERE id = ?",
                     (dist, race["id"])
                 )
-            print(f"  ✓ Race {race['id']:5}: '{race['race_name']}' → {dist}m")
+            print(f"  OK Race {race['id']:5}: '{race['race_name']}' → {dist}m")
             fixed += 1
         else:
-            print(f"  ✗ Race {race['id']:5}: '{race['race_name']}' — could not extract distance")
+            print(f"  XX Race {race['id']:5}: '{race['race_name']}' — could not extract distance")
             still_missing += 1
 
     if not dry_run:
         conn.commit()
-        print(f"\n✅ Fixed {fixed} races")
+        print(f"\nOK Fixed {fixed} races")
     else:
         print(f"\n[DRY RUN] Would fix {fixed} races")
 
     if still_missing:
-        print(f"⚠️  {still_missing} races still have no distance — check race names above")
+        print(f"WARNING  {still_missing} races still have no distance — check race names above")
 
     conn.close()
 

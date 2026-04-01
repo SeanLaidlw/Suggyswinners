@@ -259,7 +259,14 @@ def scrape_meeting(page, meeting_info, conn):
     if rail_match:
         rail = rail_match.group(1).strip()[:200]
 
+    # Try to get the full venue name from the page (e.g. "Auckland Thoroughbred Racing @ Pukekohe Park")
+    # The @ line is more specific than what the home page link text provides
     track_name = meeting_info.get("track", "Unknown")
+    for line in body_text.split("\n"):
+        line = line.strip()
+        if "@" in line and len(line) < 100 and any(kw in line.upper() for kw in ["RACING", "RC", "JOCKEY", "CLUB"]):
+            track_name = line
+            break
     track_id = upsert(conn, "tracks", track_name)
 
     conn.execute(
@@ -458,7 +465,7 @@ def scrape_race(page, meeting_id, race_num, meeting_fk, conn):
             race_name = clean(m.group(1))
             break
 
-    # e.g. "MDN 1150m - $25,000"
+    # e.g. "MDN 1150m - $25,000" or "AUCKLAND CUP 2400m - $500,000"
     detail_match = re.search(
         r"(MDN|Open|BM\d+|Gr\.\d|Group\s*\d|Listed|2YO|3YO|4YO\+?)\s+(\d+)m\s*-\s*\$([\d,]+)",
         text
@@ -468,7 +475,15 @@ def scrape_race(page, meeting_id, race_num, meeting_fk, conn):
         distance_m = int(detail_match.group(2))
         prize_money = int(detail_match.group(3).replace(",", ""))
 
-    # Also try to extract prize money separately
+    # Broader distance search - catches named races e.g. "Auckland Cup 2400m"
+    if distance_m is None:
+        broad_dist = re.search(r"\b(\d{3,4})m\b", text)
+        if broad_dist:
+            val = int(broad_dist.group(1))
+            if 800 <= val <= 4000:
+                distance_m = val
+
+    # Also try prize money from any "$X,XXX" pattern
     if prize_money is None:
         prize_match = re.search(r"\$\s*([\d,]+)", text)
         if prize_match:
