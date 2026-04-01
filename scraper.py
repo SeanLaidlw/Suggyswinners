@@ -674,11 +674,22 @@ def parse_results(lines, race_id, conn):
         i = bar_idx + 9
         stop = len(lines)
 
+        # Total runners expected = placed + unplaced
+        expected_runners = len(runners) + len(unplaced)
+
         while i < stop:
             line = lines[i]
 
+            # Stop when we have stats for all runners
+            if len(second_rows) >= expected_runners:
+                break
+
             # Stop at footer content
-            if line in ["Join In", "Race Meeting Calendar", "DIVIDENDS"]:
+            if line in ["Join In", "Race Meeting Calendar", "DIVIDENDS", "Plc"]:
+                break
+
+            # Stop if we hit another race header (e.g. "Race 3: ...")
+            if re.match(r"^Race \d+:", line):
                 break
 
             # Each block starts with a barrier number
