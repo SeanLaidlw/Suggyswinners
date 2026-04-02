@@ -80,6 +80,21 @@ def export(db_path="racing.db", out_path="data.js"):
         "exported_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
 
+    # Export speed figures - keyed by horse+date+distance for frontend lookup
+    speed_figures = {}
+    try:
+        import sys, os
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from speed_map import get_speed_figures
+        figs = get_speed_figures(db_path)
+        for f in figs:
+            # Key: horse|date|distance - matches how frontend looks up a result
+            key = f['horse'] + '|' + (f['date'] or '') + '|' + str(f['distance_m'])
+            speed_figures[key] = f['figure']
+        print(f"  {len(speed_figures)} speed figures calculated")
+    except Exception as e:
+        print(f"  Speed figures skipped: {e}")
+
     # Export trial data
     trials_encoded = []
     try:
@@ -102,6 +117,7 @@ def export(db_path="racing.db", out_path="data.js"):
                     "track": tracks, "going": goings, "race_name": races},
         "rows": encoded,
         "trials": trials_encoded,
+        "speed_figures": speed_figures,
     }
 
     js = "window.RACING_DATA = " + json.dumps(payload, default=str, separators=(",", ":")) + ";"
