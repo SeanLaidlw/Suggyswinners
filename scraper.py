@@ -264,20 +264,42 @@ def scrape_meeting(page, meeting_info, conn):
     track_name = meeting_info.get("track", "Unknown")
     for line in body_text.split("\n"):
         line = line.strip()
-        if "@" in line and len(line) < 100 and any(kw in line.upper() for kw in ["RACING", "RC", "JOCKEY", "CLUB"]):
-            track_name = line
-            break
+        # Must have @ and be a short club/venue name - stop at first punctuation after venue
+        if "@" in line and 5 < len(line) < 80:
+            at_idx = line.index("@")
+            before = line[:at_idx].strip()
+            after = line[at_idx+1:].strip()
+            # Venue should be 1-3 words, no extra keywords like MEETINGS/RESULTS/CALENDAR
+            venue_words = after.split()
+            skip_words = {"MEETINGS","RESULTS","CALENDAR","OVERVIEW","FIELDS","FORM","NEWS","PRINT"}
+            venue = " ".join(w for w in venue_words[:3] if w.upper() not in skip_words).strip()
+            if venue and any(kw in before.upper() for kw in ["RACING","RC","JOCKEY","CLUB","PARK"]):
+                track_name = before + " @ " + venue
+                break
     # Never store bare "Auckland Thoroughbred Racing" - always needs venue
-    if track_name == "Auckland Thoroughbred Racing":
-        # Try harder - look for @ anywhere in first 500 chars of body
+    if "Auckland Thoroughbred Racing" in track_name and "@" not in track_name:
+        # Look for the @ venue line - must end at known venue names
         import re as _re
-        atr_match = _re.search(r"Auckland Thoroughbred Racing\s*@\s*[\w ]+", body_text[:1000])
+        # Only match known ATR venues
+        atr_match = _re.search(
+            r"Auckland Thoroughbred Racing\s*@\s*(Ellerslie|Pukekohe Park|Matamata)",
+            body_text[:2000]
+        )
         if atr_match:
-            track_name = atr_match.group(0).strip()
+            track_name = "Auckland Thoroughbred Racing @ " + atr_match.group(1).strip()
         else:
-            # Fall back to URL-based detection not possible, skip this meeting
-            print(f"  WARNING: Could not determine ATR venue for meeting {mid} - will retry next run")
-            return
+            # Try the @ line scan but take only first two words after @
+            for line in body_text.split("\n"):
+                line = line.strip()
+                if "Auckland Thoroughbred Racing @" in line:
+                    # Extract just "Auckland Thoroughbred Racing @ Ellerslie"
+                    at_idx = line.index("@")
+                    venue = line[at_idx+1:].strip().split()[0]
+                    track_name = "Auckland Thoroughbred Racing @ " + venue
+                    break
+            else:
+                print(f"  WARNING: Could not determine ATR venue for meeting {mid} - skipping")
+                return
     track_id = upsert(conn, "tracks", track_name)
 
     conn.execute(
