@@ -267,6 +267,17 @@ def scrape_meeting(page, meeting_info, conn):
         if "@" in line and len(line) < 100 and any(kw in line.upper() for kw in ["RACING", "RC", "JOCKEY", "CLUB"]):
             track_name = line
             break
+    # Never store bare "Auckland Thoroughbred Racing" - always needs venue
+    if track_name == "Auckland Thoroughbred Racing":
+        # Try harder - look for @ anywhere in first 500 chars of body
+        import re as _re
+        atr_match = _re.search(r"Auckland Thoroughbred Racing\s*@\s*[\w ]+", body_text[:1000])
+        if atr_match:
+            track_name = atr_match.group(0).strip()
+        else:
+            # Fall back to URL-based detection not possible, skip this meeting
+            print(f"  WARNING: Could not determine ATR venue for meeting {mid} - will retry next run")
+            return
     track_id = upsert(conn, "tracks", track_name)
 
     conn.execute(
