@@ -1,4 +1,4 @@
-// SuggysWinners app.js - clean version, no template literals with class=
+// StableForm app.js - clean version, no template literals with class=
 
 var allResults = [], filteredResults = [], currentPage = 1;
 var PAGE_SIZE = 50, sortKey = 'date', sortDir = -1;
