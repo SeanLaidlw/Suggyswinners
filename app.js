@@ -655,33 +655,34 @@ function openProfile(name, type) {
   var chronoRows = rows.slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'');});
   var classChartHtml = '';
   if(chronoRows.length >= 2) {
-    var chartW = 560, chartH = 110, padL = 36, padR = 12, padT = 10, padB = 22;
+    var chartW = 520, chartH = 160, padL = 40, padR = 12, padT = 12, padB = 24;
     var innerW = chartW - padL - padR;
     var innerH = chartH - padT - padB;
-    // Tier scale: 1=G1 (top) to 7=Mdn (bottom) - invert Y so better class is higher
-    var tierLabels = {1:'G1',2:'G2',3:'G3',4:'LR',5:'Open',6:'BM',7:'Mdn'};
+    var tierLabels = {1:'G1',2:'G2',3:'G3',4:'Listed',5:'Open',6:'BM',7:'Maiden'};
     var tierColors = {1:'#534AB7',2:'#7F77DD',3:'#AFA9EC',4:'#1D9E75',5:'#3B6D11',6:'#BA7517',7:'#888780'};
-    var minTier = 1, maxTier = 7;
+    // Non-linear Y positions: bigger visual gap between Group/Listed/Open/BM/Mdn
+    // Each tier gets a fixed Y slot - spread evenly but labeled clearly
+    var tierY = {1:0, 2:0.12, 3:0.24, 4:0.40, 5:0.57, 6:0.76, 7:1.0};
     var n = chronoRows.length;
-    // X positions for each run
     var pts = chronoRows.map(function(r, i) {
       var t = r.class_tier || 7;
-      t = Math.min(Math.max(t, minTier), maxTier);
+      t = Math.min(Math.max(t, 1), 7);
       var x = padL + (n === 1 ? innerW/2 : i * innerW / (n-1));
-      var y = padT + ((t - minTier) / (maxTier - minTier)) * innerH;
+      var y = padT + (tierY[t] || 1) * innerH;
       return {x:x, y:y, t:t, r:r};
     });
     // Build SVG path
     var pathD = pts.map(function(p,i){return (i===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ');
-    // Y axis labels
-    var yLabels = [1,3,5,7].map(function(t) {
-      var y = padT + ((t - minTier) / (maxTier - minTier)) * innerH;
-      return '<text x="'+(padL-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="9" fill="var(--text3)">'+tierLabels[t]+'</text>';
+    // Y axis labels and grid lines for all 7 tiers
+    var allTiers = [1,2,3,4,5,6,7];
+    var yLabels = allTiers.map(function(t) {
+      var y = padT + (tierY[t]||1) * innerH;
+      return '<text x="'+(padL-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="9" fill="'+(tierColors[t]||'var(--text3)')+'">'+tierLabels[t]+'</text>';
     }).join('');
-    // Grid lines
-    var gridLines = [1,3,5,7].map(function(t) {
-      var y = padT + ((t - minTier) / (maxTier - minTier)) * innerH;
-      return '<line x1="'+padL+'" y1="'+y+'" x2="'+(chartW-padR)+'" y2="'+y+'" stroke="var(--border)" stroke-width="0.5"/>';
+    var gridLines = allTiers.map(function(t) {
+      var y = padT + (tierY[t]||1) * innerH;
+      var dashed = t<=4 ? '' : ' stroke-dasharray="3,3"';
+      return '<line x1="'+padL+'" y1="'+y+'" x2="'+(chartW-padR)+'" y2="'+y+'" stroke="var(--border)" stroke-width="0.5"'+dashed+'/>';
     }).join('');
     // Dots with win highlighting
     var dots = pts.map(function(p) {
@@ -740,9 +741,11 @@ function openProfile(name, type) {
     +(daysSince!==null?'<div class="psr"><span class="psl">Days since last run</span><span class="psv">'+daysSince+'</span></div>':'')
     +'</div>'
     +'<div class="profile-right">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:0">'
     +'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">Going record</span></div>'
-    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:1rem">'+goingCards+'</div></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;padding:1rem">'+goingCards+'</div></div>'
     +classChartHtml
+    +'</div>'
     +'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">Recent runs</span><span class="table-count">'+rows.length+' total</span></div>'+recentRuns+'</div>'
     +'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">Speed record by distance</span></div>'+( Object.keys(timeByDist).length  ? '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;padding:1rem">'    +Object.entries(timeByDist).sort(function(a,b){return parseInt(a[0])-parseInt(b[0]);}).map(function(e){      var dist=e[0],d=e[1];      var avg=d.count>0?(d.total/d.count):null;      return '<div class="going-card">'        +'<div style="font-size:10px;font-family:var(--fm);color:var(--text3);text-transform:uppercase;margin-bottom:4px">'+dist+'m</div>'        +'<div style="font-family:var(--fm);font-size:16px;font-weight:500;color:var(--green)">'+d.bestRaw+'</div>'        +'<div style="font-size:10px;color:var(--text3);margin-top:2px">best</div>'        +(avg?'<div style="font-family:var(--fm);font-size:13px;color:var(--text2);margin-top:4px">avg: '+secsToDisplay(avg)+'</div>':'')        +'<div style="font-size:10px;color:var(--text3)">'+d.bestDate+' @ '+d.bestTrack+'</div>'        +'</div>';    }).join('')    +'</div>'  : '<div style="padding:1rem;color:var(--text3);font-size:13px">No timed runs recorded</div>')+'</div>'+' '+'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">News &amp; Articles</span></div>'
     +'<div style="padding:1rem">'
