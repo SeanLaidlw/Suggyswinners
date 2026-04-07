@@ -650,6 +650,79 @@ function openProfile(name, type) {
   }).join('');
 
   var eName=encodeURIComponent(name);
+
+  // Class progression chart - show class tier over time (chronological)
+  var chronoRows = rows.slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'');});
+  var classChartHtml = '';
+  if(chronoRows.length >= 2) {
+    var chartW = 560, chartH = 110, padL = 36, padR = 12, padT = 10, padB = 22;
+    var innerW = chartW - padL - padR;
+    var innerH = chartH - padT - padB;
+    // Tier scale: 1=G1 (top) to 7=Mdn (bottom) - invert Y so better class is higher
+    var tierLabels = {1:'G1',2:'G2',3:'G3',4:'LR',5:'Open',6:'BM',7:'Mdn'};
+    var tierColors = {1:'#534AB7',2:'#7F77DD',3:'#AFA9EC',4:'#1D9E75',5:'#3B6D11',6:'#BA7517',7:'#888780'};
+    var minTier = 1, maxTier = 7;
+    var n = chronoRows.length;
+    // X positions for each run
+    var pts = chronoRows.map(function(r, i) {
+      var t = r.class_tier || 7;
+      t = Math.min(Math.max(t, minTier), maxTier);
+      var x = padL + (n === 1 ? innerW/2 : i * innerW / (n-1));
+      var y = padT + ((t - minTier) / (maxTier - minTier)) * innerH;
+      return {x:x, y:y, t:t, r:r};
+    });
+    // Build SVG path
+    var pathD = pts.map(function(p,i){return (i===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ');
+    // Y axis labels
+    var yLabels = [1,3,5,7].map(function(t) {
+      var y = padT + ((t - minTier) / (maxTier - minTier)) * innerH;
+      return '<text x="'+(padL-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="9" fill="var(--text3)">'+tierLabels[t]+'</text>';
+    }).join('');
+    // Grid lines
+    var gridLines = [1,3,5,7].map(function(t) {
+      var y = padT + ((t - minTier) / (maxTier - minTier)) * innerH;
+      return '<line x1="'+padL+'" y1="'+y+'" x2="'+(chartW-padR)+'" y2="'+y+'" stroke="var(--border)" stroke-width="0.5"/>';
+    }).join('');
+    // Dots with win highlighting
+    var dots = pts.map(function(p) {
+      var isWin = p.r.finish_position === 1;
+      var col = tierColors[p.t] || '#888780';
+      var r = isWin ? 5 : 3.5;
+      var ring = isWin ? '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="8" fill="none" stroke="'+col+'" stroke-width="1" opacity="0.4"/>' : '';
+      return ring+'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r+'" fill="'+col+'" />';
+    }).join('');
+    // X axis date labels (first + last + any wins)
+    var xLabels = '';
+    pts.forEach(function(p, i) {
+      var showLabel = i===0 || i===pts.length-1 || p.r.finish_position===1;
+      if(showLabel && p.r.date) {
+        var d = p.r.date.slice(2).replace(/-/g,'/');
+        var anchor = i===0?'start':i===pts.length-1?'end':'middle';
+        xLabels += '<text x="'+p.x.toFixed(1)+'" y="'+(chartH-4)+'" text-anchor="'+anchor+'" font-size="9" fill="var(--text3)">'+d+'</text>';
+      }
+    });
+    classChartHtml = '<div class="table-wrap" style="margin-bottom:0">'
+      +'<div class="table-header"><span class="table-title">Class progression</span>'
+      +'<span class="table-count">'+chronoRows.length+' runs &bull; wins highlighted</span></div>'
+      +'<div style="padding:0.75rem 1rem 0.5rem;overflow-x:auto">'
+      +'<svg viewBox="0 0 '+chartW+' '+chartH+'" style="width:100%;max-width:'+chartW+'px;display:block" preserveAspectRatio="none">'
+      +gridLines+yLabels
+      +'<polyline points="'+pts.map(function(p){return p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ')+'" fill="none" stroke="var(--text3)" stroke-width="1" opacity="0.4"/>'
+      +dots+xLabels
+      +'</svg>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 0 0.5rem;font-size:10px">'
+      +Object.entries(tierLabels).map(function(e){
+        var t=parseInt(e[0]),lbl=e[1];
+        var hasRun=chronoRows.some(function(r){return (r.class_tier||7)===t;});
+        if(!hasRun) return '';
+        return '<span style="display:flex;align-items:center;gap:4px;color:var(--text2)">'
+          +'<span style="width:8px;height:8px;border-radius:50%;background:'+(tierColors[t]||'#888')+'"></span>'
+          +lbl+'</span>';
+      }).join('')
+      +'</div>'
+      +'</div></div>';
+  }
+
   document.getElementById('profile-content').innerHTML=
     '<div class="profile-wrap">'
     +'<div class="profile-card">'
@@ -669,6 +742,7 @@ function openProfile(name, type) {
     +'<div class="profile-right">'
     +'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">Going record</span></div>'
     +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:1rem">'+goingCards+'</div></div>'
+    +classChartHtml
     +'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">Recent runs</span><span class="table-count">'+rows.length+' total</span></div>'+recentRuns+'</div>'
     +'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">Speed record by distance</span></div>'+( Object.keys(timeByDist).length  ? '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;padding:1rem">'    +Object.entries(timeByDist).sort(function(a,b){return parseInt(a[0])-parseInt(b[0]);}).map(function(e){      var dist=e[0],d=e[1];      var avg=d.count>0?(d.total/d.count):null;      return '<div class="going-card">'        +'<div style="font-size:10px;font-family:var(--fm);color:var(--text3);text-transform:uppercase;margin-bottom:4px">'+dist+'m</div>'        +'<div style="font-family:var(--fm);font-size:16px;font-weight:500;color:var(--green)">'+d.bestRaw+'</div>'        +'<div style="font-size:10px;color:var(--text3);margin-top:2px">best</div>'        +(avg?'<div style="font-family:var(--fm);font-size:13px;color:var(--text2);margin-top:4px">avg: '+secsToDisplay(avg)+'</div>':'')        +'<div style="font-size:10px;color:var(--text3)">'+d.bestDate+' @ '+d.bestTrack+'</div>'        +'</div>';    }).join('')    +'</div>'  : '<div style="padding:1rem;color:var(--text3);font-size:13px">No timed runs recorded</div>')+'</div>'+' '+'<div class="table-wrap" style="margin-bottom:0"><div class="table-header"><span class="table-title">News &amp; Articles</span></div>'
     +'<div style="padding:1rem">'
