@@ -68,11 +68,11 @@ function decodeRacingData(data) {
   return rows.map(function(r) {
     return {
       finish_position:r[0], barrier:r[1], margin_trad:r[2],
-      finish_time:r[3], odds_sp:r[4], prize_money:r[5],
-      horse:L.horse[r[6]], jockey:L.jockey[r[7]], trainer:L.trainer[r[8]],
-      track:L.track[r[9]], date:r[10], going:L.going[r[11]],
-      race_name:L.race_name[r[12]], race_class:r[13], distance_m:r[14],
-      race_number:r[15]
+      finish_time:r[3], last_600:r[4], odds_sp:r[5], prize_money:r[6],
+      horse:L.horse[r[7]], jockey:L.jockey[r[8]], trainer:L.trainer[r[9]],
+      track:L.track[r[10]], date:r[11], going:L.going[r[12]],
+      race_name:L.race_name[r[13]], race_class:r[14], distance_m:r[15],
+      race_number:r[16]
     };
   });
 }
@@ -89,6 +89,143 @@ function speedFigBadge(fig) {
   if(fig===null||fig===undefined) return '';
   var col = fig>=110?'var(--green)':fig>=100?'var(--amber)':fig>=85?'var(--text2)':'var(--text3)';
   return '<span style="font-family:var(--fm);font-size:10px;padding:2px 6px;border-radius:4px;background:var(--bg4);color:'+col+';margin-left:4px" title="Speed figure">SF '+fig+'</span>';
+}
+
+// ---- PACE MAP ----
+function timeToSecs600(t) {
+  if(!t) return null;
+  try {
+    var p=t.split('.');
+    if(p.length===3) return parseInt(p[0])*60+parseInt(p[1])+parseInt(p[2])/100;
+  } catch(e){}
+  return null;
+}
+
+function calcPaceScore(rows, barrier) {
+  // Score 0-100: higher = more likely to lead
+  // Uses avg last600 relative to finish time (early pace burn ratio)
+  // and barrier draw (inside draws favour front runners)
+  var validRuns = rows.filter(function(r){
+    return r.finish_time && r.last_600 && r.finish_position <= 15;
+  }).slice(-8); // last 8 runs
+
+  if(!validRuns.length) return null;
+
+  // Calculate early pace ratio: (total_time - last600) / total_time
+  // Higher ratio = more time spent in early sections = front runner
+  var ratios = validRuns.map(function(r){
+    var total = timeToSecs600(r.finish_time);
+    var last = timeToSecs600(r.last_600);
+    if(!total || !last) return null;
+    var early = total - last;
+    return early / total; // fraction spent in early sectional
+  }).filter(function(x){ return x !== null; });
+
+  if(!ratios.length) return null;
+
+  var avgRatio = ratios.reduce(function(a,b){return a+b;},0) / ratios.length;
+  // avgRatio typically 0.68-0.80 for NZ racing
+  // Higher = front runner, lower = closer
+  // Normalise to 0-100 where 0.68=0 and 0.78=100
+  var normalised = (avgRatio - 0.68) / 0.10 * 100;
+  normalised = Math.max(0, Math.min(100, normalised));
+
+  // Barrier adjustment: inside draws (+10), wide draws (-10)
+  var barrierNum = parseInt(barrier) || 8;
+  var barrierAdj = barrierNum <= 4 ? 8 : barrierNum <= 7 ? 0 : barrierNum <= 10 ? -8 : -14;
+
+  return Math.max(0, Math.min(100, normalised + barrierAdj));
+}
+
+function getPaceLabel(score) {
+  if(score === null) return {label:'Unknown', cls:'pace-u', pos:'?'};
+  if(score >= 75)    return {label:'Leader',  cls:'pace-l', pos:'L'};
+  if(score >= 55)    return {label:'Presser', cls:'pace-p', pos:'P'};
+  if(score >= 35)    return {label:'Midfield',cls:'pace-m', pos:'M'};
+  if(score >= 15)    return {label:'Back',    cls:'pace-b', pos:'B'};
+  return               {label:'Chaser',  cls:'pace-c', pos:'C'};
+}
+
+function renderPaceMap(runners) {
+  if(!runners || runners.length < 2) return '';
+
+  // Calculate pace scores for all runners
+  var scored = runners.map(function(runner) {
+    var rows = allResults.filter(function(r){return r.horse===runner.horse;});
+    var score = calcPaceScore(rows, runner.barrier);
+    var pace = getPaceLabel(score);
+    return Object.assign({}, runner, {paceScore:score, pace:pace});
+  });
+
+  // Count leaders/pressers for scenario analysis
+  var leaders  = scored.filter(function(r){return r.paceScore!==null && r.paceScore>=75;});
+  var pressers = scored.filter(function(r){return r.paceScore!==null && r.paceScore>=55 && r.paceScore<75;});
+  var unknowns = scored.filter(function(r){return r.paceScore===null;});
+
+  // Pace scenario
+  var scenario, scenarioClass;
+  if(leaders.length >= 3) {
+    scenario = 'Hot pace \u2014 '+leaders.length+' likely leaders. Expect a contested speed which should suit back markers and closers.';
+    scenarioClass = 'pace-scenario-hot';
+  } else if(leaders.length === 0 && pressers.length <= 1) {
+    scenario = 'Slow pace \u2014 no confirmed leaders. Front-runners and pressers are likely to benefit from an easy lead.';
+    scenarioClass = 'pace-scenario-slow';
+  } else if(leaders.length >= 2) {
+    scenario = 'Genuine pace \u2014 '+leaders.length+' leaders likely to contest the front. Midfielders well placed.';
+    scenarioClass = 'pace-scenario-genuine';
+  } else {
+    scenario = 'Moderate pace expected. Tactical race \u2014 barrier draw will be key.';
+    scenarioClass = 'pace-scenario-mod';
+  }
+
+  // Sort by pace score descending for display
+  scored.sort(function(a,b){ return (b.paceScore||0)-(a.paceScore||0); });
+
+  // Track width for visual position bar
+  var maxScore = 100;
+
+  var rows_html = scored.map(function(s) {
+    var barrierBg = s.paceScore===null?'var(--bg3)':
+      s.paceScore>=75?'rgba(83,74,183,.2)':
+      s.paceScore>=55?'rgba(29,158,117,.2)':
+      s.paceScore>=35?'rgba(186,117,23,.15)':
+      'rgba(55,138,221,.15)';
+    var barrierCol = s.paceScore===null?'var(--text3)':
+      s.paceScore>=75?'#3C3489':
+      s.paceScore>=55?'#085041':
+      s.paceScore>=35?'#633806':
+      '#0C447C';
+    var barCol = s.paceScore===null?'var(--border)':
+      s.paceScore>=75?'#534AB7':
+      s.paceScore>=55?'#1D9E75':
+      s.paceScore>=35?'#BA7517':
+      '#378ADD';
+    var barW = s.paceScore!==null ? Math.round(s.paceScore) : 0;
+    var sf = s.careerBestFig ? ' \u2022 SF '+s.careerBestFig : '';
+    return '<div class="pm-row">'
+      +'<div class="pm-barrier" style="background:'+barrierBg+';color:'+barrierCol+'">'+(s.barrier||'?')+'</div>'
+      +'<div class="pm-name">'+s.horse+'<span class="pm-sf">'+sf+'</span></div>'
+      +'<div class="pm-bar-wrap"><div class="pm-bar" style="width:'+barW+'%;background:'+barCol+'"></div></div>'
+      +'<span class="pm-label '+s.pace.cls+'">'+s.pace.label+'</span>'
+      +'</div>';
+  }).join('');
+
+  var unknownNote = unknowns.length ? '<div style="font-size:11px;color:var(--text3);padding:0 1.25rem 0.75rem">'+unknowns.length+' runner(s) have insufficient last 600 data for pace classification.</div>' : '';
+
+  return '<div class="table-wrap" style="margin-bottom:0;border-top:1px solid var(--border)">'
+    +'<div class="table-header">'
+    +'<span class="table-title">Pace map</span>'
+    +'<span class="table-count">based on last 600m splits \u2022 barrier adjusted</span>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:space-between;padding:0.5rem 1.25rem 0.25rem;font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.4px">'
+    +'<span>GATE</span><span>LEAD \u2192 PRESS \u2192 MID \u2192 BACK \u2192 CHASE</span>'
+    +'</div>'
+    +'<div class="pm-runners">'+rows_html+'</div>'
+    +unknownNote
+    +'<div class="pm-scenario '+scenarioClass+'">'
+    +'<span style="font-weight:500">Pace scenario:</span> '+scenario
+    +'</div>'
+    +'</div>';
 }
 
 // ---- GOING ----
@@ -1192,6 +1329,15 @@ function renderFieldComparison() {
     var ss=document.getElementById('field-speed-section');
     if(ss) ss.innerHTML='';
   }
+
+  // Pace map - append after speed section
+  var pmSection = document.getElementById('field-pace-section');
+  if(!pmSection) {
+    pmSection = document.createElement('div');
+    pmSection.id = 'field-pace-section';
+    document.getElementById('field-comparison-wrap').appendChild(pmSection);
+  }
+  pmSection.innerHTML = renderPaceMap(fieldRunners);
 }
 
 function ratingBar(name,val,max,color,label){

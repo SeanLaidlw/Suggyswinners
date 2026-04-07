@@ -25,7 +25,7 @@ def export(db_path="racing.db", out_path="data.js"):
     rows = conn.execute("""
         SELECT
             res.finish_position, res.barrier, res.margin_trad,
-            res.finish_time, res.odds_sp, res.prize_money,
+            res.finish_time, res.last_600, res.odds_sp, res.prize_money,
             h.name AS horse, j.name AS jockey, tr.name AS trainer,
             t.name AS track, m.date, m.going,
             r.race_name, r.race_class, r.distance_m,
@@ -53,11 +53,11 @@ def export(db_path="racing.db", out_path="data.js"):
     goings,   gi = make_lookup(r["going"]     for r in rows)
     races,    ri = make_lookup(r["race_name"] for r in rows)
 
-    # Columns: [pos, barrier, margin, time, sp, prize, horse, jockey, trainer,
+    # Columns: [pos, barrier, margin, time, last600, sp, prize, horse, jockey, trainer,
     #           track, date, going, race_name, race_class, distance, race_number]
     encoded = [
         [r["finish_position"], r["barrier"], r["margin_trad"],
-         r["finish_time"], r["odds_sp"], r["prize_money"],
+         r["finish_time"], r["last_600"], r["odds_sp"], r["prize_money"],
          hi.get(r["horse"]), ji.get(r["jockey"]), ti.get(r["trainer"]),
          ki.get(r["track"]), r["date"], gi.get(r["going"]),
          ri.get(r["race_name"]), r["race_class"], r["distance_m"],
