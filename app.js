@@ -2211,35 +2211,179 @@ async function sfSaveTrainer() {
 
 async function sfShowTrainerDetail(trainerId, trainerName) {
   var el = document.getElementById('sf-dashboard-content');
-  el.innerHTML = '<button id="sf-trainer-back" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1.25rem;display:flex;align-items:center;gap:4px">&#8592; Back to dashboard</button>'
-    + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">' + trainerName + '</div>'
-    + '<div style="text-align:center;padding:1.5rem;color:#8a857a">Loading horses...</div>';
-  document.getElementById('sf-trainer-back').addEventListener('click', sfShowAdminDashboard);
+  el.innerHTML = '<div style="text-align:center;padding:2rem;color:#8a857a">Loading...</div>';
   try {
-    var horses = await sfApiGet('/admin/trainer-horses?trainer_id=' + trainerId);
-    var horseHtml = '<div style="font-size:11px;font-weight:500;color:#8a857a;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.75rem">Horses</div>';
-    if(!horses || horses.length === 0) {
-      horseHtml += '<div style="background:white;border:1px solid rgba(26,26,24,.1);border-radius:10px;padding:1.5rem;text-align:center;color:#8a857a">No horses yet</div>';
+    var trainer = await sfApiGet('/admin/trainer/' + trainerId);
+    var horses = await sfApiGet('/admin/trainer/' + trainerId + '/horses');
+    var html = '<button id="sf-trainer-back" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1.25rem;display:flex;align-items:center;gap:4px">&#8592; Back to dashboard</button>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">'
+      + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700">' + trainer.name + '</div>'
+      + '<button id="sf-edit-trainer-btn" style="background:none;border:1px solid rgba(26,26,24,.2);border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit">Edit details</button>'
+      + '</div>'
+      // Trainer info card
+      + '<div style="background:white;border:1px solid rgba(26,26,24,.1);border-radius:12px;padding:1rem;margin-bottom:1.25rem">'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">'
+      + sfInfoRow('Email', trainer.email)
+      + sfInfoRow('Stable', trainer.stable_name || '—')
+      + sfInfoRow('Phone', trainer.phone || '—')
+      + sfInfoRow('Location', trainer.location || '—')
+      + '</div></div>'
+      // Horses section
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">'
+      + '<div style="font-size:11px;font-weight:500;color:#8a857a;letter-spacing:.5px;text-transform:uppercase">Horses (' + horses.length + ')</div>'
+      + '<button id="sf-add-horse-admin-btn" style="background:#1a1a18;color:#c9a84c;border:none;border-radius:8px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">+ Add horse</button>'
+      + '</div>';
+    if(horses.length === 0) {
+      html += '<div style="background:white;border:1px solid rgba(26,26,24,.1);border-radius:10px;padding:1.5rem;text-align:center;color:#8a857a">No horses yet</div>';
     } else {
-      horseHtml += '<div style="background:white;border:1px solid rgba(26,26,24,.1);border-radius:12px;overflow:hidden">';
+      html += '<div style="background:white;border:1px solid rgba(26,26,24,.1);border-radius:12px;overflow:hidden">';
       horses.forEach(function(h, i) {
-        horseHtml += '<div style="display:flex;align-items:center;gap:12px;padding:12px 1rem;'
+        html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 1rem;'
           + (i < horses.length-1 ? 'border-bottom:1px solid rgba(26,26,24,.08)' : '') + '">'
           + '<div style="flex:1"><div style="font-size:14px;font-weight:500">' + h.name + '</div>'
-          + '<div style="font-size:12px;color:#8a857a">' + (h.colour||'') + (h.colour&&h.sex?' &bull; ':'') + (h.sex||'') + ' &bull; ' + h.owner_count + ' owner' + (h.owner_count!==1?'s':'') + '</div>'
-          + '</div></div>';
+          + '<div style="font-size:12px;color:#8a857a">' + [h.colour, h.sex].filter(Boolean).join(' &bull; ') + (h.owner_count ? ' &bull; ' + h.owner_count + ' owner' + (h.owner_count!==1?'s':'') : '') + '</div>'
+          + '</div>'
+          + '<button class="sf-remove-horse-btn" data-hid="' + h.id + '" data-hname="' + h.name + '" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:18px;padding:4px 8px;opacity:.5" title="Remove horse">&#x2715;</button>'
+          + '</div>';
       });
-      horseHtml += '</div>';
+      html += '</div>';
     }
-    el.querySelector('div:last-child').outerHTML = horseHtml;
+    el.innerHTML = html;
     document.getElementById('sf-trainer-back').addEventListener('click', sfShowAdminDashboard);
+    document.getElementById('sf-edit-trainer-btn').addEventListener('click', function(){ sfShowEditTrainerForm(trainerId, trainer); });
+    document.getElementById('sf-add-horse-admin-btn').addEventListener('click', function(){ sfShowAddHorseAdmin(trainerId, trainerName); });
+    el.querySelectorAll('.sf-remove-horse-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if(confirm('Remove ' + this.dataset.hname + ' from this trainer?')) {
+          sfRemoveHorse(this.dataset.hid, trainerId, trainerName);
+        }
+      });
+    });
   } catch(e) {
-    // Endpoint may not exist yet - show basic view
-    el.innerHTML = '<button id="sf-trainer-back2" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1.25rem">&#8592; Back</button>'
-      + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:.5rem">' + trainerName + '</div>'
-      + '<div style="font-size:13px;color:#8a857a">Trainer account active</div>';
-    document.getElementById('sf-trainer-back2').addEventListener('click', sfShowAdminDashboard);
+    el.innerHTML = '<button id="sf-trainer-back-err" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1rem">&#8592; Back</button>'
+      + '<div style="color:#a85c3a;padding:1rem">Error loading trainer: ' + e.message + '</div>';
+    document.getElementById('sf-trainer-back-err').addEventListener('click', sfShowAdminDashboard);
   }
+}
+
+function sfInfoRow(label, value) {
+  return '<div style="padding:.5rem 0">'
+    + '<div style="font-size:11px;color:#8a857a;margin-bottom:2px">' + label + '</div>'
+    + '<div style="font-size:13px;font-weight:500">' + value + '</div>'
+    + '</div>';
+}
+
+function sfShowEditTrainerForm(trainerId, trainer) {
+  var el = document.getElementById('sf-dashboard-content');
+  el.innerHTML = '<button id="sf-edit-back" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1.25rem">&#8592; Back</button>'
+    + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">Edit trainer</div>'
+    + '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:12px;padding:1.25rem">'
+    + '<div id="sf-edit-error" style="display:none;background:rgba(168,92,58,.12);color:#a85c3a;border-radius:8px;padding:.75rem;font-size:13px;margin-bottom:1rem"></div>'
+    + sfAdminFieldVal('Full name', 'sf-et-name', 'text', trainer.name)
+    + sfAdminFieldVal('Email address', 'sf-et-email', 'email', trainer.email)
+    + sfAdminFieldVal('Stable name', 'sf-et-stable', 'text', trainer.stable_name || '')
+    + sfAdminFieldVal('Phone', 'sf-et-phone', 'text', trainer.phone || '')
+    + sfAdminFieldVal('Location', 'sf-et-location', 'text', trainer.location || '')
+    + '<div style="margin-bottom:1rem"><div style="font-size:11px;font-weight:500;color:#8a857a;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">New password (leave blank to keep current)</div>'
+    + '<input id="sf-et-pw" type="text" placeholder="Enter new password or leave blank" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(26,26,24,.2);border-radius:8px;font-size:14px;font-family:inherit;outline:none;background:#f5f0e8"></div>'
+    + '<div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.25rem">'
+    + '<button id="sf-edit-cancel" style="background:none;border:1px solid rgba(26,26,24,.2);border-radius:8px;padding:.625rem 1rem;font-size:13px;font-family:inherit;cursor:pointer">Cancel</button>'
+    + '<button id="sf-edit-save" style="background:#1a1a18;color:#c9a84c;border:none;border-radius:8px;padding:.625rem 1.25rem;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Save changes</button>'
+    + '</div></div>';
+  document.getElementById('sf-edit-back').addEventListener('click', function(){ sfShowTrainerDetail(trainerId, trainer.name); });
+  document.getElementById('sf-edit-cancel').addEventListener('click', function(){ sfShowTrainerDetail(trainerId, trainer.name); });
+  document.getElementById('sf-edit-save').addEventListener('click', function(){ sfSaveTrainerEdit(trainerId, trainer.name); });
+}
+
+function sfAdminFieldVal(label, id, type, value) {
+  return '<div style="margin-bottom:1rem">'
+    + '<div style="font-size:11px;font-weight:500;color:#8a857a;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">' + label + '</div>'
+    + '<input id="' + id + '" type="' + type + '" value="' + (value||'').replace(/"/g,'&quot;') + '" '
+    + 'style="width:100%;padding:.75rem 1rem;border:1px solid rgba(26,26,24,.2);border-radius:8px;font-size:14px;font-family:inherit;outline:none;background:#f5f0e8;color:#1a1a18">'
+    + '</div>';
+}
+
+async function sfSaveTrainerEdit(trainerId, trainerName) {
+  var errEl = document.getElementById('sf-edit-error');
+  errEl.style.display = 'none';
+  var payload = {
+    name: document.getElementById('sf-et-name').value.trim(),
+    email: document.getElementById('sf-et-email').value.trim(),
+    stable_name: document.getElementById('sf-et-stable').value.trim() || null,
+    phone: document.getElementById('sf-et-phone').value.trim() || null,
+    location: document.getElementById('sf-et-location').value.trim() || null
+  };
+  var pw = document.getElementById('sf-et-pw').value.trim();
+  if(pw) payload.password = pw;
+  if(!payload.name || !payload.email) {
+    errEl.textContent = 'Name and email are required.';
+    errEl.style.display = 'block';
+    return;
+  }
+  var btn = document.getElementById('sf-edit-save');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+  try {
+    await fetch(SF_API + '/admin/trainer/' + trainerId, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+sfToken},
+      body: JSON.stringify(payload)
+    });
+    sfShowTrainerDetail(trainerId, payload.name);
+  } catch(e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.style.display = 'block';
+    btn.textContent = 'Save changes';
+    btn.disabled = false;
+  }
+}
+
+function sfShowAddHorseAdmin(trainerId, trainerName) {
+  var el = document.getElementById('sf-dashboard-content');
+  el.innerHTML = '<button id="sf-addh-back" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1.25rem">&#8592; Back</button>'
+    + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">Add horse — ' + trainerName + '</div>'
+    + '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:12px;padding:1.25rem">'
+    + sfAdminField('Horse name', 'sf-ah-name', 'text', 'e.g. Wine Rocs')
+    + sfAdminField('Racing DB name', 'sf-ah-db', 'text', 'Exact name from race results')
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">'
+    + sfAdminField('Colour', 'sf-ah-colour', 'text', 'e.g. Bay')
+    + sfAdminField('Sex', 'sf-ah-sex', 'text', 'e.g. Mare')
+    + '</div>'
+    + '<div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.25rem">'
+    + '<button id="sf-addh-cancel" style="background:none;border:1px solid rgba(26,26,24,.2);border-radius:8px;padding:.625rem 1rem;font-size:13px;font-family:inherit;cursor:pointer">Cancel</button>'
+    + '<button id="sf-addh-save" style="background:#1a1a18;color:#c9a84c;border:none;border-radius:8px;padding:.625rem 1.25rem;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Add horse</button>'
+    + '</div></div>';
+  document.getElementById('sf-addh-back').addEventListener('click', function(){ sfShowTrainerDetail(trainerId, trainerName); });
+  document.getElementById('sf-addh-cancel').addEventListener('click', function(){ sfShowTrainerDetail(trainerId, trainerName); });
+  document.getElementById('sf-addh-save').addEventListener('click', async function() {
+    var name = document.getElementById('sf-ah-name').value.trim();
+    if(!name) { alert('Horse name is required'); return; }
+    this.textContent = 'Adding...';
+    this.disabled = true;
+    try {
+      await fetch(SF_API + '/admin/trainer/' + trainerId + '/horses', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Authorization':'Bearer '+sfToken},
+        body: JSON.stringify({
+          name: name,
+          racing_db_name: document.getElementById('sf-ah-db').value.trim() || null,
+          colour: document.getElementById('sf-ah-colour').value.trim() || null,
+          sex: document.getElementById('sf-ah-sex').value.trim() || null
+        })
+      });
+      sfShowTrainerDetail(trainerId, trainerName);
+    } catch(e) { alert('Error: ' + e.message); this.textContent = 'Add horse'; this.disabled = false; }
+  });
+}
+
+async function sfRemoveHorse(horseId, trainerId, trainerName) {
+  try {
+    await fetch(SF_API + '/admin/horse/' + horseId, {
+      method: 'DELETE',
+      headers: {'Authorization':'Bearer '+sfToken}
+    });
+    sfShowTrainerDetail(trainerId, trainerName);
+  } catch(e) { alert('Error removing horse: ' + e.message); }
 }
 
 function sfStatCard(val, lbl) {
