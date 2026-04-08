@@ -317,6 +317,18 @@ tr:hover td{background:var(--bg3)}
 .pace-scenario-genuine{background:rgba(29,158,117,.1);color:#085041}
 .pace-scenario-mod{background:var(--bg3);color:var(--text2)}
 
+
+/* ---- STABLEFORM AUTH ---- */
+.sf-auth-wrap{display:flex;align-items:center;margin-left:auto}
+.sf-signin-btn{background:#c9a84c;color:#1a1a18;border:none;border-radius:20px;padding:6px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fm);letter-spacing:.3px;transition:opacity .2s}
+.sf-signin-btn:hover{opacity:.85}
+.sf-user-pill{display:flex;align-items:center;gap:8px;background:rgba(201,168,76,.15);border-radius:20px;padding:4px 4px 4px 12px}
+.sf-user-name{font-size:13px;color:var(--text)}
+.sf-user-role{font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(201,168,76,.3);color:#c9a84c;text-transform:uppercase;letter-spacing:.5px}
+.sf-signout-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px}
+.sf-dashboard-btn{background:#c9a84c;color:#1a1a18;border:none;border-radius:16px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fm)}
+.sf-dashboard-btn:hover{opacity:.85}
+
 </style>
 </head>
 <body>
@@ -340,6 +352,15 @@ tr:hover td{background:var(--bg3)}
     <button class="nav-tab" onclick="showPage('field')">Field Builder</button>
     <button class="nav-tab" onclick="showPage('profile')">Profile</button>
   </nav>
+  <div class="sf-auth-wrap" id="sf-auth-wrap">
+    <button class="sf-signin-btn" id="sf-signin-btn" onclick="openSFLogin()">Sign in</button>
+    <div class="sf-user-pill" id="sf-user-pill" style="display:none">
+      <span id="sf-user-name"></span>
+      <span class="sf-user-role" id="sf-user-role"></span>
+      <button class="sf-signout-btn" onclick="sfLogout()">&#x2715;</button>
+      <button class="sf-dashboard-btn" onclick="openSFDashboard()">My StableForm</button>
+    </div>
+  </div>
   <div class="status-pill"><div class="status-dot"></div><span id="db-status">loading...</span></div>
 </header>
 
@@ -591,6 +612,39 @@ tr:hover td{background:var(--bg3)}
 <div id="race-modal" onclick="if(event.target===this)closeModal()">
   <div class="modal-box">
     <div id="race-modal-body"></div>
+  </div>
+</div>
+
+
+<!-- STABLEFORM LOGIN MODAL -->
+<div id="sf-login-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;align-items:center;justify-content:center">
+  <div style="background:#1a1a18;border-radius:16px;padding:2.5rem;width:100%;max-width:380px;position:relative">
+    <button onclick="closeSFLogin()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer">&#x2715;</button>
+    <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#f5f0e8;margin-bottom:.25rem">Stable<span style="color:#c9a84c">Form</span></div>
+    <div style="font-size:12px;color:rgba(245,240,232,.4);margin-bottom:1.5rem">Trainer &amp; owner portal</div>
+    <div id="sf-login-error" style="display:none;background:rgba(168,92,58,.2);color:#e8a882;border-radius:8px;padding:.75rem 1rem;font-size:13px;margin-bottom:1rem"></div>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:11px;color:rgba(245,240,232,.4);letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">Email</div>
+      <input type="email" id="sf-email" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.07);color:#f5f0e8;font-size:15px;outline:none;font-family:inherit" placeholder="you@example.com">
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <div style="font-size:11px;color:rgba(245,240,232,.4);letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">Password</div>
+      <input type="password" id="sf-password" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.07);color:#f5f0e8;font-size:15px;outline:none;font-family:inherit" placeholder="••••••••" onkeydown="if(event.key==='Enter')sfLogin()">
+    </div>
+    <button onclick="sfLogin()" style="width:100%;padding:.875rem;background:#c9a84c;color:#1a1a18;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Sign in to StableForm</button>
+  </div>
+</div>
+
+<!-- STABLEFORM DASHBOARD MODAL -->
+<div id="sf-dashboard-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;align-items:center;justify-content:center">
+  <div style="background:#f5f0e8;border-radius:16px;width:100%;max-width:640px;max-height:85vh;overflow-y:auto;position:relative">
+    <div style="background:#1a1a18;padding:1rem 1.5rem;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#f5f0e8">Stable<span style="color:#c9a84c">Form</span></div>
+      <button onclick="closeSFDashboard()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer">&#x2715;</button>
+    </div>
+    <div id="sf-dashboard-content" style="padding:1.5rem">
+      <div style="text-align:center;padding:2rem;color:#8a857a">Loading...</div>
+    </div>
   </div>
 </div>
 

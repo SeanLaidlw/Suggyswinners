@@ -1560,3 +1560,233 @@ function generateMockData() {
 }
 
 init();
+
+
+// ---- STABLEFORM AUTH (trainer-owner portal) ----
+var SF_API = '/stableform-api';
+var sfToken = null;
+var sfUser = null;
+
+function openSFLogin() {
+  document.getElementById('sf-login-modal').style.display = 'flex';
+  document.getElementById('sf-login-error').style.display = 'none';
+  setTimeout(function(){ document.getElementById('sf-email').focus(); }, 100);
+}
+
+function closeSFLogin() {
+  document.getElementById('sf-login-modal').style.display = 'none';
+}
+
+function openSFDashboard() {
+  document.getElementById('sf-dashboard-modal').style.display = 'flex';
+  renderSFDashboard();
+}
+
+function closeSFDashboard() {
+  document.getElementById('sf-dashboard-modal').style.display = 'none';
+}
+
+async function sfLogin() {
+  var email = document.getElementById('sf-email').value.trim();
+  var password = document.getElementById('sf-password').value;
+  var errEl = document.getElementById('sf-login-error');
+  errEl.style.display = 'none';
+  if(!email || !password) {
+    errEl.textContent = 'Please enter your email and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+  try {
+    var res = await fetch(SF_API + '/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email:email, password:password})
+    });
+    var data = await res.json();
+    if(!res.ok) throw new Error(data.detail || 'Login failed');
+    sfToken = data.token;
+    sfUser = data;
+    localStorage.setItem('sf_token', data.token);
+    localStorage.setItem('sf_user', JSON.stringify(data));
+    closeSFLogin();
+    updateSFNav();
+    openSFDashboard();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+function sfLogout() {
+  sfToken = null;
+  sfUser = null;
+  localStorage.removeItem('sf_token');
+  localStorage.removeItem('sf_user');
+  updateSFNav();
+  closeSFDashboard();
+}
+
+function updateSFNav() {
+  var signInBtn = document.getElementById('sf-signin-btn');
+  var userPill = document.getElementById('sf-user-pill');
+  if(sfUser) {
+    signInBtn.style.display = 'none';
+    userPill.style.display = 'flex';
+    document.getElementById('sf-user-name').textContent = sfUser.name;
+    document.getElementById('sf-user-role').textContent = sfUser.role;
+  } else {
+    signInBtn.style.display = 'block';
+    userPill.style.display = 'none';
+  }
+}
+
+async function sfApiGet(path) {
+  var res = await fetch(SF_API + path, {
+    headers: {'Authorization': 'Bearer ' + sfToken}
+  });
+  var data = await res.json();
+  if(!res.ok) throw new Error(data.detail || 'Error');
+  return data;
+}
+
+async function renderSFDashboard() {
+  var el = document.getElementById('sf-dashboard-content');
+  if(!sfUser) { el.innerHTML = '<div style="text-align:center;padding:2rem;color:#8a857a">Not logged in</div>'; return; }
+  el.innerHTML = '<div style="text-align:center;padding:2rem;color:#8a857a">Loading...</div>';
+  try {
+    var role = sfUser.role;
+    if(role === 'admin') {
+      var stats = await sfApiGet('/admin/stats');
+      var trainers = await sfApiGet('/admin/trainers');
+      el.innerHTML = '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1rem">Admin dashboard</div>'
+        + '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1.5rem">'
+        + sfStatCard(stats.trainers, 'Trainers')
+        + sfStatCard(stats.horses, 'Horses')
+        + sfStatCard(stats.owners, 'Owners')
+        + sfStatCard(stats.pending_invites, 'Pending invites')
+        + '</div>'
+        + '<div style="font-size:12px;font-weight:500;color:#8a857a;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.75rem">Trainers</div>'
+        + (trainers.length === 0 ? '<div style="text-align:center;padding:1.5rem;color:#8a857a">No trainers yet</div>'
+          : trainers.map(function(t){
+            return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(26,26,24,.1)">'
+              + '<div style="width:34px;height:34px;border-radius:50%;background:#e8d5a3;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0">'
+              + t.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2)
+              + '</div><div style="flex:1"><div style="font-size:14px;font-weight:500">' + t.name + '</div>'
+              + '<div style="font-size:12px;color:#8a857a">' + t.email + (t.stable_name ? ' &bull; ' + t.stable_name : '') + '</div>'
+              + '</div></div>';
+          }).join(''));
+    } else if(role === 'trainer') {
+      var horses = await sfApiGet('/trainer/horses');
+      el.innerHTML = '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1rem">My stable</div>'
+        + (horses.length === 0
+          ? '<div style="text-align:center;padding:2rem;color:#8a857a">No horses yet. Contact your administrator.</div>'
+          : '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem">'
+          + horses.map(function(h){
+            return '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:10px;padding:1rem;cursor:pointer" data-hid="'+h.id+'" data-hname="'+h.name+'" onclick="sfViewHorse(this.dataset.hid,this.dataset.hname)">'
+              + '<div style="font-family:Georgia,serif;font-size:16px;font-weight:700;margin-bottom:.25rem">' + h.name + '</div>'
+              + '<div style="font-size:12px;color:#8a857a;margin-bottom:.75rem">' + (h.colour||'') + (h.colour&&h.sex?' &bull; ':'') + (h.sex||'') + '</div>'
+              + '<div style="font-size:12px;color:#6b7c5c;font-weight:500">' + h.owner_count + ' owner' + (h.owner_count!==1?'s':'') + '</div>'
+              + '</div>';
+          }).join('') + '</div>');
+    } else {
+      var horses = await sfApiGet('/owner/horses');
+      el.innerHTML = '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1rem">My horses</div>'
+        + (horses.length === 0
+          ? '<div style="text-align:center;padding:2rem;color:#8a857a">No horses yet. Check your email for an invite.</div>'
+          : '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem">'
+          + horses.map(function(h){
+            return '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:10px;padding:1rem;cursor:pointer" data-hid="'+h.id+'" data-hname="'+h.name+'" onclick="sfViewHorse(this.dataset.hid,this.dataset.hname)">'
+              + '<div style="font-family:Georgia,serif;font-size:16px;font-weight:700;margin-bottom:.25rem">' + h.name + '</div>'
+              + '<div style="font-size:12px;color:#8a857a">Trainer: ' + h.trainer_name + '</div>'
+              + '</div>';
+          }).join('') + '</div>');
+    }
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:#a85c3a">Error: ' + e.message + '</div>';
+  }
+}
+
+function sfStatCard(val, lbl) {
+  return '<div style="background:#f5f0e8;border:1px solid rgba(26,26,24,.1);border-radius:8px;padding:1rem;text-align:center">'
+    + '<div style="font-family:Georgia,serif;font-size:28px;font-weight:700">' + val + '</div>'
+    + '<div style="font-size:12px;color:#8a857a">' + lbl + '</div>'
+    + '</div>';
+}
+
+async function sfViewHorse(horseId, horseName) {
+  var el = document.getElementById('sf-dashboard-content');
+  el.innerHTML = '<div style="text-align:center;padding:2rem;color:#8a857a">Loading updates...</div>';
+  try {
+    var updates = await sfApiGet('/updates/' + horseId);
+    var isTrainer = sfUser.role === 'trainer' || sfUser.role === 'admin';
+    var html = '<button onclick="renderSFDashboard()" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1rem;display:flex;align-items:center;gap:4px">&#8592; Back</button>'
+      + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">' + horseName + '</div>';
+    if(isTrainer) {
+      html += '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:10px;padding:1rem;margin-bottom:1rem">'
+        + '<textarea id="sf-update-text" style="width:100%;padding:.75rem;border:1px solid rgba(26,26,24,.15);border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;min-height:80px;background:#f5f0e8;outline:none" placeholder="Post an update for owners..."></textarea>'
+        + '<div style="display:flex;justify-content:flex-end;margin-top:.75rem">'
+        + '<button id="sf-post-btn" style="background:#1a1a18;color:#c9a84c;border:none;border-radius:8px;padding:.625rem 1.25rem;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Post update</button>'
+        + '</div></div>';
+    }
+    if(updates.length === 0) {
+      html += '<div style="text-align:center;padding:2rem;color:#8a857a">No updates yet</div>';
+    } else {
+      html += updates.map(function(u){
+        return '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:10px;padding:1rem;margin-bottom:.75rem">'
+          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">'
+          + '<div style="width:30px;height:30px;border-radius:50%;background:#e8ede0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#6b7c5c;flex-shrink:0">'
+          + u.trainer_name.split(' ').map(function(n){return n[0];}).join('').slice(0,2)
+          + '</div><div><div style="font-size:13px;font-weight:500">' + u.trainer_name + '</div>'
+          + '<div style="font-size:11px;color:#8a857a">' + sfFormatDate(u.created_at) + '</div></div>'
+          + '<span style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:20px;background:#e8ede0;color:#6b7c5c;font-weight:500">' + u.type + '</span>'
+          + '</div>'
+          + '<div style="font-size:14px;line-height:1.7">' + u.content + '</div>'
+          + '</div>';
+      }).join('');
+    }
+    el.innerHTML = html;
+    var postBtn = document.getElementById('sf-post-btn');
+    if(postBtn) postBtn.addEventListener('click', function(){ sfPostUpdate(horseId, horseName); });
+  } catch(e) {
+    el.innerHTML = '<button onclick="renderSFDashboard()" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1rem">&#8592; Back</button>'
+      + '<div style="text-align:center;padding:2rem;color:#a85c3a">Error: ' + e.message + '</div>';
+  }
+}
+
+async function sfPostUpdate(horseId, horseName) {
+  var content = document.getElementById('sf-update-text').value.trim();
+  if(!content) return;
+  try {
+    await fetch(SF_API + '/updates', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+sfToken},
+      body: JSON.stringify({horse_id:horseId, type:'note', content:content})
+    });
+    sfViewHorse(horseId, horseName);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function sfFormatDate(iso) {
+  if(!iso) return '';
+  var d = new Date(iso);
+  var diff = Math.floor((new Date() - d) / 1000);
+  if(diff < 60) return 'just now';
+  if(diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if(diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return d.toLocaleDateString('en-NZ', {day:'numeric',month:'short'});
+}
+
+// Restore SF session on load
+(function() {
+  var t = localStorage.getItem('sf_token');
+  var u = localStorage.getItem('sf_user');
+  if(t && u) { sfToken = t; sfUser = JSON.parse(u); updateSFNav(); }
+})();
+
+// Close modals on overlay click
+document.getElementById('sf-login-modal').addEventListener('click', function(e) {
+  if(e.target === this) closeSFLogin();
+});
+document.getElementById('sf-dashboard-modal').addEventListener('click', function(e) {
+  if(e.target === this) closeSFDashboard();
+});
