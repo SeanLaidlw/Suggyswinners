@@ -29,8 +29,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:14px
 .loading-bar{height:100%;background:var(--gold);border-radius:2px;animation:loadBar 1.5s ease-in-out infinite}
 @keyframes loadBar{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
 .loading-text{margin-top:1rem;font-size:12px;color:var(--text3);font-family:var(--fm)}
-header{display:flex;align-items:center;gap:12px;padding:0 1.25rem;height:54px;border-bottom:1px solid var(--border2);background:var(--ink);background:var(--bg);position:sticky;top:0;z-index:200}
-.logo{font-family:var(--fd);font-size:22px;letter-spacing:2px;white-space:nowrap;flex-shrink:0;color:#f5f0e8}
+header{display:flex;align-items:center;gap:12px;padding:0 1.25rem;height:54px;border-bottom:1px solid rgba(255,255,255,.1);background:var(--ink);position:sticky;top:0;z-index:200}
+.logo{font-family:var(--fd);font-size:20px;letter-spacing:2px;white-space:nowrap;flex-shrink:0;color:#f5f0e8;min-width:fit-content}
 .logo span{color:var(--gold)}
 .gsearch-wrap{flex:1;max-width:380px;position:relative}
 .gsearch-wrap input{width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#f5f0e8;padding:7px 12px 7px 34px;border-radius:20px;font-family:var(--fb);font-size:13px;outline:none;transition:border-color .15s}
