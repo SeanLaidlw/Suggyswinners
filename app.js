@@ -1678,8 +1678,9 @@ async function renderSFDashboard() {
     } else if(role === 'trainer') {
       var horses = await sfApiGet('/trainer/horses');
       el.innerHTML = '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1rem">My stable</div>'
+        + '<div style="text-align:right;margin-bottom:1rem"><button id="sf-add-horse-btn" style="background:#1a1a18;color:#c9a84c;border:none;border-radius:8px;padding:.5rem 1rem;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">+ Add horse</button></div>'
         + (horses.length === 0
-          ? '<div style="text-align:center;padding:2rem;color:#8a857a">No horses yet. Contact your administrator.</div>'
+          ? '<div style="text-align:center;padding:2rem;color:#8a857a">No horses yet. Click above to add your first horse.</div>'
           : '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem">'
           + horses.map(function(h){
             return '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:10px;padding:1rem;cursor:pointer" data-hid="'+h.id+'" data-hname="'+h.name+'" onclick="sfViewHorse(this.dataset.hid,this.dataset.hname)">'
@@ -1688,6 +1689,9 @@ async function renderSFDashboard() {
               + '<div style="font-size:12px;color:#6b7c5c;font-weight:500">' + h.owner_count + ' owner' + (h.owner_count!==1?'s':'') + '</div>'
               + '</div>';
           }).join('') + '</div>');
+    // Add horse button listener for trainer
+    var addHorseBtn = document.getElementById('sf-add-horse-btn');
+    if(addHorseBtn) addHorseBtn.addEventListener('click', function(){ sfShowAddHorseForm(); });
     } else {
       var horses = await sfApiGet('/owner/horses');
       el.innerHTML = '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1rem">My horses</div>'
@@ -1704,6 +1708,48 @@ async function renderSFDashboard() {
   } catch(e) {
     el.innerHTML = '<div style="text-align:center;padding:2rem;color:#a85c3a">Error: ' + e.message + '</div>';
   }
+}
+
+
+function sfShowAddHorseForm() {
+  var el = document.getElementById('sf-dashboard-content');
+  el.innerHTML = '<button onclick="renderSFDashboard()" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1rem;display:flex;align-items:center;gap:4px">&#8592; Back</button>'
+    + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">Add horse</div>'
+    + '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:10px;padding:1.25rem">'
+    + '<div style="margin-bottom:1rem"><div style="font-size:11px;font-weight:500;color:#8a857a;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">Horse name</div>'
+    + '<input id="sf-horse-name" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(26,26,24,.2);border-radius:8px;font-size:15px;font-family:inherit;outline:none;background:#f5f0e8" placeholder="e.g. Wine Rocs"></div>'
+    + '<div style="margin-bottom:1rem"><div style="font-size:11px;font-weight:500;color:#8a857a;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">Racing DB name (optional)</div>'
+    + '<input id="sf-horse-db" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(26,26,24,.2);border-radius:8px;font-size:15px;font-family:inherit;outline:none;background:#f5f0e8" placeholder="Exact name as per race results"></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem">'
+    + '<div><div style="font-size:11px;font-weight:500;color:#8a857a;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">Colour</div>'
+    + '<input id="sf-horse-colour" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(26,26,24,.2);border-radius:8px;font-size:15px;font-family:inherit;outline:none;background:#f5f0e8" placeholder="Bay"></div>'
+    + '<div><div style="font-size:11px;font-weight:500;color:#8a857a;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">Sex</div>'
+    + '<input id="sf-horse-sex" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(26,26,24,.2);border-radius:8px;font-size:15px;font-family:inherit;outline:none;background:#f5f0e8" placeholder="Mare"></div>'
+    + '</div>'
+    + '<div style="display:flex;gap:.75rem;justify-content:flex-end">'
+    + '<button onclick="renderSFDashboard()" style="background:none;border:1px solid rgba(26,26,24,.2);border-radius:8px;padding:.625rem 1rem;font-size:13px;font-family:inherit;cursor:pointer">Cancel</button>'
+    + '<button id="sf-save-horse-btn" style="background:#1a1a18;color:#c9a84c;border:none;border-radius:8px;padding:.625rem 1.25rem;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Save horse</button>'
+    + '</div></div>';
+  var saveBtn = document.getElementById('sf-save-horse-btn');
+  if(saveBtn) saveBtn.addEventListener('click', sfSaveHorse);
+}
+
+async function sfSaveHorse() {
+  var name = document.getElementById('sf-horse-name').value.trim();
+  if(!name) { alert('Please enter a horse name'); return; }
+  try {
+    await fetch(SF_API + '/trainer/horses', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+sfToken},
+      body: JSON.stringify({
+        name: name,
+        racing_db_name: document.getElementById('sf-horse-db').value.trim() || null,
+        colour: document.getElementById('sf-horse-colour').value.trim() || null,
+        sex: document.getElementById('sf-horse-sex').value.trim() || null
+      })
+    });
+    renderSFDashboard();
+  } catch(e) { alert('Error: ' + e.message); }
 }
 
 function sfStatCard(val, lbl) {
