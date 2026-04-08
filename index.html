@@ -10,29 +10,30 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
-  --bg:#0b0c0b;--bg2:#141513;--bg3:#1c1d1a;--bg4:#242521;
-  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
-  --text:#e6e4dc;--text2:#948f83;--text3:#524f48;
-  --green:#7ec94a;--green2:#3d7018;--green-dim:rgba(126,201,74,0.1);
-  --amber:#e8a830;--red:#d95f4b;--blue:#4a9ed4;
+  --bg:#f5f0e8;--bg2:#ffffff;--bg3:#ede8df;--bg4:#e0dbd1;
+  --border:rgba(26,26,24,0.1);--border2:rgba(26,26,24,0.18);
+  --text:#1a1a18;--text2:#6b6760;--text3:#a8a49e;
+  --green:#4a8c1c;--green2:#2d5c0e;--green-dim:rgba(74,140,28,0.1);
+  --amber:#b8860b;--red:#c0392b;--blue:#2471a3;
   --fd:'Bebas Neue',sans-serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace;
   --r:8px;--r2:12px;
+  --ink:#1a1a18;--gold:#c9a84c;--gold-light:#e8d5a3;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:14px;line-height:1.5;min-height:100vh;padding-bottom:60px}
-#loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s ease}
+#loading-overlay{position:fixed;inset:0;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s ease}
 #loading-overlay.fade-out{opacity:0;pointer-events:none}
-.loading-logo{font-family:var(--fd);font-size:36px;letter-spacing:3px;margin-bottom:1.5rem}
-.loading-logo span{color:var(--green)}
+.loading-logo{font-family:var(--fd);font-size:36px;letter-spacing:3px;margin-bottom:1.5rem;color:#f5f0e8}
+.loading-logo span{color:var(--gold)}
 .loading-bar-wrap{width:200px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
-.loading-bar{height:100%;background:var(--green);border-radius:2px;animation:loadBar 1.5s ease-in-out infinite}
+.loading-bar{height:100%;background:var(--gold);border-radius:2px;animation:loadBar 1.5s ease-in-out infinite}
 @keyframes loadBar{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
 .loading-text{margin-top:1rem;font-size:12px;color:var(--text3);font-family:var(--fm)}
-header{display:flex;align-items:center;gap:12px;padding:0 1.25rem;height:54px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:200}
-.logo{font-family:var(--fd);font-size:22px;letter-spacing:2px;white-space:nowrap;flex-shrink:0}
-.logo span{color:var(--green)}
+header{display:flex;align-items:center;gap:12px;padding:0 1.25rem;height:54px;border-bottom:1px solid var(--border2);background:var(--ink);background:var(--bg);position:sticky;top:0;z-index:200}
+.logo{font-family:var(--fd);font-size:22px;letter-spacing:2px;white-space:nowrap;flex-shrink:0;color:#f5f0e8}
+.logo span{color:var(--gold)}
 .gsearch-wrap{flex:1;max-width:380px;position:relative}
-.gsearch-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:7px 12px 7px 34px;border-radius:20px;font-family:var(--fb);font-size:13px;outline:none;transition:border-color .15s}
+.gsearch-wrap input{width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#f5f0e8;padding:7px 12px 7px 34px;border-radius:20px;font-family:var(--fb);font-size:13px;outline:none;transition:border-color .15s}
 .gsearch-wrap input:focus{border-color:var(--green2)}
 .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
 .gsearch-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);overflow:hidden;z-index:300;display:none;max-height:320px;overflow-y:auto}
@@ -49,8 +50,8 @@ header{display:flex;align-items:center;gap:12px;padding:0 1.25rem;height:54px;bo
 .desktop-nav{display:flex;gap:2px;margin-left:auto;flex-shrink:0}
 .nav-tab{padding:6px 14px;border-radius:5px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);border:none;background:transparent;transition:all .15s;font-family:var(--fb)}
 .nav-tab:hover{color:var(--text);background:var(--bg3)}
-.nav-tab.active{color:var(--green);background:var(--green-dim)}
-.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:200;height:56px}
+.nav-tab.active{color:#f5f0e8;background:rgba(201,168,76,.15)}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--ink);border-top:1px solid var(--border);z-index:200;height:56px}
 .bottom-nav-inner{display:flex;height:100%}
 .bnav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-size:10px;color:var(--text3);border:none;background:transparent;transition:color .15s;font-family:var(--fb);padding:0}
 .bnav-tab.active{color:var(--green)}
@@ -123,7 +124,7 @@ tr:hover td{background:var(--bg3)}
 .chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem}
 .chart-title{font-family:var(--fm);font-size:10px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:1rem}
 .h2h-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
-.h2h-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem}
+.h2h-card{background:#fff;border:1px solid var(--border2);border-radius:var(--r2);padding:1.25rem}
 .h2h-name{font-family:var(--fd);font-size:26px;letter-spacing:1px;margin-bottom:.875rem}
 .hsr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
 .hsr:last-child{border-bottom:none}
@@ -329,6 +330,30 @@ tr:hover td{background:var(--bg3)}
 .sf-dashboard-btn{background:#c9a84c;color:#1a1a18;border:none;border-radius:16px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fm)}
 .sf-dashboard-btn:hover{opacity:.85}
 
+
+/* ---- SF DROPDOWN ---- */
+.sf-auth-wrap{position:relative}
+.sf-chevron{font-size:10px;color:rgba(201,168,76,.7);margin-left:2px}
+.sf-user-pill{cursor:pointer;user-select:none}
+.sf-user-pill:hover{background:rgba(201,168,76,.25)}
+.sf-dropdown{position:absolute;right:0;top:calc(100% + 8px);background:#1a1a18;border:1px solid rgba(201,168,76,.2);border-radius:12px;min-width:200px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:200;animation:sfDropdown .15s ease}
+@keyframes sfDropdown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.sf-dropdown-header{padding:.875rem 1rem;font-size:12px;color:rgba(245,240,232,.4)}
+.sf-dropdown-divider{height:1px;background:rgba(245,240,232,.08);margin:0}
+.sf-dropdown-item{display:flex;align-items:center;gap:8px;width:100%;padding:.75rem 1rem;background:none;border:none;color:rgba(245,240,232,.85);font-size:13px;font-family:var(--fm);cursor:pointer;text-align:left;transition:background .15s}
+.sf-dropdown-item:hover{background:rgba(255,255,255,.07)}
+.sf-dropdown-signout{color:rgba(245,240,232,.4)}
+.sf-dropdown-signout:hover{color:rgba(245,240,232,.7)}
+
+
+/* ---- SF HORSE TILES ---- */
+.sf-horse-tile{background:white;border:1px solid rgba(26,26,24,.12);border-radius:12px;padding:1rem;cursor:pointer;transition:box-shadow .2s,transform .1s}
+.sf-horse-tile:hover{box-shadow:0 4px 20px rgba(26,26,24,.12);transform:translateY(-2px)}
+.sf-tile-btn{font-size:11px;padding:4px 10px;border-radius:16px;border:1px solid rgba(26,26,24,.2);background:none;cursor:pointer;font-family:inherit;color:#1a1a18;transition:background .15s}
+.sf-tile-btn:hover{background:#f5f0e8}
+.sf-tile-invite{border-color:rgba(201,168,76,.4);color:#7a5c1a;background:rgba(201,168,76,.08)}
+.sf-tile-invite:hover{background:rgba(201,168,76,.15)}
+
 </style>
 </head>
 <body>
@@ -354,11 +379,18 @@ tr:hover td{background:var(--bg3)}
   </nav>
   <div class="sf-auth-wrap" id="sf-auth-wrap">
     <button class="sf-signin-btn" id="sf-signin-btn" onclick="openSFLogin()">Sign in</button>
-    <div class="sf-user-pill" id="sf-user-pill" style="display:none">
+    <div class="sf-user-pill" id="sf-user-pill" style="display:none" onclick="toggleSFMenu(event)">
       <span id="sf-user-name"></span>
       <span class="sf-user-role" id="sf-user-role"></span>
-      <button class="sf-signout-btn" onclick="sfLogout()">&#x2715;</button>
-      <button class="sf-dashboard-btn" onclick="openSFDashboard()">My StableForm</button>
+      <span class="sf-chevron">&#x25BE;</span>
+    </div>
+    <div class="sf-dropdown" id="sf-dropdown" style="display:none">
+      <div class="sf-dropdown-header" id="sf-dropdown-user"></div>
+      <div class="sf-dropdown-divider"></div>
+      <button class="sf-dropdown-item" onclick="sfNavigate('horses')">&#x1F40E; My horses</button>
+      <button class="sf-dropdown-item" onclick="sfNavigate('feed')">&#x1F4F0; Updates feed</button>
+      <div class="sf-dropdown-divider"></div>
+      <button class="sf-dropdown-item sf-dropdown-signout" onclick="sfLogout()">Sign out</button>
     </div>
   </div>
   <div class="status-pill"><div class="status-dot"></div><span id="db-status">loading...</span></div>
