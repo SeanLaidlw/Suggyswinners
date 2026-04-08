@@ -2475,3 +2475,155 @@ document.getElementById('sf-login-modal').addEventListener('click', function(e) 
 document.getElementById('sf-dashboard-modal').addEventListener('click', function(e) {
   if(e.target === this) closeSFDashboard();
 });
+
+
+// ---- FAQ MODAL ----
+var faqContent = {
+  using: {
+    title: 'How to use StableForm',
+    sections: [
+      {
+        heading: 'Getting around',
+        items: [
+          {
+            q: 'How do I find a specific horse, jockey or trainer?',
+            a: 'Use the search box in the top navigation bar — just start typing a name and matching results will appear straight away. You can also use the Profile page to search and view a full career breakdown.'
+          },
+          {
+            q: 'How do I filter race results?',
+            a: 'Head to the Results page and use the filter bar at the top. You can narrow down by horse, jockey, trainer, track, going, race class, position and date range. All filters work together so you can get really specific.'
+          },
+          {
+            q: 'What is the Field Builder?',
+            a: 'The Field Builder lets you build a custom race field by searching and adding horses one by one. Once you have a field, StableForm shows each horse&#39;s speed figures, win rates, going preferences and a pace map so you can size up the race before it runs.'
+          },
+          {
+            q: 'How do Head to Head comparisons work?',
+            a: 'Go to the Head to Head page, enter two names (horses, jockeys or trainers) and hit Compare. You&#39;ll see a side-by-side breakdown of wins, places, win percentages and average finishing position across their careers.'
+          },
+          {
+            q: 'How do I filter results by track or going?',
+            a: 'On the Results page, use the Track and Going dropdowns in the filter bar. You can select any NZ track or going condition to see how runners have performed in those specific circumstances.'
+          }
+        ]
+      }
+    ]
+  },
+  data: {
+    title: 'Understanding the data',
+    sections: [
+      {
+        heading: 'Speed figures',
+        items: [
+          {
+            q: 'What is a speed figure?',
+            a: 'A speed figure is a number that represents how fast a horse ran in a race, adjusted for distance. A figure of 100 is considered par — the typical winning time for that track and distance. Figures above 100 are better than average, and figures below 100 are slower. The higher the number, the more impressive the performance.'
+          },
+          {
+            q: 'Why do some horses not have a speed figure?',
+            a: 'Speed figures are only calculated for horses that finish with a recorded time. Horses that were scratched, fell, or whose time wasn&#39;t recorded won&#39;t have a figure for that run.'
+          },
+          {
+            q: 'What do the coloured speed figure badges mean?',
+            a: 'Green badges (110+) indicate an exceptional run — well above par. Amber badges (100-109) are solid above-average performances. Grey badges are below-par runs. These colours make it easy to spot a horse&#39;s best and worst performances at a glance.'
+          }
+        ]
+      },
+      {
+        heading: 'Going & race classes',
+        items: [
+          {
+            q: 'What do the going ratings mean?',
+            a: 'Going describes the condition of the track surface. In NZ: Firm (very dry, fast), Good (ideal conditions), Soft (some moisture, slightly slower), Heavy (very wet, significantly slower). Most NZ racing takes place on Soft or Heavy going, which is why speed figures are adjusted for distance rather than going — the par times naturally absorb typical NZ conditions.'
+          },
+          {
+            q: 'How does the NZ race class system work?',
+            a: 'NZ races are graded from Group 1 (the highest level) down through Group 2, Group 3, Listed, Open, Benchmark (BM), and Maiden races. Benchmark races are the most common — the number after BM indicates the maximum rating to enter (e.g. BM65 means horses rated up to 65). Maiden races are for horses that have never won.'
+          },
+          {
+            q: 'What is the pace map?',
+            a: 'The pace map uses each horse&#39;s last 600 metre split time to predict where they&#39;ll sit in a race. Horses are classified as Leader (likely to be near the front), Presser (chasing the leader), Midfield, or Backmarker. This helps identify races where the pace might be too hot up front, or where a backmarker might benefit from a slow tempo.'
+          }
+        ]
+      }
+    ]
+  },
+  platform: {
+    title: 'Trainers & owners',
+    sections: [
+      {
+        heading: 'Getting started',
+        items: [
+          {
+            q: 'How does the trainer-owner platform work?',
+            a: 'StableForm includes a private communication platform for licensed trainers and their horse owners. Trainers can post updates, trial reports, race notes and photos for each horse — only the owners of that horse can see them. Owners can reply and send messages directly to their trainer.'
+          },
+          {
+            q: 'How do I get access as an owner?',
+            a: 'Access is by invitation only. Your trainer will send you a personalised invite link to your email address. Simply click the link, set your name and password, and you&#39;ll be taken straight to your horses. If you haven&#39;t received an invite, get in touch with your trainer or email us at admin@stableform.online.'
+          },
+          {
+            q: 'I&#39;m a trainer — how do I get set up?',
+            a: 'Trainer accounts are created by the StableForm admin team. Just send us an email at admin@stableform.online with your name, stable name and contact details and we&#39;ll have you set up quickly. Once you&#39;re in, you can add your horses and start inviting owners straight away.'
+          }
+        ]
+      },
+      {
+        heading: 'Using the platform',
+        items: [
+          {
+            q: 'How do I post an update for an owner?',
+            a: 'Sign in using the Sign in button in the top right corner. Once logged in, click your name to open the StableForm menu, then select My horses. Click on a horse, and you&#39;ll see a text box at the top where you can type a trackwork note, trial report, race report or general update. Hit Post update and all owners of that horse will be able to see it.'
+          },
+          {
+            q: 'Can owners see each other&#39;s messages?',
+            a: 'Messages sent through a horse&#39;s thread are visible to all owners of that horse and the trainer. Think of it as a group chat for each horse&#39;s ownership syndicate. If you need to send something private, use email directly.'
+          },
+          {
+            q: 'Is my information secure?',
+            a: 'Yes. The platform runs on a private server with SSL encryption (the padlock you see in your browser). Owner accounts are access-controlled — you can only see information about horses you own a share in. Trainer accounts are manually verified before being created.'
+          }
+        ]
+      }
+    ]
+  }
+};
+
+function openFaq(section) {
+  var data = faqContent[section];
+  if(!data) return;
+  var body = document.getElementById('faq-body');
+  var html = '';
+  data.sections.forEach(function(sec) {
+    html += '<div class="faq-section-title">' + sec.heading + '</div>';
+    sec.items.forEach(function(item, i) {
+      html += '<div class="faq-item" id="faq-item-' + section + '-' + i + '">'
+        + '<div class="faq-q" onclick="toggleFaq(this)">'
+        + item.q
+        + '<span class="faq-chevron">&#9660;</span>'
+        + '</div>'
+        + '<div class="faq-a">' + item.a + '</div>'
+        + '</div>';
+    });
+  });
+  body.innerHTML = html;
+  document.getElementById('faq-modal').classList.add('active');
+}
+
+function closeFaq() {
+  document.getElementById('faq-modal').classList.remove('active');
+}
+
+function toggleFaq(qEl) {
+  var item = qEl.closest('.faq-item');
+  var isOpen = item.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-item.open').forEach(function(el){ el.classList.remove('open'); });
+  // Open this one if it was closed
+  if(!isOpen) item.classList.add('open');
+}
+
+// Close FAQ on overlay click
+document.getElementById('faq-modal').addEventListener('click', function(e) {
+  if(e.target === this) closeFaq();
+});

@@ -354,6 +354,51 @@ tr:hover td{background:var(--bg3)}
 .sf-tile-invite{border-color:rgba(201,168,76,.4);color:#7a5c1a;background:rgba(201,168,76,.08)}
 .sf-tile-invite:hover{background:rgba(201,168,76,.15)}
 
+
+/* ---- FOOTER ---- */
+.site-footer{background:var(--ink);color:rgba(245,240,232,.7);padding:3rem 1.5rem 5rem;margin-top:3rem}
+.footer-inner{max-width:960px;margin:0 auto}
+.footer-top{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:2.5rem;margin-bottom:2.5rem}
+.footer-brand .footer-logo{font-family:var(--fd);font-size:24px;letter-spacing:2px;color:#f5f0e8;margin-bottom:.75rem}
+.footer-brand .footer-logo span{color:var(--gold)}
+.footer-brand p{font-size:13px;line-height:1.7;color:rgba(245,240,232,.55);max-width:220px}
+.footer-col h4{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);margin-bottom:1rem}
+.footer-col ul{list-style:none;padding:0}
+.footer-col ul li{margin-bottom:.625rem}
+.footer-col ul li a{font-size:13px;color:rgba(245,240,232,.6);text-decoration:none;cursor:pointer;transition:color .15s}
+.footer-col ul li a:hover{color:#f5f0e8}
+.footer-col ul li span{font-size:13px;color:rgba(245,240,232,.6)}
+.footer-bottom{border-top:1px solid rgba(245,240,232,.08);padding-top:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
+.footer-bottom p{font-size:12px;color:rgba(245,240,232,.35)}
+.footer-bottom a{font-size:12px;color:rgba(245,240,232,.4);text-decoration:none}
+.footer-bottom a:hover{color:rgba(245,240,232,.7)}
+@media(max-width:768px){
+  .footer-top{grid-template-columns:1fr 1fr;gap:2rem}
+  .footer-brand{grid-column:1/-1}
+}
+@media(max-width:480px){
+  .footer-top{grid-template-columns:1fr}
+}
+
+/* ---- FAQ MODAL ---- */
+.faq-modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,26,24,.65);z-index:500;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.faq-modal-overlay.active{display:flex}
+.faq-modal{background:var(--bg);border-radius:16px;width:100%;max-width:620px;overflow:hidden;animation:fadeUp .25s ease;margin:auto}
+.faq-modal-head{background:var(--ink);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.faq-modal-title{font-family:var(--fd);font-size:20px;letter-spacing:1px;color:#f5f0e8}
+.faq-modal-title span{color:var(--gold)}
+.faq-close-btn{background:none;border:none;color:rgba(245,240,232,.5);font-size:20px;cursor:pointer;line-height:1}
+.faq-modal-body{padding:1.5rem}
+.faq-section-title{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--gold);margin:1.25rem 0 .75rem}
+.faq-section-title:first-child{margin-top:0}
+.faq-item{border-bottom:1px solid var(--border);padding:.875rem 0}
+.faq-item:last-child{border-bottom:none}
+.faq-q{font-size:14px;font-weight:500;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.faq-q .faq-chevron{font-size:12px;color:var(--text2);transition:transform .2s;flex-shrink:0}
+.faq-item.open .faq-chevron{transform:rotate(180deg)}
+.faq-a{font-size:13px;color:var(--text2);line-height:1.7;max-height:0;overflow:hidden;transition:max-height .25s ease,padding .25s}
+.faq-item.open .faq-a{max-height:300px;padding-top:.625rem}
+
 </style>
 </head>
 <body>
@@ -677,6 +722,72 @@ tr:hover td{background:var(--bg3)}
     <div id="sf-dashboard-content" style="padding:1.5rem">
       <div style="text-align:center;padding:2rem;color:#8a857a">Loading...</div>
     </div>
+  </div>
+</div>
+
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">STABLE<span>FORM</span></div>
+        <p>New Zealand's free racing analytics platform — helping owners, trainers and punters understand the form better, one race at a time.</p>
+        <p style="margin-top:.75rem;font-size:13px;color:rgba(245,240,232,.55)">Questions? We'd love to hear from you.<br><a href="mailto:admin@stableform.online" style="color:var(--gold);text-decoration:none">admin@stableform.online</a></p>
+      </div>
+
+      <div class="footer-col">
+        <h4>How to use</h4>
+        <ul>
+          <li><a onclick="openFaq('using')">Reading race results</a></li>
+          <li><a onclick="openFaq('using')">Using the Field Builder</a></li>
+          <li><a onclick="openFaq('using')">Head to Head comparisons</a></li>
+          <li><a onclick="openFaq('using')">Finding a horse's profile</a></li>
+          <li><a onclick="openFaq('using')">Filtering by track &amp; going</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Understanding the data</h4>
+        <ul>
+          <li><a onclick="openFaq('data')">What are speed figures?</a></li>
+          <li><a onclick="openFaq('data')">Going ratings explained</a></li>
+          <li><a onclick="openFaq('data')">Race classes in NZ</a></li>
+          <li><a onclick="openFaq('data')">How the pace map works</a></li>
+          <li><a onclick="openFaq('data')">Class progression chart</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Trainers &amp; owners</h4>
+        <ul>
+          <li><a onclick="openFaq('platform')">How the platform works</a></li>
+          <li><a onclick="openFaq('platform')">Getting an invite</a></li>
+          <li><a onclick="openFaq('platform')">Posting updates</a></li>
+          <li><a onclick="openFaq('platform')">Messaging your trainer</a></li>
+          <li><a href="mailto:admin@stableform.online" style="color:rgba(245,240,232,.6);text-decoration:none">Contact us to join</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 StableForm. Free to use. Data sourced from LoveRacing NZ.</p>
+      <div style="display:flex;gap:1.5rem">
+        <a href="mailto:admin@stableform.online">Contact</a>
+        <a onclick="openFaq('using')" style="cursor:pointer">Help</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== FAQ MODAL ===== -->
+<div id="faq-modal" class="faq-modal-overlay">
+  <div class="faq-modal">
+    <div class="faq-modal-head">
+      <div class="faq-modal-title">STABLE<span>FORM</span> &mdash; Help &amp; FAQ</div>
+      <button class="faq-close-btn" onclick="closeFaq()">&#x2715;</button>
+    </div>
+    <div class="faq-modal-body" id="faq-body"></div>
   </div>
 </div>
 
