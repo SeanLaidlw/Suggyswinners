@@ -1634,11 +1634,35 @@ function updateSFNav() {
     userPill.style.display = 'flex';
     document.getElementById('sf-user-name').textContent = sfUser.name;
     document.getElementById('sf-user-role').textContent = sfUser.role;
+    var hdr = document.getElementById('sf-dropdown-user');
+    if(hdr) hdr.textContent = sfUser.name + ' (' + sfUser.role + ')';
   } else {
     signInBtn.style.display = 'block';
     userPill.style.display = 'none';
+    closeSFMenu();
   }
 }
+
+function toggleSFMenu(e) {
+  e.stopPropagation();
+  var dd = document.getElementById('sf-dropdown');
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+
+function closeSFMenu() {
+  var dd = document.getElementById('sf-dropdown');
+  if(dd) dd.style.display = 'none';
+}
+
+function sfNavigate(view) {
+  closeSFMenu();
+  document.getElementById('sf-dashboard-modal').style.display = 'flex';
+  if(view === 'horses') sfShowMyHorses();
+  else if(view === 'feed') sfShowUpdatesFeed();
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function() { closeSFMenu(); });
 
 async function sfApiGet(path) {
   var res = await fetch(SF_API + path, {
@@ -1650,6 +1674,10 @@ async function sfApiGet(path) {
 }
 
 async function renderSFDashboard() {
+  sfShowMyHorses();
+}
+
+async function renderSFDashboardFull() {
   var el = document.getElementById('sf-dashboard-content');
   if(!sfUser) { el.innerHTML = '<div style="text-align:center;padding:2rem;color:#8a857a">Not logged in</div>'; return; }
   el.innerHTML = '<div style="text-align:center;padding:2rem;color:#8a857a">Loading...</div>';
@@ -1710,6 +1738,155 @@ async function renderSFDashboard() {
   }
 }
 
+
+
+async function sfShowMyHorses() {
+  var el = document.getElementById('sf-dashboard-content');
+  el.innerHTML = '<div style="text-align:center;padding:2rem;color:#8a857a">Loading...</div>';
+  try {
+    var role = sfUser.role;
+    var horses = role === 'owner'
+      ? await sfApiGet('/owner/horses')
+      : await sfApiGet('/trainer/horses');
+    var isTrainer = role === 'trainer' || role === 'admin';
+
+    var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">'
+      + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700">My horses</div>'
+      + (isTrainer ? '<button id="sf-add-horse-btn2" style="background:#1a1a18;color:#c9a84c;border:none;border-radius:8px;padding:.5rem 1rem;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">+ Add horse</button>' : '')
+      + '</div>';
+
+    if(horses.length === 0) {
+      html += '<div style="text-align:center;padding:3rem;color:#8a857a">'
+        + '<div style="font-size:40px;margin-bottom:1rem;opacity:.3">&#x1F40E;</div>'
+        + '<div style="font-size:15px;font-weight:500;color:#1a1a18;margin-bottom:.5rem">No horses yet</div>'
+        + '<div style="font-size:13px">' + (isTrainer ? 'Add your first horse above' : 'Your trainer will invite you to your horses') + '</div>'
+        + '</div>';
+    } else {
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem">';
+      horses.forEach(function(h) {
+        html += '<div class="sf-horse-tile" data-hid="' + h.id + '" data-hname="' + h.name + '">'
+          + '<div style="font-family:Georgia,serif;font-size:17px;font-weight:700;margin-bottom:.25rem">' + h.name + '</div>'
+          + '<div style="font-size:12px;color:#8a857a;margin-bottom:.75rem">'
+          + (isTrainer
+            ? (h.owner_count + ' owner' + (h.owner_count !== 1 ? 's' : ''))
+            : ('Trainer: ' + h.trainer_name))
+          + '</div>'
+          + (h.colour || h.sex ? '<div style="font-size:11px;color:#6b7c5c">' + [h.colour, h.sex].filter(Boolean).join(' &bull; ') + '</div>' : '')
+          + '<div style="margin-top:.875rem;padding-top:.875rem;border-top:1px solid rgba(26,26,24,.08);display:flex;gap:6px">'
+          + '<button class="sf-tile-btn sf-tile-view" data-hid="' + h.id + '" data-hname="' + h.name + '">Updates</button>'
+          + (isTrainer ? '<button class="sf-tile-btn sf-tile-invite" data-hid="' + h.id + '" data-hname="' + h.name + '">Invite</button>' : '')
+          + '</div>'
+          + '</div>';
+      });
+      html += '</div>';
+    }
+
+    el.innerHTML = html;
+
+    // Add horse button
+    var addBtn = document.getElementById('sf-add-horse-btn2');
+    if(addBtn) addBtn.addEventListener('click', sfShowAddHorseForm);
+
+    // View updates buttons
+    el.querySelectorAll('.sf-tile-view').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        sfViewHorse(this.dataset.hid, this.dataset.hname);
+      });
+    });
+
+    // Invite buttons
+    el.querySelectorAll('.sf-tile-invite').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        sfShowInviteForm(this.dataset.hid, this.dataset.hname);
+      });
+    });
+
+    // Card click
+    el.querySelectorAll('.sf-horse-tile').forEach(function(card) {
+      card.addEventListener('click', function() {
+        sfViewHorse(this.dataset.hid, this.dataset.hname);
+      });
+    });
+
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:#a85c3a">Error: ' + e.message + '</div>';
+  }
+}
+
+async function sfShowUpdatesFeed() {
+  var el = document.getElementById('sf-dashboard-content');
+  el.innerHTML = '<div style="text-align:center;padding:2rem;color:#8a857a">Loading...</div>';
+  try {
+    var role = sfUser.role;
+    var horses = role === 'owner'
+      ? await sfApiGet('/owner/horses')
+      : await sfApiGet('/trainer/horses');
+
+    if(horses.length === 0) {
+      el.innerHTML = '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">Updates feed</div>'
+        + '<div style="text-align:center;padding:3rem;color:#8a857a">No horses to show updates for</div>';
+      return;
+    }
+
+    // Fetch updates for all horses in parallel
+    var allUpdates = [];
+    await Promise.all(horses.map(async function(h) {
+      try {
+        var updates = await sfApiGet('/updates/' + h.id);
+        updates.forEach(function(u) {
+          u._horse_name = h.name;
+          u._horse_id = h.id;
+          allUpdates.push(u);
+        });
+      } catch(e) {}
+    }));
+
+    // Sort newest first
+    allUpdates.sort(function(a, b) { return new Date(b.created_at) - new Date(a.created_at); });
+
+    var html = '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">Updates feed</div>';
+
+    if(allUpdates.length === 0) {
+      html += '<div style="text-align:center;padding:3rem;color:#8a857a">'
+        + '<div style="font-size:40px;margin-bottom:1rem;opacity:.3">&#x1F4DD;</div>'
+        + '<div style="font-size:15px;font-weight:500;color:#1a1a18;margin-bottom:.5rem">No updates yet</div>'
+        + '<div style="font-size:13px">Updates from your trainer will appear here</div>'
+        + '</div>';
+    } else {
+      allUpdates.forEach(function(u) {
+        var typeColors = {note:'#e8ede0|#6b7c5c', trial:'#f5ead0|#7a5c1a', race:'#f5e0d8|#a85c3a', general:'#f0eeea|#8a857a'};
+        var tc = (typeColors[u.type] || typeColors.general).split('|');
+        html += '<div style="background:white;border:1px solid rgba(26,26,24,.1);border-radius:12px;padding:1.25rem;margin-bottom:.875rem;cursor:pointer" data-hid="' + u._horse_id + '" data-hname="' + u._horse_name + '">'
+          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:.875rem">'
+          + '<div style="width:30px;height:30px;border-radius:50%;background:#e8ede0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#6b7c5c;flex-shrink:0">'
+          + u.trainer_name.split(' ').map(function(n){return n[0];}).join('').slice(0,2)
+          + '</div>'
+          + '<div style="flex:1">'
+          + '<div style="font-size:13px;font-weight:600;font-family:Georgia,serif">' + u._horse_name + '</div>'
+          + '<div style="font-size:11px;color:#8a857a">' + u.trainer_name + ' &bull; ' + sfFormatDate(u.created_at) + '</div>'
+          + '</div>'
+          + '<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:' + tc[0] + ';color:' + tc[1] + ';font-weight:500">' + u.type + '</span>'
+          + '</div>'
+          + '<div style="font-size:14px;line-height:1.7;color:#1a1a18">' + u.content + '</div>'
+          + '</div>';
+      });
+    }
+
+    el.innerHTML = html;
+
+    // Make update cards clickable — go to horse detail
+    el.querySelectorAll('[data-hid]').forEach(function(card) {
+      card.addEventListener('click', function() {
+        sfViewHorse(this.dataset.hid, this.dataset.hname);
+      });
+    });
+
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:#a85c3a">Error: ' + e.message + '</div>';
+  }
+}
 
 function sfShowAddHorseForm() {
   var el = document.getElementById('sf-dashboard-content');
@@ -1791,6 +1968,139 @@ async function sfShowInviteForm(horseId, horseName) {
       document.getElementById('sf-invite-email').value = '';
     } catch(e) { alert('Error: ' + e.message); }
   });
+}
+
+
+async function sfShowMyHorses() {
+  var el = document.getElementById('sf-dashboard-content');
+  el.innerHTML = '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">My horses</div><div style="text-align:center;padding:2rem;color:#8a857a">Loading...</div>';
+  document.getElementById('sf-dashboard-modal').style.display = 'flex';
+  try {
+    var role = sfUser.role;
+    var horses = role === 'owner' ? await sfApiGet('/owner/horses') : await sfApiGet('/trainer/horses');
+    var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">'
+      + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700">My horses</div>'
+      + (role === 'trainer' ? '<button id="sf-add-horse-btn2" style="background:#1a1a18;color:#c9a84c;border:none;border-radius:8px;padding:.5rem 1rem;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">+ Add horse</button>' : '')
+      + '</div>';
+    if(horses.length === 0) {
+      html += '<div style="text-align:center;padding:3rem;color:#8a857a">'
+        + '<div style="font-size:36px;margin-bottom:1rem;opacity:.3">&#x1F40E;</div>'
+        + '<div style="font-size:15px;font-weight:500;margin-bottom:.5rem;color:#1a1a18">No horses yet</div>'
+        + '<div style="font-size:13px">' + (role === 'trainer' ? 'Click above to add your first horse' : 'Your trainer will invite you to your horses') + '</div>'
+        + '</div>';
+    } else {
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.875rem">';
+      horses.forEach(function(h) {
+        html += '<div style="background:white;border:1px solid rgba(26,26,24,.1);border-radius:12px;overflow:hidden;cursor:pointer" data-hid="' + h.id + '" data-hname="' + h.name + '">'
+          + '<div style="background:linear-gradient(135deg,#1a1a18,#2a2a26);padding:1.25rem 1rem .875rem">'
+          + '<div style="font-family:Georgia,serif;font-size:17px;font-weight:700;color:#f5f0e8;margin-bottom:.125rem">' + h.name + '</div>'
+          + '<div style="font-size:11px;color:rgba(245,240,232,.45)">' + (h.colour||'') + (h.colour&&h.sex?' &bull; ':'') + (h.sex||'&nbsp;') + '</div>'
+          + '</div>'
+          + '<div style="padding:.875rem 1rem">'
+          + (role === 'trainer'
+            ? '<div style="font-size:12px;color:#6b7c5c;font-weight:500">' + h.owner_count + ' owner' + (h.owner_count!==1?'s':'') + '</div>'
+            : '<div style="font-size:12px;color:#8a857a">Trainer: ' + h.trainer_name + '</div>')
+          + '<div style="display:flex;gap:6px;margin-top:.75rem">'
+          + '<button class="sf-horse-updates-btn" data-hid="' + h.id + '" data-hname="' + h.name + '" style="flex:1;background:#1a1a18;color:#c9a84c;border:none;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Updates</button>'
+          + '<button class="sf-horse-profile-btn" data-hname="' + (h.racing_db_name||h.name) + '" style="flex:1;background:none;border:1px solid rgba(26,26,24,.15);border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer;font-family:inherit;color:#8a857a">Form &#8599;</button>'
+          + '</div></div></div>';
+      });
+      html += '</div>';
+    }
+    el.innerHTML = html;
+    // Add horse button
+    var addBtn = document.getElementById('sf-add-horse-btn2');
+    if(addBtn) addBtn.addEventListener('click', sfShowAddHorseForm);
+    // Updates buttons
+    el.querySelectorAll('.sf-horse-updates-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        sfViewHorse(this.dataset.hid, this.dataset.hname);
+      });
+    });
+    // Form/profile buttons - link to analytics profile page
+    el.querySelectorAll('.sf-horse-profile-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var name = this.dataset.hname;
+        closeSFDashboard();
+        // Try to find horse in racing data and open profile
+        if(typeof showHorseProfile === 'function') {
+          showHorseProfile(name);
+        } else {
+          showPage('profile');
+          document.getElementById('global-search').value = name;
+          document.getElementById('global-search').dispatchEvent(new Event('input'));
+        }
+      });
+    });
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:#a85c3a">Error: ' + e.message + '</div>';
+  }
+}
+
+async function sfShowUpdatesFeed() {
+  var el = document.getElementById('sf-dashboard-content');
+  el.innerHTML = '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">Updates</div><div style="text-align:center;padding:2rem;color:#8a857a">Loading...</div>';
+  document.getElementById('sf-dashboard-modal').style.display = 'flex';
+  try {
+    var role = sfUser.role;
+    var horses = role === 'owner' ? await sfApiGet('/owner/horses') : await sfApiGet('/trainer/horses');
+    if(horses.length === 0) {
+      el.innerHTML = '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">Updates</div>'
+        + '<div style="text-align:center;padding:3rem;color:#8a857a">'
+        + '<div style="font-size:36px;margin-bottom:1rem;opacity:.3">&#x1F4DD;</div>'
+        + '<div style="font-size:15px;font-weight:500;margin-bottom:.5rem;color:#1a1a18">No updates yet</div>'
+        + '<div style="font-size:13px">Updates will appear here once horses are added</div>'
+        + '</div>';
+      return;
+    }
+    // Fetch updates for all horses in parallel
+    var allUpdates = [];
+    await Promise.all(horses.map(async function(h) {
+      try {
+        var updates = await sfApiGet('/updates/' + h.id);
+        updates.forEach(function(u) {
+          u.horse_name = h.name;
+          u.horse_id = h.id;
+          allUpdates.push(u);
+        });
+      } catch(e) {}
+    }));
+    // Sort by date descending
+    allUpdates.sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); });
+    var html = '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">Updates <span style="font-size:14px;font-weight:400;color:#8a857a;font-family:inherit">(' + allUpdates.length + ')</span></div>';
+    if(allUpdates.length === 0) {
+      html += '<div style="text-align:center;padding:3rem;color:#8a857a">'
+        + '<div style="font-size:36px;margin-bottom:1rem;opacity:.3">&#x1F4DD;</div>'
+        + '<div style="font-size:15px;font-weight:500;margin-bottom:.5rem;color:#1a1a18">No updates yet</div>'
+        + (role === 'trainer' ? '<div style="font-size:13px">Click a horse to post the first update</div>' : '<div style="font-size:13px">Your trainer has not posted any updates yet</div>')
+        + '</div>';
+    } else {
+      var typeBg = {note:'#e8ede0', trial:'#f5ecd5', race:'#f5e8e0', general:'#efefef'};
+      var typeCol = {note:'#6b7c5c', trial:'#7a5c1a', race:'#a85c3a', general:'#8a857a'};
+      allUpdates.forEach(function(u) {
+        html += '<div style="background:white;border:1px solid rgba(26,26,24,.1);border-radius:12px;padding:1.125rem;margin-bottom:.75rem">'
+          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:.875rem">'
+          + '<div style="font-family:Georgia,serif;font-size:14px;font-weight:700;flex:1;cursor:pointer;color:#1a1a18" data-hid="' + u.horse_id + '" data-hname="' + u.horse_name + '" class="sf-feed-horse">' + u.horse_name + '</div>'
+          + '<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:' + (typeBg[u.type]||'#efefef') + ';color:' + (typeCol[u.type]||'#8a857a') + ';font-weight:500">' + u.type + '</span>'
+          + '<span style="font-size:11px;color:#8a857a">' + sfFormatDate(u.created_at) + '</span>'
+          + '</div>'
+          + '<div style="font-size:14px;line-height:1.7;color:#1a1a18">' + u.content + '</div>'
+          + '<div style="font-size:12px;color:#8a857a;margin-top:.625rem">— ' + u.trainer_name + '</div>'
+          + '</div>';
+      });
+    }
+    el.innerHTML = html;
+    // Horse name links → open horse detail
+    el.querySelectorAll('.sf-feed-horse').forEach(function(el2) {
+      el2.addEventListener('click', function() {
+        sfViewHorse(this.dataset.hid, this.dataset.hname);
+      });
+    });
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:#a85c3a">Error: ' + e.message + '</div>';
+  }
 }
 
 function sfStatCard(val, lbl) {
