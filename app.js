@@ -2024,9 +2024,8 @@ async function sfShowMyHorses() {
         e.stopPropagation();
         var name = this.dataset.hname;
         closeSFDashboard();
-        // Try to find horse in racing data and open profile
-        if(typeof showHorseProfile === 'function') {
-          showHorseProfile(name);
+        if(typeof openProfile === 'function') {
+          openProfile(name, 'horse');
         } else {
           showPage('profile');
           document.getElementById('global-search').value = name;
