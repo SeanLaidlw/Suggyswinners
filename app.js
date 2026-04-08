@@ -1752,6 +1752,47 @@ async function sfSaveHorse() {
   } catch(e) { alert('Error: ' + e.message); }
 }
 
+
+async function sfShowInviteForm(horseId, horseName) {
+  var el = document.getElementById('sf-dashboard-content');
+  el.innerHTML = '<button id="sf-invite-back" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1rem;display:flex;align-items:center;gap:4px">&#8592; Back to ' + horseName + '</button>'
+    + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">Invite owner — ' + horseName + '</div>'
+    + '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:10px;padding:1.25rem">'
+    + '<div style="margin-bottom:1.25rem"><div style="font-size:11px;font-weight:500;color:#8a857a;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">Owner email</div>'
+    + '<input id="sf-invite-email" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(26,26,24,.2);border-radius:8px;font-size:15px;font-family:inherit;outline:none;background:#f5f0e8" placeholder="owner@example.com" type="email"></div>'
+    + '<div id="sf-invite-result" style="display:none;background:#e8ede0;border-radius:8px;padding:1rem;margin-bottom:1rem;font-size:13px;word-break:break-all"></div>'
+    + '<div style="display:flex;gap:.75rem;justify-content:flex-end">'
+    + '<button id="sf-invite-cancel" style="background:none;border:1px solid rgba(26,26,24,.2);border-radius:8px;padding:.625rem 1rem;font-size:13px;font-family:inherit;cursor:pointer">Cancel</button>'
+    + '<button id="sf-invite-send" style="background:#1a1a18;color:#c9a84c;border:none;border-radius:8px;padding:.625rem 1.25rem;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Send invite</button>'
+    + '</div></div>';
+  document.getElementById('sf-invite-back').addEventListener('click', function(){ sfViewHorse(horseId, horseName); });
+  document.getElementById('sf-invite-cancel').addEventListener('click', function(){ sfViewHorse(horseId, horseName); });
+  document.getElementById('sf-invite-send').addEventListener('click', async function(){
+    var email = document.getElementById('sf-invite-email').value.trim();
+    if(!email) { alert('Please enter an email address'); return; }
+    try {
+      var res = await fetch(SF_API + '/trainer/invite', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Authorization':'Bearer '+sfToken},
+        body: JSON.stringify({horse_id: horseId, email: email})
+      });
+      var data = await res.json();
+      if(!res.ok) throw new Error(data.detail || 'Error');
+      var resultEl = document.getElementById('sf-invite-result');
+      resultEl.style.display = 'block';
+      resultEl.innerHTML = '<div style="font-weight:500;margin-bottom:.5rem">Invite created successfully!</div>'
+        + '<div style="color:#6b7c5c;margin-bottom:.5rem">Send this link to ' + email + ':</div>'
+        + '<div id="sf-invite-link" style="background:white;border-radius:6px;padding:.75rem;font-family:monospace;font-size:12px;color:#1a1a18;cursor:pointer">'
+        + data.invite_url + '</div>'
+        + '<div style="font-size:11px;color:#8a857a;margin-top:.5rem">Click the link above to copy it</div>';
+      var linkEl = document.getElementById('sf-invite-link');
+      if(linkEl) linkEl.addEventListener('click', function(){ navigator.clipboard.writeText(this.textContent).then(function(){ alert('Copied!'); }); });
+      document.getElementById('sf-invite-send').textContent = 'Send another';
+      document.getElementById('sf-invite-email').value = '';
+    } catch(e) { alert('Error: ' + e.message); }
+  });
+}
+
 function sfStatCard(val, lbl) {
   return '<div style="background:#f5f0e8;border:1px solid rgba(26,26,24,.1);border-radius:8px;padding:1rem;text-align:center">'
     + '<div style="font-family:Georgia,serif;font-size:28px;font-weight:700">' + val + '</div>'
@@ -1766,7 +1807,10 @@ async function sfViewHorse(horseId, horseName) {
     var updates = await sfApiGet('/updates/' + horseId);
     var isTrainer = sfUser.role === 'trainer' || sfUser.role === 'admin';
     var html = '<button onclick="renderSFDashboard()" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1rem;display:flex;align-items:center;gap:4px">&#8592; Back</button>'
-      + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700;margin-bottom:1.5rem">' + horseName + '</div>';
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">'
+      + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700">' + horseName + '</div>'
+      + (isTrainer ? '<button id="sf-invite-btn" style="background:#c9a84c;color:#1a1a18;border:none;border-radius:8px;padding:.5rem 1rem;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">+ Invite owner</button>' : '')
+      + '</div>';
     if(isTrainer) {
       html += '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:10px;padding:1rem;margin-bottom:1rem">'
         + '<textarea id="sf-update-text" style="width:100%;padding:.75rem;border:1px solid rgba(26,26,24,.15);border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;min-height:80px;background:#f5f0e8;outline:none" placeholder="Post an update for owners..."></textarea>'
@@ -1793,6 +1837,8 @@ async function sfViewHorse(horseId, horseName) {
     el.innerHTML = html;
     var postBtn = document.getElementById('sf-post-btn');
     if(postBtn) postBtn.addEventListener('click', function(){ sfPostUpdate(horseId, horseName); });
+    var inviteBtn = document.getElementById('sf-invite-btn');
+    if(inviteBtn) inviteBtn.addEventListener('click', function(){ sfShowInviteForm(horseId, horseName); });
   } catch(e) {
     el.innerHTML = '<button onclick="renderSFDashboard()" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1rem">&#8592; Back</button>'
       + '<div style="text-align:center;padding:2rem;color:#a85c3a">Error: ' + e.message + '</div>';
