@@ -2469,11 +2469,17 @@ function sfFormatDate(iso) {
 })();
 
 // Close modals on overlay click
-document.getElementById('sf-login-modal').addEventListener('click', function(e) {
+var sfLoginModal = document.getElementById('sf-login-modal');
+if(sfLoginModal) sfLoginModal.addEventListener('click', function(e) {
   if(e.target === this) closeSFLogin();
 });
-document.getElementById('sf-dashboard-modal').addEventListener('click', function(e) {
+var sfDashModal = document.getElementById('sf-dashboard-modal');
+if(sfDashModal) sfDashModal.addEventListener('click', function(e) {
   if(e.target === this) closeSFDashboard();
+});
+var sfFaqModal = document.getElementById('faq-modal');
+if(sfFaqModal) sfFaqModal.addEventListener('click', function(e) {
+  if(e.target === this) closeFaq();
 });
 
 
