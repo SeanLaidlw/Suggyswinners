@@ -520,7 +520,9 @@ function renderResultsTable() {
     var rowClass=r.unplaced?' style="opacity:0.45"':'';
     return '<tr'+rowClass+'>'
       +'<td><span class="pos-badge '+pc+'">'+p+'</span></td>'
-      +'<td><span class="horse-link" data-name="'+(r.horse||'')+'" data-type="horse">'+( r.horse||'--')+'</span></td>'
+      +'<td style="white-space:nowrap"><span class="horse-link" data-name="'+(r.horse||'')+'" data-type="horse">'+( r.horse||'--')+'</span>'
+      +(sfUser?'<button class="bb-btn" data-horse="'+(r.horse||'')+'" title="Add to blackbook" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0 0 0 4px;opacity:'+(bbSet.has(r.horse)?'1':'0.3')+';color:'+(bbSet.has(r.horse)?'#c9a84c':'var(--text3)')+'" onclick="toggleBlackbook(this,event)">&#x1F516;</button>':'')
+      +'</td>'
       +'<td><span class="horse-link" data-name="'+(r.jockey||'')+'" data-type="jockey">'+( r.jockey||'--')+'</span></td>'
       +'<td class="r-hide" style="color:var(--text2);font-size:12px">'+(r.trainer||'--')+'</td>'
       +'<td style="color:var(--text2)">'+(r.track||'--')+'</td>'
@@ -2649,3 +2651,255 @@ function toggleFaq(qEl) {
   document.querySelectorAll('.faq-item.open').forEach(function(el){ el.classList.remove('open'); });
   if(!isOpen) item.classList.add('open');
 }
+
+// ---- REGISTRATION & BLACKBOOK ----
+var bbSet = new Set(); // horse names in blackbook
+var bbData = []; // full blackbook objects
+
+async function loadBlackbook() {
+  if(!sfToken) return;
+  try {
+    var data = await sfApiGet('/blackbook');
+    bbData = data;
+    bbSet = new Set(data.map(function(b){ return b.horse_name; }));
+    updateBBButtons();
+  } catch(e) {}
+}
+
+function updateBBButtons() {
+  document.querySelectorAll('.bb-btn').forEach(function(btn) {
+    var h = btn.dataset.horse;
+    var inBB = bbSet.has(h);
+    btn.style.opacity = inBB ? '1' : '0.3';
+    btn.style.color = inBB ? '#c9a84c' : 'var(--text3)';
+    btn.title = inBB ? 'Remove from blackbook' : 'Add to blackbook';
+  });
+}
+
+async function toggleBlackbook(btn, e) {
+  e.stopPropagation();
+  if(!sfUser) { openSFLogin(); return; }
+  var horse = btn.dataset.horse;
+  if(bbSet.has(horse)) {
+    try {
+      await fetch(SF_API + '/blackbook/' + encodeURIComponent(horse), {
+        method: 'DELETE',
+        headers: {'Authorization': 'Bearer ' + sfToken}
+      });
+      bbSet.delete(horse);
+      bbData = bbData.filter(function(b){ return b.horse_name !== horse; });
+      btn.style.opacity = '0.3';
+      btn.style.color = 'var(--text3)';
+      btn.title = 'Add to blackbook';
+      showToast('Removed from blackbook');
+    } catch(e) { alert('Error: ' + e.message); }
+  } else {
+    try {
+      await fetch(SF_API + '/blackbook', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Authorization':'Bearer '+sfToken},
+        body: JSON.stringify({horse_name: horse, racing_db_name: horse})
+      });
+      bbSet.add(horse);
+      bbData.push({horse_name: horse, racing_db_name: horse, notes: '', added_at: new Date().toISOString()});
+      btn.style.opacity = '1';
+      btn.style.color = '#c9a84c';
+      btn.title = 'Remove from blackbook';
+      showToast('Added to blackbook!');
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+}
+
+function showToast(msg) {
+  var t = document.getElementById('bb-toast');
+  if(!t) {
+    t = document.createElement('div');
+    t.id = 'bb-toast';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a18;color:#c9a84c;padding:.625rem 1.25rem;border-radius:20px;font-size:13px;font-weight:500;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2000);
+}
+
+// ---- BLACKBOOK PANEL ----
+async function sfShowBlackbook() {
+  var el = document.getElementById('sf-dashboard-content');
+  el.innerHTML = '<div style="text-align:center;padding:2rem;color:#8a857a">Loading...</div>';
+  document.getElementById('sf-dashboard-modal').style.display = 'flex';
+  await loadBlackbook();
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">'
+    + '<div style="font-family:Georgia,serif;font-size:20px;font-weight:700">Blackbook</div>'
+    + '<span style="font-size:13px;color:#8a857a">' + bbData.length + ' horse' + (bbData.length!==1?'s':'') + '</span>'
+    + '</div>';
+  if(bbData.length === 0) {
+    html += '<div style="text-align:center;padding:3rem;background:white;border-radius:12px;border:1px solid rgba(26,26,24,.1)">'
+      + '<div style="font-size:36px;margin-bottom:.75rem;opacity:.3">&#x1F516;</div>'
+      + '<div style="font-size:15px;font-weight:500;margin-bottom:.5rem">Your blackbook is empty</div>'
+      + '<div style="font-size:13px;color:#8a857a">Click the &#x1F516; bookmark icon next to any horse in the results to add them</div>'
+      + '</div>';
+  } else {
+    html += '<div style="background:white;border:1px solid rgba(26,26,24,.1);border-radius:12px;overflow:hidden">';
+    bbData.forEach(function(b, i) {
+      var lastRun = null;
+      var lastSF = null;
+      var lastPos = null;
+      // Find horse data in allResults
+      var horseRuns = allResults.filter(function(r){ return r.horse === b.racing_db_name || r.horse === b.horse_name; });
+      if(horseRuns.length) {
+        horseRuns.sort(function(a,c){ return (c.date||'').localeCompare(a.date||''); });
+        var last = horseRuns[0];
+        lastRun = last.date;
+        lastPos = last.finish_position;
+        lastSF = getSpeedFig(last.horse, last.date, last.distance_m);
+      }
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 1rem;'
+        + (i < bbData.length-1 ? 'border-bottom:1px solid rgba(26,26,24,.08)' : '') + '">'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:14px;font-weight:600;cursor:pointer;color:#1a1a18" data-bbhorse="'+b.racing_db_name+'" class="bb-profile-link">' + b.horse_name + '</div>'
+        + '<div style="font-size:12px;color:#8a857a;margin-top:2px">'
+        + (lastRun ? 'Last run: ' + lastRun : 'No runs found')
+        + (lastPos ? ' &bull; Pos: ' + lastPos : '')
+        + (lastSF ? ' &bull; SF: ' + lastSF : '')
+        + '</div>'
+        + (b.notes ? '<div style="font-size:12px;color:#6b6760;font-style:italic;margin-top:2px">' + b.notes + '</div>' : '')
+        + '</div>'
+        + '<div style="display:flex;gap:6px;flex-shrink:0">'
+        + '<button class="bb-note-btn" data-horse="'+b.horse_name+'" data-notes="'+(b.notes||'')+'" style="background:none;border:1px solid rgba(26,26,24,.15);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;color:#8a857a;font-family:inherit">Note</button>'
+        + '<button class="bb-remove-btn" data-horse="'+b.horse_name+'" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:16px;padding:2px 6px;opacity:.5">&#x2715;</button>'
+        + '</div></div>';
+    });
+    html += '</div>';
+  }
+  el.innerHTML = html;
+  // Profile links
+  el.querySelectorAll('.bb-profile-link').forEach(function(link) {
+    link.addEventListener('click', function() {
+      closeSFDashboard();
+      openProfile(this.dataset.bbhorse, 'horse');
+    });
+  });
+  // Remove buttons
+  el.querySelectorAll('.bb-remove-btn').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      var horse = this.dataset.horse;
+      await fetch(SF_API + '/blackbook/' + encodeURIComponent(horse), {
+        method: 'DELETE',
+        headers: {'Authorization': 'Bearer ' + sfToken}
+      });
+      bbSet.delete(horse);
+      bbData = bbData.filter(function(b){ return b.horse_name !== horse; });
+      updateBBButtons();
+      sfShowBlackbook();
+    });
+  });
+  // Note buttons
+  el.querySelectorAll('.bb-note-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      sfEditNote(this.dataset.horse, this.dataset.notes);
+    });
+  });
+}
+
+function sfEditNote(horseName, currentNote) {
+  var el = document.getElementById('sf-dashboard-content');
+  el.innerHTML = '<button id="bb-note-back" style="background:none;border:none;color:#8a857a;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:1.25rem">&#8592; Back to blackbook</button>'
+    + '<div style="font-family:Georgia,serif;font-size:18px;font-weight:700;margin-bottom:1.25rem">' + horseName + '</div>'
+    + '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:10px;padding:1rem">'
+    + '<div style="font-size:11px;font-weight:500;color:#8a857a;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">Your notes</div>'
+    + '<textarea id="bb-note-text" style="width:100%;padding:.75rem;border:1px solid rgba(26,26,24,.15);border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;min-height:100px;background:#f5f0e8;outline:none">' + (currentNote||'') + '</textarea>'
+    + '<div style="display:flex;justify-content:flex-end;margin-top:.875rem">'
+    + '<button id="bb-note-save" style="background:#1a1a18;color:#c9a84c;border:none;border-radius:8px;padding:.625rem 1.25rem;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Save note</button>'
+    + '</div></div>';
+  document.getElementById('bb-note-back').addEventListener('click', sfShowBlackbook);
+  document.getElementById('bb-note-save').addEventListener('click', async function() {
+    var notes = document.getElementById('bb-note-text').value.trim();
+    await fetch(SF_API + '/blackbook/' + encodeURIComponent(horseName), {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+sfToken},
+      body: JSON.stringify({horse_name: horseName, notes: notes})
+    });
+    var item = bbData.find(function(b){ return b.horse_name === horseName; });
+    if(item) item.notes = notes;
+    sfShowBlackbook();
+  });
+}
+
+// ---- PUBLIC REGISTRATION ----
+function openRegisterModal() {
+  var m = document.getElementById('sf-login-modal');
+  if(m) m.style.display = 'none';
+  var modal = document.getElementById('sf-register-modal');
+  if(modal) {
+    modal.style.display = 'flex';
+    document.getElementById('sf-reg-error').style.display = 'none';
+  }
+}
+
+function closeRegisterModal() {
+  var modal = document.getElementById('sf-register-modal');
+  if(modal) modal.style.display = 'none';
+}
+
+async function sfRegister() {
+  var name = document.getElementById('sf-reg-name').value.trim();
+  var email = document.getElementById('sf-reg-email').value.trim();
+  var pw = document.getElementById('sf-reg-pw').value;
+  var pw2 = document.getElementById('sf-reg-pw2').value;
+  var errEl = document.getElementById('sf-reg-error');
+  errEl.style.display = 'none';
+  if(!name || !email || !pw) {
+    errEl.textContent = 'Please fill in all fields.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(pw.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(pw !== pw2) {
+    errEl.textContent = 'Passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+  var btn = document.getElementById('sf-reg-btn');
+  btn.textContent = 'Creating account...';
+  btn.disabled = true;
+  try {
+    var res = await fetch(SF_API + '/auth/register', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({name: name, email: email, password: pw})
+    });
+    var data = await res.json();
+    if(!res.ok) throw new Error(data.detail || 'Registration failed');
+    sfToken = data.token;
+    sfUser = data;
+    localStorage.setItem('sf_token', data.token);
+    localStorage.setItem('sf_user', JSON.stringify(data));
+    closeRegisterModal();
+    updateSFNav();
+    loadBlackbook();
+    showToast('Welcome to StableForm, ' + name + '!');
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+    btn.textContent = 'Create account';
+    btn.disabled = false;
+  }
+}
+
+// Load blackbook after login
+var _origSfLogin = sfLogin;
+sfLogin = async function() {
+  await _origSfLogin();
+  if(sfToken) loadBlackbook();
+};
+
+// Load blackbook on page load if already logged in
+(function() {
+  if(sfToken) loadBlackbook();
+})();

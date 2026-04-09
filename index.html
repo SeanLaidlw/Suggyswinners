@@ -435,6 +435,7 @@ tr:hover td{background:var(--bg3)}
       <div class="sf-dropdown-divider"></div>
       <button class="sf-dropdown-item" onclick="sfNavigate('horses')">&#x1F40E; My horses</button>
       <button class="sf-dropdown-item" onclick="sfNavigate('feed')">&#x1F4F0; Updates feed</button>
+      <button class="sf-dropdown-item" onclick="sfShowBlackbook()">&#x1F516; Blackbook</button>
       <div class="sf-dropdown-divider"></div>
       <button class="sf-dropdown-item sf-dropdown-signout" onclick="sfLogout()">Sign out</button>
     </div>
@@ -710,6 +711,7 @@ tr:hover td{background:var(--bg3)}
       <input type="password" id="sf-password" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.07);color:#f5f0e8;font-size:15px;outline:none;font-family:inherit" placeholder="••••••••" onkeydown="if(event.key==='Enter')sfLogin()">
     </div>
     <button onclick="sfLogin()" style="width:100%;padding:.875rem;background:#c9a84c;color:#1a1a18;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Sign in to StableForm</button>
+    <div style="text-align:center;margin-top:1rem;font-size:13px;color:rgba(245,240,232,.4)">No account? <button onclick="openRegisterModal()" style="background:none;border:none;color:#c9a84c;cursor:pointer;font-size:13px;font-family:inherit;padding:0;text-decoration:underline">Create one free</button></div>
   </div>
 </div>
 
@@ -800,6 +802,35 @@ tr:hover td{background:var(--bg3)}
       <button class="faq-close-btn" onclick="closeFaq()">&#x2715;</button>
     </div>
     <div class="faq-modal-body" id="faq-body"></div>
+  </div>
+</div>
+
+
+<!-- REGISTER MODAL -->
+<div id="sf-register-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#1a1a18;border-radius:16px;padding:2.5rem;width:100%;max-width:400px;position:relative;margin:1rem">
+    <button onclick="closeRegisterModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer">&#x2715;</button>
+    <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#f5f0e8;margin-bottom:.25rem">Create account</div>
+    <div style="font-size:13px;color:rgba(245,240,232,.4);margin-bottom:1.5rem">Free access to your StableForm blackbook</div>
+    <div id="sf-reg-error" style="display:none;background:rgba(168,92,58,.2);color:#e8a882;border-radius:8px;padding:.75rem 1rem;font-size:13px;margin-bottom:1rem"></div>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:11px;color:rgba(245,240,232,.4);letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">Your name</div>
+      <input type="text" id="sf-reg-name" placeholder="First and last name" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.07);color:#f5f0e8;font-size:15px;outline:none;font-family:inherit">
+    </div>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:11px;color:rgba(245,240,232,.4);letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">Email</div>
+      <input type="email" id="sf-reg-email" placeholder="you@example.com" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.07);color:#f5f0e8;font-size:15px;outline:none;font-family:inherit">
+    </div>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:11px;color:rgba(245,240,232,.4);letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">Password</div>
+      <input type="password" id="sf-reg-pw" placeholder="Min 8 characters" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.07);color:#f5f0e8;font-size:15px;outline:none;font-family:inherit">
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <div style="font-size:11px;color:rgba(245,240,232,.4);letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem">Confirm password</div>
+      <input type="password" id="sf-reg-pw2" placeholder="Repeat password" onkeydown="if(event.key==='Enter')sfRegister()" style="width:100%;padding:.75rem 1rem;border:1px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.07);color:#f5f0e8;font-size:15px;outline:none;font-family:inherit">
+    </div>
+    <button id="sf-reg-btn" onclick="sfRegister()" style="width:100%;padding:.875rem;background:#c9a84c;color:#1a1a18;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Create account</button>
+    <div style="text-align:center;margin-top:1rem;font-size:13px;color:rgba(245,240,232,.4)">Already have an account? <button onclick="closeRegisterModal();openSFLogin()" style="background:none;border:none;color:#c9a84c;cursor:pointer;font-size:13px;font-family:inherit;padding:0;text-decoration:underline">Sign in</button></div>
   </div>
 </div>
 
