@@ -2406,30 +2406,52 @@ async function sfViewHorse(horseId, horseName) {
       + '</div>';
     if(isTrainer) {
       html += '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:10px;padding:1rem;margin-bottom:1rem">'
+        + '<div style="display:flex;gap:6px;margin-bottom:.75rem;flex-wrap:wrap">'
+        + '<button class="sf-type-tab active" data-type="note" style="font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid rgba(26,26,24,.2);cursor:pointer;background:#1a1a18;color:#c9a84c;font-family:inherit">Trackwork</button>'
+        + '<button class="sf-type-tab" data-type="trial" style="font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid rgba(26,26,24,.2);cursor:pointer;background:none;color:#6b6760;font-family:inherit">Trial</button>'
+        + '<button class="sf-type-tab" data-type="race" style="font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid rgba(26,26,24,.2);cursor:pointer;background:none;color:#6b6760;font-family:inherit">Race report</button>'
+        + '<button class="sf-type-tab" data-type="general" style="font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid rgba(26,26,24,.2);cursor:pointer;background:none;color:#6b6760;font-family:inherit">General</button>'
+        + '</div>'
         + '<textarea id="sf-update-text" style="width:100%;padding:.75rem;border:1px solid rgba(26,26,24,.15);border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;min-height:80px;background:#f5f0e8;outline:none" placeholder="Post an update for owners..."></textarea>'
-        + '<div style="display:flex;justify-content:flex-end;margin-top:.75rem">'
+        + '<div id="sf-media-preview" style="display:flex;flex-wrap:wrap"></div>'
+        + '<input type="file" id="sf-media-input" accept="image/*,video/mp4,video/quicktime" multiple style="display:none">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.75rem">'
+        + '<button id="sf-media-btn" style="background:none;border:1px solid rgba(26,26,24,.2);border-radius:8px;padding:.5rem .875rem;font-size:12px;cursor:pointer;font-family:inherit;color:#6b6760">+ Photo / video</button>'
         + '<button id="sf-post-btn" style="background:#1a1a18;color:#c9a84c;border:none;border-radius:8px;padding:.625rem 1.25rem;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Post update</button>'
         + '</div></div>';
     }
     if(updates.length === 0) {
       html += '<div style="text-align:center;padding:2rem;color:#8a857a">No updates yet</div>';
     } else {
+      var typeBg = {note:'#e8ede0',trial:'#f5ecd5',race:'#f5e8e0',general:'#efefef'};
+      var typeCol = {note:'#6b7c5c',trial:'#7a5c1a',race:'#a85c3a',general:'#8a857a'};
       html += updates.map(function(u){
-        return '<div style="background:white;border:1px solid rgba(26,26,24,.12);border-radius:10px;padding:1rem;margin-bottom:.75rem">'
-          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">'
+        return '<div style="background:white;border:1px solid rgba(26,26,24,.1);border-radius:12px;padding:1.125rem;margin-bottom:.75rem">'
+          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:.875rem">'
           + '<div style="width:30px;height:30px;border-radius:50%;background:#e8ede0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#6b7c5c;flex-shrink:0">'
           + u.trainer_name.split(' ').map(function(n){return n[0];}).join('').slice(0,2)
           + '</div><div><div style="font-size:13px;font-weight:500">' + u.trainer_name + '</div>'
           + '<div style="font-size:11px;color:#8a857a">' + sfFormatDate(u.created_at) + '</div></div>'
-          + '<span style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:20px;background:#e8ede0;color:#6b7c5c;font-weight:500">' + u.type + '</span>'
+          + '<span style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:20px;background:' + (typeBg[u.type]||'#efefef') + ';color:' + (typeCol[u.type]||'#8a857a') + ';font-weight:500">' + u.type + '</span>'
           + '</div>'
           + '<div style="font-size:14px;line-height:1.7">' + u.content + '</div>'
+          + (u.media && u.media.length ? sfRenderMediaDisplay(u.media) : '')
           + '</div>';
       }).join('');
     }
     el.innerHTML = html;
     var postBtn = document.getElementById('sf-post-btn');
     if(postBtn) postBtn.addEventListener('click', function(){ sfPostUpdate(horseId, horseName); });
+    sfInitMediaPicker(horseId);
+    el.querySelectorAll('.sf-type-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        el.querySelectorAll('.sf-type-tab').forEach(function(t){
+          t.style.background = 'none'; t.style.color = '#6b6760';
+        });
+        this.style.background = '#1a1a18'; this.style.color = '#c9a84c';
+        selectedType = this.dataset.type;
+      });
+    });
     var inviteBtn = document.getElementById('sf-invite-btn');
     if(inviteBtn) inviteBtn.addEventListener('click', function(){ sfShowInviteForm(horseId, horseName); });
   } catch(e) {
@@ -2439,197 +2461,191 @@ async function sfViewHorse(horseId, horseName) {
 }
 
 async function sfPostUpdate(horseId, horseName) {
-  var content = document.getElementById('sf-update-text').value.trim();
-  if(!content) return;
+  var txt = document.getElementById('sf-update-text').value.trim();
+  if(!txt) { alert('Please write an update before posting.'); return; }
+  var btn = document.getElementById('sf-post-btn');
+  if(btn) { btn.textContent = 'Posting...'; btn.disabled = true; }
   try {
-    await fetch(SF_API + '/updates', {
+    var res = await fetch(SF_API + '/updates', {
       method: 'POST',
       headers: {'Content-Type':'application/json','Authorization':'Bearer '+sfToken},
-      body: JSON.stringify({horse_id:horseId, type:'note', content:content})
+      body: JSON.stringify({horse_id: horseId, type: selectedType, content: txt})
     });
+    var data = await res.json();
+    if(!res.ok) throw new Error(data.detail || 'Error');
+    var updateId = data.update_id;
+    if(sfPendingMedia.length > 0 && updateId) {
+      for(var i=0; i<sfPendingMedia.length; i++) {
+        var m = sfPendingMedia[i];
+        await fetch(SF_API + '/media/attach', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json','Authorization':'Bearer '+sfToken},
+          body: JSON.stringify({update_id: updateId, storage_key: m.storage_key, type: m.type, size_bytes: 0})
+        });
+      }
+    }
+    sfPendingMedia = [];
     sfViewHorse(horseId, horseName);
-  } catch(e) { alert('Error: ' + e.message); }
+  } catch(e) {
+    alert('Error: ' + e.message);
+    if(btn) { btn.textContent = 'Post update'; btn.disabled = false; }
+  }
 }
 
-function sfFormatDate(iso) {
-  if(!iso) return '';
-  var d = new Date(iso);
-  var diff = Math.floor((new Date() - d) / 1000);
-  if(diff < 60) return 'just now';
-  if(diff < 3600) return Math.floor(diff/60) + 'm ago';
-  if(diff < 86400) return Math.floor(diff/3600) + 'h ago';
-  return d.toLocaleDateString('en-NZ', {day:'numeric',month:'short'});
-}
 
-// Restore SF session on load
+// ---- SAFE MODAL LISTENERS ----
 (function() {
+  var lm = document.getElementById('sf-login-modal');
+  if(lm) lm.addEventListener('click', function(e){ if(e.target===this) closeSFLogin(); });
+  var dm = document.getElementById('sf-dashboard-modal');
+  if(dm) dm.addEventListener('click', function(e){ if(e.target===this) closeSFDashboard(); });
+  var fm = document.getElementById('faq-modal');
+  if(fm) fm.addEventListener('click', function(e){ if(e.target===this) closeFaq(); });
+  // Restore SF session on load
   var t = localStorage.getItem('sf_token');
   var u = localStorage.getItem('sf_user');
   if(t && u) { sfToken = t; sfUser = JSON.parse(u); updateSFNav(); }
 })();
 
-// Close modals on overlay click
-var sfLoginModal = document.getElementById('sf-login-modal');
-if(sfLoginModal) sfLoginModal.addEventListener('click', function(e) {
-  if(e.target === this) closeSFLogin();
-});
-var sfDashModal = document.getElementById('sf-dashboard-modal');
-if(sfDashModal) sfDashModal.addEventListener('click', function(e) {
-  if(e.target === this) closeSFDashboard();
-});
-var sfFaqModal = document.getElementById('faq-modal');
-if(sfFaqModal) sfFaqModal.addEventListener('click', function(e) {
-  if(e.target === this) closeFaq();
-});
+// ---- MEDIA UPLOAD ----
+var sfPendingMedia = [];
 
+function sfInitMediaPicker(horseId) {
+  sfPendingMedia = [];
+  var btn = document.getElementById('sf-media-btn');
+  var input = document.getElementById('sf-media-input');
+  var preview = document.getElementById('sf-media-preview');
+  if(!btn || !input) return;
+  btn.addEventListener('click', function(){ input.click(); });
+  input.addEventListener('change', async function() {
+    var files = Array.from(this.files);
+    if(!files.length) return;
+    btn.textContent = 'Uploading...';
+    btn.disabled = true;
+    for(var i=0; i<files.length; i++) {
+      var file = files[i];
+      var formData = new FormData();
+      formData.append('file', file);
+      try {
+        var res = await fetch(SF_API + '/media/upload?horse_id=' + horseId, {
+          method: 'POST',
+          headers: {'Authorization': 'Bearer ' + sfToken},
+          body: formData
+        });
+        var data = await res.json();
+        if(!res.ok) throw new Error(data.detail || 'Upload failed');
+        sfPendingMedia.push(data);
+        sfRenderMediaPreview(preview);
+      } catch(e) { alert('Upload error: ' + e.message); }
+    }
+    btn.textContent = '+ Photo / video';
+    btn.disabled = false;
+    input.value = '';
+  });
+}
 
-// ---- FAQ MODAL ----
+function sfRenderMediaPreview(container) {
+  if(!container) return;
+  if(!sfPendingMedia.length) { container.innerHTML = ''; return; }
+  container.innerHTML = sfPendingMedia.map(function(m, i) {
+    return '<div style="position:relative;display:inline-block;margin-right:8px;margin-top:8px">'
+      + (m.type === 'photo'
+        ? '<img src="' + m.url + '" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid rgba(26,26,24,.15)">'
+        : '<div style="width:80px;height:60px;border-radius:6px;background:#1a1a18;display:flex;align-items:center;justify-content:center;font-size:22px">&#x1F3A5;</div>')
+      + '<button data-idx="' + i + '" class="sf-rm-media" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#c0392b;color:white;border:none;cursor:pointer;font-size:11px;line-height:1">&#x2715;</button>'
+      + '</div>';
+  }).join('');
+  container.querySelectorAll('.sf-rm-media').forEach(function(btn) {
+    btn.addEventListener('click', function(){ sfRemoveMedia(parseInt(this.dataset.idx)); });
+  });
+}
+
+function sfRemoveMedia(idx) {
+  sfPendingMedia.splice(idx, 1);
+  sfRenderMediaPreview(document.getElementById('sf-media-preview'));
+}
+
+function sfRenderMediaDisplay(mediaList) {
+  if(!mediaList || !mediaList.length) return '';
+  var html = '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:.875rem">';
+  mediaList.forEach(function(m) {
+    if(m.type === 'photo' || m.type_col === 'photo') {
+      html += '<a href="' + m.url + '" target="_blank">'
+        + '<img src="' + m.url + '" style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid rgba(26,26,24,.12);cursor:pointer">'
+        + '</a>';
+    } else {
+      html += '<video controls style="max-width:280px;max-height:180px;border-radius:8px;border:1px solid rgba(26,26,24,.12)">'
+        + '<source src="' + m.url + '">Your browser does not support video.</video>';
+    }
+  });
+  html += '</div>';
+  return html;
+}
+
+// ---- FAQ ----
 var faqContent = {
-  using: {
-    title: 'How to use StableForm',
-    sections: [
-      {
-        heading: 'Getting around',
-        items: [
-          {
-            q: 'How do I find a specific horse, jockey or trainer?',
-            a: 'Use the search box in the top navigation bar — just start typing a name and matching results will appear straight away. You can also use the Profile page to search and view a full career breakdown.'
-          },
-          {
-            q: 'How do I filter race results?',
-            a: 'Head to the Results page and use the filter bar at the top. You can narrow down by horse, jockey, trainer, track, going, race class, position and date range. All filters work together so you can get really specific.'
-          },
-          {
-            q: 'What is the Field Builder?',
-            a: 'The Field Builder lets you build a custom race field by searching and adding horses one by one. Once you have a field, StableForm shows each horse&#39;s speed figures, win rates, going preferences and a pace map so you can size up the race before it runs.'
-          },
-          {
-            q: 'How do Head to Head comparisons work?',
-            a: 'Go to the Head to Head page, enter two names (horses, jockeys or trainers) and hit Compare. You&#39;ll see a side-by-side breakdown of wins, places, win percentages and average finishing position across their careers.'
-          },
-          {
-            q: 'How do I filter results by track or going?',
-            a: 'On the Results page, use the Track and Going dropdowns in the filter bar. You can select any NZ track or going condition to see how runners have performed in those specific circumstances.'
-          }
-        ]
-      }
-    ]
-  },
-  data: {
-    title: 'Understanding the data',
-    sections: [
-      {
-        heading: 'Speed figures',
-        items: [
-          {
-            q: 'What is a speed figure?',
-            a: 'A speed figure is a number that represents how fast a horse ran in a race, adjusted for distance. A figure of 100 is considered par — the typical winning time for that track and distance. Figures above 100 are better than average, and figures below 100 are slower. The higher the number, the more impressive the performance.'
-          },
-          {
-            q: 'Why do some horses not have a speed figure?',
-            a: 'Speed figures are only calculated for horses that finish with a recorded time. Horses that were scratched, fell, or whose time wasn&#39;t recorded won&#39;t have a figure for that run.'
-          },
-          {
-            q: 'What do the coloured speed figure badges mean?',
-            a: 'Green badges (110+) indicate an exceptional run — well above par. Amber badges (100-109) are solid above-average performances. Grey badges are below-par runs. These colours make it easy to spot a horse&#39;s best and worst performances at a glance.'
-          }
-        ]
-      },
-      {
-        heading: 'Going & race classes',
-        items: [
-          {
-            q: 'What do the going ratings mean?',
-            a: 'Going describes the condition of the track surface. In NZ: Firm (very dry, fast), Good (ideal conditions), Soft (some moisture, slightly slower), Heavy (very wet, significantly slower). Most NZ racing takes place on Soft or Heavy going, which is why speed figures are adjusted for distance rather than going — the par times naturally absorb typical NZ conditions.'
-          },
-          {
-            q: 'How does the NZ race class system work?',
-            a: 'NZ races are graded from Group 1 (the highest level) down through Group 2, Group 3, Listed, Open, Benchmark (BM), and Maiden races. Benchmark races are the most common — the number after BM indicates the maximum rating to enter (e.g. BM65 means horses rated up to 65). Maiden races are for horses that have never won.'
-          },
-          {
-            q: 'What is the pace map?',
-            a: 'The pace map uses each horse&#39;s last 600 metre split time to predict where they&#39;ll sit in a race. Horses are classified as Leader (likely to be near the front), Presser (chasing the leader), Midfield, or Backmarker. This helps identify races where the pace might be too hot up front, or where a backmarker might benefit from a slow tempo.'
-          }
-        ]
-      }
-    ]
-  },
-  platform: {
-    title: 'Trainers & owners',
-    sections: [
-      {
-        heading: 'Getting started',
-        items: [
-          {
-            q: 'How does the trainer-owner platform work?',
-            a: 'StableForm includes a private communication platform for licensed trainers and their horse owners. Trainers can post updates, trial reports, race notes and photos for each horse — only the owners of that horse can see them. Owners can reply and send messages directly to their trainer.'
-          },
-          {
-            q: 'How do I get access as an owner?',
-            a: 'Access is by invitation only. Your trainer will send you a personalised invite link to your email address. Simply click the link, set your name and password, and you&#39;ll be taken straight to your horses. If you haven&#39;t received an invite, get in touch with your trainer or email us at admin@stableform.online.'
-          },
-          {
-            q: 'I&#39;m a trainer — how do I get set up?',
-            a: 'Trainer accounts are created by the StableForm admin team. Just send us an email at admin@stableform.online with your name, stable name and contact details and we&#39;ll have you set up quickly. Once you&#39;re in, you can add your horses and start inviting owners straight away.'
-          }
-        ]
-      },
-      {
-        heading: 'Using the platform',
-        items: [
-          {
-            q: 'How do I post an update for an owner?',
-            a: 'Sign in using the Sign in button in the top right corner. Once logged in, click your name to open the StableForm menu, then select My horses. Click on a horse, and you&#39;ll see a text box at the top where you can type a trackwork note, trial report, race report or general update. Hit Post update and all owners of that horse will be able to see it.'
-          },
-          {
-            q: 'Can owners see each other&#39;s messages?',
-            a: 'Messages sent through a horse&#39;s thread are visible to all owners of that horse and the trainer. Think of it as a group chat for each horse&#39;s ownership syndicate. If you need to send something private, use email directly.'
-          },
-          {
-            q: 'Is my information secure?',
-            a: 'Yes. The platform runs on a private server with SSL encryption (the padlock you see in your browser). Owner accounts are access-controlled — you can only see information about horses you own a share in. Trainer accounts are manually verified before being created.'
-          }
-        ]
-      }
-    ]
-  }
+  using: {sections:[{heading:'Getting around',items:[
+    {q:'How do I find a specific horse, jockey or trainer?',a:'Use the search box in the top navigation bar. Start typing a name and matching results appear straight away. The Profile page also lets you search and view a full career breakdown.'},
+    {q:'How do I filter race results?',a:'Head to the Results page and use the filter bar at the top. You can narrow down by horse, jockey, trainer, track, going, race class, position and date range. All filters work together.'},
+    {q:'What is the Field Builder?',a:'The Field Builder lets you build a custom race field by adding horses one by one. StableForm then shows speed figures, win rates, going preferences and a pace map to help you size up the race.'},
+    {q:'How do Head to Head comparisons work?',a:'Go to Head to Head, enter two names and click Compare. You get a side-by-side breakdown of wins, places and win percentages across their careers.'},
+    {q:'How do I filter by track or going?',a:'On the Results page, use the Track and Going dropdowns. Select any NZ track or going condition to see how runners have performed in those specific circumstances.'}
+  ]}]},
+  data: {sections:[
+    {heading:'Speed figures',items:[
+      {q:'What is a speed figure?',a:'A speed figure shows how fast a horse ran, adjusted for distance. A figure of 100 is par — the typical winning time for that track and distance. Above 100 is better than average, below 100 is slower.'},
+      {q:'Why do some horses not have a speed figure?',a:'Speed figures are only calculated for horses with a recorded finish time. Scratched runners or those without a recorded time will not have a figure for that run.'},
+      {q:'What do the coloured speed figure badges mean?',a:'Green badges (110+) indicate an exceptional run. Amber badges (100 to 109) are solid above-average performances. Grey badges are below par. These colours help you spot the best and worst runs at a glance.'}
+    ]},
+    {heading:'Going and race classes',items:[
+      {q:'What do the going ratings mean?',a:'Going describes the track surface. Firm is very dry and fast. Good is ideal conditions. Soft has some moisture and is slightly slower. Heavy is very wet and significantly slower. Most NZ racing takes place on Soft or Heavy going.'},
+      {q:'How does the NZ race class system work?',a:'Races are graded from Group 1 at the top down through Group 2, Group 3, Listed, Open, Benchmark and Maiden. Benchmark races are the most common — the number after BM is the maximum rating allowed to enter.'},
+      {q:'What is the pace map?',a:'The pace map uses each horse&#39;s last 600m split to predict where they will sit in a race. Horses are classified as Leader, Presser, Midfield or Backmarker. This helps identify races where the pace might suit certain runners.'}
+    ]}
+  ]},
+  platform: {sections:[
+    {heading:'Getting started',items:[
+      {q:'How does the trainer-owner platform work?',a:'StableForm includes a private communication area for trainers and their horse owners. Trainers post updates, trial reports and race notes for each horse — only the owners of that horse can see them. Owners can reply and message their trainer directly.'},
+      {q:'How do I get access as an owner?',a:'Access is by invitation only. Your trainer will send you a personalised invite link to your email address. Click the link, set your name and password, and you will be taken straight to your horses.'},
+      {q:'I am a trainer — how do I get set up?',a:'Send us an email at admin@stableform.online with your name, stable name and contact details and we will have you set up quickly. Once in, you can add your horses and start inviting owners straight away.'}
+    ]},
+    {heading:'Using the platform',items:[
+      {q:'How do I post an update for an owner?',a:'Sign in using the Sign in button in the top right corner. Click your name to open the menu, then select My horses. Click on a horse, choose the update type, write your note and hit Post update.'},
+      {q:'Can owners see each other&#39;s messages?',a:'Messages in a horse thread are visible to all owners of that horse and the trainer. Think of it as a group chat for each ownership syndicate. For private matters, use email directly.'},
+      {q:'Is my information secure?',a:'Yes. The platform uses SSL encryption and all accounts are access-controlled. You can only see information about horses you own a share in. Trainer accounts are manually verified before being created.'}
+    ]}
+  ]}
 };
 
 function openFaq(section) {
   var data = faqContent[section];
   if(!data) return;
   var body = document.getElementById('faq-body');
+  if(!body) return;
   var html = '';
   data.sections.forEach(function(sec) {
     html += '<div class="faq-section-title">' + sec.heading + '</div>';
     sec.items.forEach(function(item, i) {
-      html += '<div class="faq-item" id="faq-item-' + section + '-' + i + '">'
+      html += '<div class="faq-item">'
         + '<div class="faq-q" onclick="toggleFaq(this)">'
-        + item.q
-        + '<span class="faq-chevron">&#9660;</span>'
-        + '</div>'
+        + item.q + '<span class="faq-chevron">&#9660;</span></div>'
         + '<div class="faq-a">' + item.a + '</div>'
         + '</div>';
     });
   });
   body.innerHTML = html;
-  document.getElementById('faq-modal').classList.add('active');
+  var modal = document.getElementById('faq-modal');
+  if(modal) modal.classList.add('active');
 }
 
 function closeFaq() {
-  document.getElementById('faq-modal').classList.remove('active');
+  var modal = document.getElementById('faq-modal');
+  if(modal) modal.classList.remove('active');
 }
 
 function toggleFaq(qEl) {
   var item = qEl.closest('.faq-item');
   var isOpen = item.classList.contains('open');
-  // Close all
   document.querySelectorAll('.faq-item.open').forEach(function(el){ el.classList.remove('open'); });
-  // Open this one if it was closed
   if(!isOpen) item.classList.add('open');
 }
-
-// Close FAQ on overlay click
-document.getElementById('faq-modal').addEventListener('click', function(e) {
-  if(e.target === this) closeFaq();
-});
